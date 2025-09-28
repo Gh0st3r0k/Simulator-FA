@@ -5171,8 +5171,9 @@ var $author$project$Pages$Instructions$init = {};
 var $author$project$I18n$EN = 1;
 var $author$project$I18n$RU = 0;
 var $author$project$I18n$SK = 2;
+var $author$project$I18n$UA = 3;
 var $elm$core$String$toLower = _String_toLower;
-var $author$project$Main$langFromString = function (s) {
+var $author$project$I18n$langFromString = function (s) {
 	var _v0 = $elm$core$String$toLower(s);
 	switch (_v0) {
 		case 'sk':
@@ -5181,6 +5182,8 @@ var $author$project$Main$langFromString = function (s) {
 			return 0;
 		case 'en':
 			return 1;
+		case 'ua':
+			return 3;
 		default:
 			return 2;
 	}
@@ -5234,7 +5237,7 @@ var $author$project$Main$init = F3(
 				W: $elm$core$Maybe$Nothing,
 				N: $author$project$Pages$Instructions$init,
 				X: key,
-				b: $author$project$Main$langFromString(flags.b),
+				b: $author$project$I18n$langFromString(flags.b),
 				Q: $author$project$Route$parseHash(url.al),
 				a: $author$project$Main$themeFromString(flags.a),
 				af: url
@@ -5668,7 +5671,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							b: $author$project$Main$langFromString(s)
+							b: $author$project$I18n$langFromString(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 3:
@@ -5884,56 +5887,56 @@ var $author$project$I18n$t = F2(
 						var _v2 = _v0.b;
 						return 'Симулятор конечного автомата (Elm)';
 					case 1:
-						var _v7 = _v0.a;
-						var _v8 = _v0.b;
+						var _v9 = _v0.a;
+						var _v10 = _v0.b;
 						return 'Конечный автомат';
 					case 2:
-						var _v13 = _v0.a;
-						var _v14 = _v0.b;
+						var _v17 = _v0.a;
+						var _v18 = _v0.b;
 						return 'Инструкции';
 					case 3:
-						var _v19 = _v0.a;
-						var _v20 = _v0.b;
-						return 'О сайте';
-					case 4:
 						var _v25 = _v0.a;
 						var _v26 = _v0.b;
+						return 'О сайте';
+					case 4:
+						var _v33 = _v0.a;
+						var _v34 = _v0.b;
 						return 'Выберите раздел ниже';
 					case 5:
-						var _v31 = _v0.a;
-						var _v32 = _v0.b;
+						var _v41 = _v0.a;
+						var _v42 = _v0.b;
 						return 'Светлая';
 					case 6:
-						var _v37 = _v0.a;
-						var _v38 = _v0.b;
-						return 'Тёмная';
-					case 7:
-						var _v43 = _v0.a;
-						var _v44 = _v0.b;
-						return 'Язык';
-					case 8:
 						var _v49 = _v0.a;
 						var _v50 = _v0.b;
+						return 'Тёмная';
+					case 7:
+						var _v57 = _v0.a;
+						var _v58 = _v0.b;
+						return 'Язык';
+					case 8:
+						var _v65 = _v0.a;
+						var _v66 = _v0.b;
 						return '← На главную';
 					case 9:
-						var _v55 = _v0.a;
-						var _v56 = _v0.b;
+						var _v73 = _v0.a;
+						var _v74 = _v0.b;
 						return 'Инструкции по использованию';
 					case 10:
-						var _v61 = _v0.a;
-						var _v62 = _v0.b;
+						var _v81 = _v0.a;
+						var _v82 = _v0.b;
 						return A2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
 								['• Клик по пустому месту — добавить состояние.', '• Клик по состоянию — выделить; перетаскивайте для перемещения.', '• Двойной клик — переключить принимающее состояние.', '• Импорт/Экспорт JSON — справа.']));
 					case 11:
-						var _v67 = _v0.a;
-						var _v68 = _v0.b;
+						var _v89 = _v0.a;
+						var _v90 = _v0.b;
 						return 'О проекте';
 					default:
-						var _v73 = _v0.a;
-						var _v74 = _v0.b;
+						var _v97 = _v0.a;
+						var _v98 = _v0.b;
 						return 'Учебный проект для FIIT STU: визуальный редактор и симулятор конечных автоматов на Elm.';
 				}
 			case 1:
@@ -5943,116 +5946,175 @@ var $author$project$I18n$t = F2(
 						var _v4 = _v0.b;
 						return 'Finite Automaton Simulator (Elm)';
 					case 1:
-						var _v9 = _v0.a;
-						var _v10 = _v0.b;
+						var _v11 = _v0.a;
+						var _v12 = _v0.b;
 						return 'Automaton';
 					case 2:
-						var _v15 = _v0.a;
-						var _v16 = _v0.b;
+						var _v19 = _v0.a;
+						var _v20 = _v0.b;
 						return 'Instructions';
 					case 3:
-						var _v21 = _v0.a;
-						var _v22 = _v0.b;
-						return 'About';
-					case 4:
 						var _v27 = _v0.a;
 						var _v28 = _v0.b;
+						return 'About';
+					case 4:
+						var _v35 = _v0.a;
+						var _v36 = _v0.b;
 						return 'Choose a section below';
 					case 5:
-						var _v33 = _v0.a;
-						var _v34 = _v0.b;
+						var _v43 = _v0.a;
+						var _v44 = _v0.b;
 						return 'Light';
 					case 6:
-						var _v39 = _v0.a;
-						var _v40 = _v0.b;
-						return 'Dark';
-					case 7:
-						var _v45 = _v0.a;
-						var _v46 = _v0.b;
-						return 'Language';
-					case 8:
 						var _v51 = _v0.a;
 						var _v52 = _v0.b;
+						return 'Dark';
+					case 7:
+						var _v59 = _v0.a;
+						var _v60 = _v0.b;
+						return 'Language';
+					case 8:
+						var _v67 = _v0.a;
+						var _v68 = _v0.b;
 						return '← Home';
 					case 9:
-						var _v57 = _v0.a;
-						var _v58 = _v0.b;
+						var _v75 = _v0.a;
+						var _v76 = _v0.b;
 						return 'Usage Instructions';
 					case 10:
-						var _v63 = _v0.a;
-						var _v64 = _v0.b;
+						var _v83 = _v0.a;
+						var _v84 = _v0.b;
 						return A2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
 								['• Click empty space to create a state.', '• Click state to select; drag to move.', '• Double-click toggles accepting.', '• Import/Export JSON on the right.']));
 					case 11:
-						var _v69 = _v0.a;
-						var _v70 = _v0.b;
+						var _v91 = _v0.a;
+						var _v92 = _v0.b;
 						return 'About the Project';
 					default:
-						var _v75 = _v0.a;
-						var _v76 = _v0.b;
+						var _v99 = _v0.a;
+						var _v100 = _v0.b;
 						return 'Educational project: a visual editor and simulator for finite automata in Elm.';
 				}
-			default:
+			case 2:
 				switch (_v0.b) {
 					case 0:
 						var _v5 = _v0.a;
 						var _v6 = _v0.b;
 						return 'Simulátor konečného automatu (Elm)';
 					case 1:
-						var _v11 = _v0.a;
-						var _v12 = _v0.b;
+						var _v13 = _v0.a;
+						var _v14 = _v0.b;
 						return 'Automat';
 					case 2:
-						var _v17 = _v0.a;
-						var _v18 = _v0.b;
+						var _v21 = _v0.a;
+						var _v22 = _v0.b;
 						return 'Návod';
 					case 3:
-						var _v23 = _v0.a;
-						var _v24 = _v0.b;
-						return 'O projekte';
-					case 4:
 						var _v29 = _v0.a;
 						var _v30 = _v0.b;
+						return 'O projekte';
+					case 4:
+						var _v37 = _v0.a;
+						var _v38 = _v0.b;
 						return 'Vyberte sekciu nižšie';
 					case 5:
-						var _v35 = _v0.a;
-						var _v36 = _v0.b;
+						var _v45 = _v0.a;
+						var _v46 = _v0.b;
 						return 'Svetlá';
 					case 6:
-						var _v41 = _v0.a;
-						var _v42 = _v0.b;
-						return 'Tmavá';
-					case 7:
-						var _v47 = _v0.a;
-						var _v48 = _v0.b;
-						return 'Jazyk';
-					case 8:
 						var _v53 = _v0.a;
 						var _v54 = _v0.b;
+						return 'Tmavá';
+					case 7:
+						var _v61 = _v0.a;
+						var _v62 = _v0.b;
+						return 'Jazyk';
+					case 8:
+						var _v69 = _v0.a;
+						var _v70 = _v0.b;
 						return '← Domov';
 					case 9:
-						var _v59 = _v0.a;
-						var _v60 = _v0.b;
+						var _v77 = _v0.a;
+						var _v78 = _v0.b;
 						return 'Návod na použitie';
 					case 10:
-						var _v65 = _v0.a;
-						var _v66 = _v0.b;
+						var _v85 = _v0.a;
+						var _v86 = _v0.b;
 						return A2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
 								['• Kliknutie na prázdne miesto pridá stav.', '• Kliknutie na stav ho vyberie; potiahnutím ho presuniete.', '• Dvojklik prepína akceptujúci stav.', '• Import/Export JSON vpravo.']));
 					case 11:
-						var _v71 = _v0.a;
-						var _v72 = _v0.b;
+						var _v93 = _v0.a;
+						var _v94 = _v0.b;
 						return 'O projekte';
 					default:
-						var _v77 = _v0.a;
-						var _v78 = _v0.b;
+						var _v101 = _v0.a;
+						var _v102 = _v0.b;
 						return 'Vzdelávací projekt: vizuálny editor a simulátor konečných automatov v Elme.';
+				}
+			default:
+				switch (_v0.b) {
+					case 0:
+						var _v7 = _v0.a;
+						var _v8 = _v0.b;
+						return 'Симулятор кінцевого автомата (Elm)';
+					case 1:
+						var _v15 = _v0.a;
+						var _v16 = _v0.b;
+						return 'Кінцевий автомат';
+					case 2:
+						var _v23 = _v0.a;
+						var _v24 = _v0.b;
+						return 'Інструкції';
+					case 3:
+						var _v31 = _v0.a;
+						var _v32 = _v0.b;
+						return 'Про сайт';
+					case 4:
+						var _v39 = _v0.a;
+						var _v40 = _v0.b;
+						return 'Оберіть розділ нижче';
+					case 5:
+						var _v47 = _v0.a;
+						var _v48 = _v0.b;
+						return 'Світла';
+					case 6:
+						var _v55 = _v0.a;
+						var _v56 = _v0.b;
+						return 'Темна';
+					case 7:
+						var _v63 = _v0.a;
+						var _v64 = _v0.b;
+						return 'Мова';
+					case 8:
+						var _v71 = _v0.a;
+						var _v72 = _v0.b;
+						return '← На головну';
+					case 9:
+						var _v79 = _v0.a;
+						var _v80 = _v0.b;
+						return 'Інструкції з використання';
+					case 10:
+						var _v87 = _v0.a;
+						var _v88 = _v0.b;
+						return A2(
+							$elm$core$String$join,
+							'\n',
+							_List_fromArray(
+								['• Клік по порожньому місцю — додати стан.', '• Клік по стану — виділити; перетягуйте для переміщення.', '• Подвійний клік — переключити приймаючий стан.', '• Імпорт/Експорт JSON — справа.']));
+					case 11:
+						var _v95 = _v0.a;
+						var _v96 = _v0.b;
+						return 'Про проект';
+					default:
+						var _v103 = _v0.a;
+						var _v104 = _v0.b;
+						return 'Навчальний проєкт для FIIT STU: візуальний редактор і симулятор кінцевих автоматів на Elm.';
 				}
 		}
 	});
@@ -6131,8 +6193,10 @@ var $author$project$I18n$langToString = function (l) {
 			return 'sk';
 		case 1:
 			return 'en';
-		default:
+		case 0:
 			return 'ru';
+		default:
+			return 'ua';
 	}
 };
 var $elm$html$Html$Events$alwaysStop = function (x) {
@@ -6242,6 +6306,16 @@ var $author$project$Main$topBar = function (model) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('RU')
+							])),
+						A2(
+						$elm$html$Html$option,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$value('ua')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('UA')
 							]))
 					])),
 				A2(

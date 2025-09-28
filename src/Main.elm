@@ -73,13 +73,7 @@ init flags url key =
     )
 
 
-langFromString : String -> Lang
-langFromString s =
-    case String.toLower s of
-        "sk" -> SK
-        "ru" -> RU
-        "en" -> EN
-        _ -> SK
+
 
 themeFromString : String -> Theme
 themeFromString s =
@@ -186,6 +180,7 @@ topBar model =
                 [ option [ HA.value "sk" ] [ text "SK" ]
                 , option [ HA.value "en" ] [ text "EN" ]
                 , option [ HA.value "ru" ] [ text "RU" ]
+                , option [ HA.value "ua" ] [ text "UA" ]
                 ]
 
               -- кнопка темы
