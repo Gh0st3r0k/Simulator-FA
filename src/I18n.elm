@@ -1,4 +1,6 @@
-module I18n exposing (Lang(..), Key(..), t, toggleLang)
+module I18n exposing (Lang(..), Key(..), t, toggleLang, langFromString, langToString)
+import String exposing (toLower)
+
 
 type Lang
     = RU
@@ -11,6 +13,22 @@ toggleLang lang =
         SK -> EN
         EN -> RU
         RU -> SK
+
+langToString : Lang -> String
+langToString l =
+    case l of
+        SK -> "sk"
+        EN -> "en"
+        RU -> "ru"
+
+langFromString : String -> Lang
+langFromString s =
+    case toLower s of
+        "sk" -> SK
+        "ru" -> RU
+        "en" -> EN
+        _ -> SK
+
 
 type Key
     = AppTitle
