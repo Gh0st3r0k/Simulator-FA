@@ -1,15 +1,63 @@
 <!doctype html>
-<html>
+<html lang="sk" data-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Elm FA SPA</title>
+    <link rel="icon" href="icon.png" type="image/x-icon">
+    <meta name="theme-color" content="#0b0f14">
+    <style>
+      :root {
+        --bg-dark: #0b0f14;
+        --fg-dark: #e5e7eb;
+
+        --bg-light: #f9fafb;
+        --fg-light: #111827;
+      }
+
+      html[data-theme="dark"] body {
+        background-color: var(--bg-dark);
+        color: var(--fg-dark);
+      }
+
+      html[data-theme="light"] body {
+        background-color: var(--bg-light);
+        color: var(--fg-light);
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <script>
+      (function () {
+        try {
+          const ls = window.localStorage;
+          let lang  = ls.getItem("lang")  || "sk";
+          let theme = ls.getItem("theme") || "dark";
+
+          document.documentElement.lang = lang;
+          document.documentElement.setAttribute("data-theme", theme);
+
+          const metaTheme = document.querySelector('meta[name="theme-color"]');
+          if (metaTheme) {
+            metaTheme.setAttribute("content", theme === "dark" ? "#0b0f14" : "#f9fafb");
+          }
+
+          window.__APP_FLAGS__ = { lang, theme };
+        } catch (e) {
+          window.__APP_FLAGS__ = { lang: "sk", theme: "dark" };
+        }
+      })();
+    </script>
   </head>
   <body>
     <script src="main.js"></script>
     <script>
-      if (!location.hash) location.hash = "#/"; // дефолтный роут
-      Elm.Main.init({ flags: null });           // без node — монтируется в <body>
+      if (!location.hash) location.hash = "#/";
+      Elm.Main.init({ flags: window.__APP_FLAGS__ });
     </script>
   </body>
 </html>

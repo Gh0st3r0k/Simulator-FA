@@ -39,7 +39,11 @@ type Msg
     | AboutMsg About.Msg
 
 
-main : Program () Model Msg
+type alias Flags =
+    { lang : String
+    , theme : String
+    }
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -51,19 +55,35 @@ main =
         }
 
 
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
+init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
     ( { key = key
       , url = url
       , route = Route.parseHash url.fragment
-      , lang = RU
-      , theme = Light
+      , lang = langFromString flags.lang
+      , theme = themeFromString flags.theme
       , editor = Editor.init
       , instructions = Instructions.init
       , about = About.init
       }
     , Cmd.none
     )
+
+
+langFromString : String -> Lang
+langFromString s =
+    case String.toLower s of
+        "sk" -> SK
+        "ru" -> RU
+        "en" -> EN
+        _ -> SK
+
+themeFromString : String -> Theme
+themeFromString s =
+    case String.toLower s of
+        "dark" -> Dark
+        "light" -> Light
+        _ -> Dark
 
 
 -- UPDATE
@@ -149,9 +169,10 @@ topBar model =
         [ h1 [] [ text (t model.lang AppTitle) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px" ]
             [ button [ onClick ToggleLang ]
-                [ text (case model.lang of 
-                            RU -> "RU/EN"
-                            EN -> "EN/RU"
+                [ text (case model.lang of
+                            SK -> "SK/EN/RU" 
+                            EN -> "EN/RU/SK"
+                            RU -> "RU/SK/EN"
                         )
                 ]
             , button [ onClick ToggleTheme ]
