@@ -2,13 +2,41 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
+import Browser.Events
+import Browser.Dom as Dom
+import Task
 import Html as H exposing (Html, button, div, h1, h2, text, select, option)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Url
 import Route exposing (Route(..))
 import I18n exposing (Lang(..), Key(..), t, toggleLang, langFromString, langToString)
-import Theme exposing (Theme(..), toggle, bgColor, textColor, panelBg, panelBorder)
+import Theme
+    exposing
+        ( Theme(..)
+        , toggle
+        , bgColor
+        , textColor
+        , panelBg
+        , panelBorder
+        , interactiveBg
+        , interactiveBorder
+        , hoverBg
+        , hoverBorder
+        , focusOutline
+        , hoverShadow
+        )
+import Design
+    exposing
+        ( Scale(..)
+        , Size(..)
+        , Tokens
+        , tokens
+        , control
+        , card
+        , borderFor
+        , px
+        )
 import Pages.Editor as Editor
 import Pages.Instructions as Instructions
 import Pages.About as About
@@ -22,10 +50,13 @@ type alias Model =
     , route : Route
     , lang : Lang
     , theme : Theme
+    , scale : Scale
     , editor : Editor.Model
     , instructions : Instructions.Model
     , about : About.Model
     , hover : Maybe Route
+    , vpW : Int
+    , vpH : Int
     }
 
 
@@ -39,6 +70,10 @@ type Msg
     | EditorMsg Editor.Msg
     | InstructionsMsg Instructions.Msg
     | AboutMsg About.Msg
+    | ViewportChanged Int Int
+    | GotViewport (Result Dom.Error Dom.Viewport)
+
+
 
 
 type alias Flags =
@@ -64,13 +99,17 @@ init flags url key =
       , route = Route.parseHash url.fragment
       , lang = langFromString flags.lang
       , theme = themeFromString flags.theme
+      , scale = Large
       , editor = Editor.init
       , instructions = Instructions.init
       , about = About.init
       , hover = Nothing
+      , vpW = 1200
+      , vpH = 800
       }
-    , Cmd.none
+    , Task.attempt GotViewport Dom.getViewport
     )
+
 
 
 
@@ -123,11 +162,27 @@ update msg model =
         AboutMsg sub ->
             let (subModel, subCmd) = About.update sub model.about
             in ( { model | about = subModel }, Cmd.map AboutMsg subCmd )
+        
+        ViewportChanged w h ->
+            ( { model | vpW = w, vpH = h }, Cmd.none )
+
+        GotViewport (Ok vp) ->
+            let
+                w = round vp.viewport.width
+                h = round vp.viewport.height
+            in
+            ( { model | vpW = w, vpH = h }, Cmd.none )
+
+        GotViewport (Err _) ->
+            ( model, Cmd.none )
+
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Browser.Events.onResize ViewportChanged
+
+
 
 
 
@@ -136,22 +191,41 @@ subscriptions _ =
 
 view : Model -> Browser.Document Msg
 view model =
+    let
+        tk = tokens model.scale
+    in
     { title = t model.lang AppTitle
     , body =
         [ div
             [ HA.style "background" (bgColor model.theme)
             , HA.style "color" (textColor model.theme)
-            , HA.style "min-height" "100vh"
+            , HA.style "min-height" "100dvh"
+            , HA.style "box-sizing" "border-box"
+            , HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
             , HA.style "margin" "0"
-            , HA.style "padding" "16px"
+            , HA.style "padding" (px tk.spacing.l)   -- было "16px"
             , HA.style "font-family" "Inter, Segoe UI, Arial, sans-serif"
             ]
             [ topBar model
             , case model.route of
-                Home -> homeView model
-                Editor -> H.map EditorMsg (Editor.view { lang = model.lang, theme = model.theme } model.editor)
-                Instructions -> H.map InstructionsMsg (Instructions.view { lang = model.lang, theme = model.theme } model.instructions)
-                About -> H.map AboutMsg (About.view { lang = model.lang, theme = model.theme } model.about)
+                Home ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "justify-content" "center"
+                        ]
+                        [ homeView model ]
+
+                Editor ->
+                    H.map EditorMsg (Editor.view { lang = model.lang, theme = model.theme } model.editor)
+
+                Instructions ->
+                    H.map InstructionsMsg (Instructions.view { lang = model.lang, theme = model.theme } model.instructions)
+
+                About ->
+                    H.map AboutMsg (About.view { lang = model.lang, theme = model.theme } model.about)
             ]
         ]
     }
@@ -160,22 +234,59 @@ view model =
 topBar : Model -> Html Msg
 topBar model =
     let
+        tk = tokens model.scale
+        w = model.vpW
+        onHome = model.route == Home
+
+        c = control tk.defaults.control tk
+
+        -- адаптивный min-width
+        minW : Int
+        minW =
+            let
+                kChars = tk.controlMinChars
+                fromPadding = kChars * c.padH
+                fromFont    = kChars * tk.font.base
+            in
+            if fromPadding > fromFont then fromPadding else fromFont
+
         baseControlStyles =
-            [ HA.style "height" "36px"
-            , HA.style "min-width" "80px"
-            , HA.style "padding" "6px 12px"
-            , HA.style "border-radius" "8px"
-            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
-            , HA.style "background" (panelBg model.theme)
+            [ HA.style "height" (px c.height)
+            , HA.style "min-width" (px minW)
+            , HA.style "padding" (px c.padV ++ " " ++ px c.padH)
+            , HA.style "border-radius" (px tk.radius.s)
+            , HA.style "border" (px (borderFor tk.border.default tk) ++ " solid " ++ interactiveBorder model.theme)
+            , HA.style "background" (interactiveBg model.theme)
             , HA.style "color" (textColor model.theme)
-            , HA.style "font-size" "14px"
-            , HA.style "line-height" "1.2"
+            , HA.style "font-size" (px tk.font.base)
+            , HA.style "line-height" tk.line.base
+            , HA.style "transition"
+                ("background " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+                 ++ ", border-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+                 ++ ", box-shadow "   ++ tk.motion.primary ++ " " ++ tk.motion.easing
+                 ++ ", outline-color "++ tk.motion.primary ++ " " ++ tk.motion.easing
+                )
             ]
 
-        controls : List (Html Msg)
-        controls =
-            [ -- селект языка
-              select
+        -- метка «домой» через I18n и брейкпоинты
+        homeLabel : String
+        homeLabel =
+            if w < 500 then
+                t model.lang BackHomeIconText   -- вторая строка: стрелка + текст
+            else if w < 760 then
+                t model.lang BackHomeIcon       -- в одну строку: только стрелка
+            else
+                t model.lang BackHomeIconText       -- в одну строку: только текст
+
+
+        -- отдельные «вьюшки»
+        viewHome : Html Msg
+        viewHome =
+            button (onClick (GoTo Home) :: baseControlStyles) [ text homeLabel ]
+
+        viewLang : Html Msg
+        viewLang =
+            select
                 (onInput SetLang :: HA.value (langToString model.lang) :: baseControlStyles)
                 [ option [ HA.value "sk" ] [ text "SK" ]
                 , option [ HA.value "en" ] [ text "EN" ]
@@ -183,39 +294,76 @@ topBar model =
                 , option [ HA.value "ua" ] [ text "UA" ]
                 ]
 
-              -- кнопка темы
-            , button
-                (onClick ToggleTheme :: baseControlStyles)
+        viewTheme : Html Msg
+        viewTheme =
+            button (onClick ToggleTheme :: baseControlStyles)
                 [ text <|
                     case model.theme of
                         Light -> t model.lang ThemeDark
                         Dark  -> t model.lang ThemeLight
-                  ]
+                ]
+
+        -- правая часть: всегда справа; при <500 две строки
+        rightContainerAttrs : List (H.Attribute Msg)
+        rightContainerAttrs =
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" (if w < 500 then "column" else "row")
+            , HA.style "gap" (px tk.spacing.s)
+            , HA.style "align-items" (if w < 500 then "flex-end" else "center")
+            , HA.style "justify-content" "flex-end"
             ]
-            ++ (if model.route /= Home then
-                    -- кнопка "Домой" появляется только НЕ на главной
-                    [ button
-                        (onClick (GoTo Home) :: baseControlStyles)
-                        [ text (t model.lang BackHome) ]
-                    ]
-                else
-                    []
-               )
+
+        -- первая строка справа: Язык + Тема (+ Домой только если >=500)
+        firstRowRight : List (Html Msg)
+        firstRowRight =
+            if w < 500 then
+                [ viewLang, viewTheme ]
+            else
+                (if onHome then [] else [ viewHome ]) ++ [ viewLang, viewTheme ]
+
+        -- вторая строка справа: Домой ТОЛЬКО если <500 и не на главной
+        secondRowRight : List (Html Msg)
+        secondRowRight =
+            if (w < 500) && (not onHome) then
+                [ viewHome ]
+            else
+                []
+
     in
     div
         [ HA.style "display" "flex"
         , HA.style "justify-content" "space-between"
-        , HA.style "align-items" "center"
-        , HA.style "gap" "12px"
-        , HA.style "margin-bottom" "16px"
+        , HA.style "align-items" "flex-start"
+        , HA.style "gap" (px tk.spacing.s)
+        , HA.style "margin-bottom" (px tk.spacing.s)
         ]
-        [ h1 [] [ text (t model.lang AppTitle) ]
-        , div
-            [ HA.style "display" "flex"
-            , HA.style "gap" "8px"
-            , HA.style "align-items" "center"
+        [ -- слева: заголовок
+          h1
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.font.h1)
             ]
-            controls
+            [ text (t model.lang AppTitle) ]
+
+          -- справа: кнопки (1 или 2 строки), ВСЕГДА прижаты вправо
+        , div rightContainerAttrs <|
+            div
+                [ HA.style "display" "flex"
+                , HA.style "gap" (px tk.spacing.s)
+                , HA.style "justify-content" "flex-end"
+                , HA.style "align-items" "center"
+                ]
+                firstRowRight
+            :: (if List.isEmpty secondRowRight then
+                    []
+                else
+                    [ div
+                        [ HA.style "display" "flex"
+                        , HA.style "gap" (px tk.spacing.s)
+                        , HA.style "justify-content" "flex-end"
+                        ]
+                        secondRowRight
+                    ]
+            )
         ]
 
 
@@ -225,20 +373,26 @@ topBar model =
 
 homeView : Model -> Html Msg
 homeView model =
+    let
+        tk = tokens model.scale
+    in
     div
-        [ HA.style "min-height" "calc(100vh - 120px)"
-        , HA.style "display" "flex"
+        [ HA.style "display" "flex"
         , HA.style "flex-direction" "column"
-        , HA.style "justify-content" "center"
         , HA.style "align-items" "center"
-        , HA.style "gap" "24px"
+        , HA.style "gap" (px tk.spacing.m)
         ]
-        [ h2 [] [ text (t model.lang Greeting) ]
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.font.h2)
+            ]
+            [ text (t model.lang Greeting) ]
         , div
             [ HA.style "display" "flex"
             , HA.style "flex-direction" "column"
-            , HA.style "gap" "16px"
-            , HA.style "width" "min(420px, 100%)"
+            , HA.style "gap" (px tk.spacing.m)
+            , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
+            , HA.style "padding" ("0 " ++ px tk.spacing.s)
             ]
             [ menuCard model (t model.lang MenuEditor) Editor
             , menuCard model (t model.lang MenuInstructions) Instructions
@@ -248,51 +402,79 @@ homeView model =
 
 
 
+
+
 menuCard : Model -> String -> Route -> Html Msg
 menuCard model label routeTarget =
     let
+        tk = tokens model.scale
+        k  = card tk.defaults.card tk   -- ← CardSpec для карточек (S / M / L)
+
         isHovered =
             model.hover == Just routeTarget
 
-        ( bg, borderC, shadow ) =
+        bg =
             if isHovered then
-                case model.theme of
-                    Light ->
-                        -- заметнее в светлой теме
-                        ( "#e8eefc"     -- был #f2f5ff → стало ярче
-                        , "#7aa2ff"     -- рамка контрастнее
-                        , "0 6px 18px rgba(0,0,0,0.12)"
-                        )
-
-                    Dark ->
-                        ( "#2a2f3a"
-                        , panelBorder model.theme
-                        , "0 6px 18px rgba(0,0,0,0.35)"
-                        )
+                hoverBg model.theme
             else
-                ( panelBg model.theme
-                , panelBorder model.theme
-                , "none"
-                )
+                panelBg model.theme
+
+        borderC =
+            if isHovered then
+                hoverBorder model.theme
+            else
+                panelBorder model.theme
+
+        shadow =
+            if isHovered then
+                hoverShadow model.theme
+            else
+                "none"
+
+        outlineStyle =
+            if isHovered then
+                [ HA.style "outline" (px tk.outline.width ++ " solid " ++ focusOutline model.theme)
+                , HA.style "outline-offset" (px tk.spacing.xs)
+                ]
+            else
+                [ HA.style "outline" (px tk.outline.width ++ " solid transparent")
+                , HA.style "outline-offset" (px tk.spacing.xs)
+                ]
+
     in
     div
-        [ onClick (GoTo routeTarget)
-        , onMouseEnter (SetHover (Just routeTarget))
-        , onMouseLeave (SetHover Nothing)
-        , HA.style "background" bg
-        , HA.style "border" ("1px solid " ++ borderC)
-        , HA.style "padding" "20px"
-        , HA.style "border-radius" "14px"
-        , HA.style "cursor" "pointer"
-        , HA.style "user-select" "none"
-        , HA.style "display" "flex"
-        , HA.style "justify-content" "center"
-        , HA.style "align-items" "center"
-        , HA.style "height" "64px"
-        , HA.style "box-shadow" shadow
-        , HA.style "transition" "background 120ms ease, box-shadow 120ms ease, border-color 120ms ease"
-        , HA.attribute "role" "button"
-        , HA.tabindex 0
+        ([ onClick (GoTo routeTarget)
+         , onMouseEnter (SetHover (Just routeTarget))
+         , onMouseLeave (SetHover Nothing)
+         , HA.style "background" bg
+         , HA.style "border"
+             (px (borderFor tk.border.default tk) ++ " solid " ++ borderC)
+         , HA.style "padding" (px k.padding)     -- ← токен
+         , HA.style "border-radius" (px k.radius)
+         , HA.style "cursor" "pointer"
+         , HA.style "user-select" "none"
+         , HA.style "display" "flex"
+         , HA.style "justify-content" "center"
+         , HA.style "align-items" "center"
+         , HA.style "height" (px k.height)
+         , HA.style "box-shadow" shadow
+         , HA.style "transition"
+            ("background " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", box-shadow " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", border-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", outline-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", outline " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            )
+         , HA.attribute "role" "button"
+         , HA.tabindex 0
+         ]
+            ++ outlineStyle
+        )
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.component.menuCardTitle)
+            ]
+            [ text label ]
         ]
-        [ h2 [ HA.style "margin" "0" ] [ text label ] ]
+
 

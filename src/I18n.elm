@@ -48,6 +48,10 @@ type Key
     | InstructionsBody
     | AboutTitle
     | AboutBody
+    | BackHomeIcon
+    | BackHomeText
+    | BackHomeIconText
+
 
 t : Lang -> Key -> String
 t lang key =
@@ -143,3 +147,18 @@ t lang key =
         ( EN, AboutBody ) -> "Educational project: a visual editor and simulator for finite automata in Elm."
         ( SK, AboutBody ) -> "Vzdelávací projekt: vizuálny editor a simulátor konečných automatov v Elme."
         ( UA, AboutBody ) -> "Навчальний проєкт для FIIT STU: візуальний редактор і симулятор кінцевих автоматів на Elm."
+
+        ( RU, BackHomeIcon  ) -> "←"
+        ( EN, BackHomeIcon  ) -> "←"
+        ( SK, BackHomeIcon  ) -> "←"
+        ( UA, BackHomeIcon  ) -> "←"
+
+        ( RU, BackHomeText  ) -> "На главную"
+        ( EN, BackHomeText  ) -> "Home"
+        ( SK, BackHomeText  ) -> "Domov"
+        ( UA, BackHomeText  ) -> "На головну"
+
+        ( RU, BackHomeIconText  ) -> "← На главную"
+        ( EN, BackHomeIconText  ) -> "← Home"
+        ( SK, BackHomeIconText  ) -> "← Domov"
+        ( UA, BackHomeIconText  ) -> "← На головну"
