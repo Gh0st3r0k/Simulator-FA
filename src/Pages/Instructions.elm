@@ -27,7 +27,8 @@ update _ model =
 view : { lang : Lang, theme : Theme } -> Model -> Html Msg
 view ctx _ =
     div
-        [ HA.style "background" (panelBg ctx.theme)
+        [ class "responsive-block"
+        , HA.style "background" (panelBg ctx.theme)
         , HA.style "color" (textColor ctx.theme)
         , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
         , HA.style "padding" "16px"

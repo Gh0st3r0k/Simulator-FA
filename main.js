@@ -7249,6 +7249,7 @@ var $author$project$Main$topBar = function (model) {
 };
 var $author$project$I18n$AboutBody = 12;
 var $author$project$I18n$AboutTitle = 11;
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $author$project$Pages$About$view = F2(
 	function (ctx, _v0) {
@@ -7256,6 +7257,7 @@ var $author$project$Pages$About$view = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
+					$elm$html$Html$Attributes$class('responsive-block'),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
@@ -7780,6 +7782,7 @@ var $author$project$Pages$Instructions$view = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
+					$elm$html$Html$Attributes$class('responsive-block'),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
