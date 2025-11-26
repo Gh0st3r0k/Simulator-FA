@@ -1,23 +1,30 @@
 # Elm Finite Automaton Simulator
 
-## Как запустить
-1. Установи Elm 0.19.1: https://guide.elm-lang.org/install/elm.html
-2. В терминале:
+Interactive editor for building and exporting finite automata in Elm.
 
+## How to run
+1. Install Elm 0.19.1: https://guide.elm-lang.org/install/elm.html
+2. From the project root, you can either build or run the live dev server:
+
+### Build an optimized bundle
 ```bash
-cd elm-fa-simulator
+elm make src/Main.elm --optimize --output=main.js
+```
+
+Open `index.html` in your browser to use the generated `main.js` bundle.
+
+### Run with Elm Reactor
+```bash
 elm reactor
 ```
 
-3. Открой в браузере ссылку, которую покажет `elm reactor`, затем выбери `src/Main.elm`.
+Then open the URL printed by `elm reactor` and select `src/Main.elm`.
 
-## Управление
-- Клик по пустому месту — добавить состояние.
-- Клик по состоянию — выделить (панель справа покажет инфо).
-- Перетаскивание (mousedown + движение) — переместить состояние.
-- Двойной клик по состоянию — переключить accepting.
-- (Опционально для доработки) Shift+клик — отметить старт (сейчас сделай двойным кликом accepting; старт можно быстро пометить, если доработаем события модификаторов).
-- JSON: справа можно `Export` (сериализация) и `Import` (вставь JSON и нажми Import).
-
-## Заметка
-В этой минимальной версии переходы рисуются из списка (их можно будет добавить через отдельную панель или жест drag-from → drag-to — это легко добросить).
+## Controls
+- **Modes:** three buttons switch between creating states, creating transitions, and moving states.
+- **Create states:** click empty space to add a state.
+- **Create transitions:** click a source state, then click a destination state to draw an arrow between them.
+- **Move:** drag states with the left mouse button to reposition them.
+- **Pan:** drag with the middle mouse button to move the canvas view.
+- **Accepting:** double-click a state to toggle accepting.
+- **Import/Export:** use the JSON panel on the right to serialize or load automata.
