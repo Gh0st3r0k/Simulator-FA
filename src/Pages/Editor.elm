@@ -1,16 +1,19 @@
 module Pages.Editor exposing (Model, Msg(..), init, update, view)
 
+import Dict
 import Html as H exposing (Html, button, div, h2, textarea, text)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (onClick, onInput, stopPropagationOn)
+import I18n exposing (Lang)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Process
+import String
 import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
+import Task
 import Theme exposing (Theme, panelBg, panelBorder, textColor)
-import I18n exposing (Lang)
-import String
 
 
 -- MODEL
@@ -29,6 +32,12 @@ type alias Model =
     , transitionFrom : Maybe Int
     , transitionLabel : String
     , codeDraft : String
+    , simulationInput : String
+    , simulationDelay : String
+    , simulationRunning : Bool
+    , simulationQueue : List Char
+    , simulationCurrent : Maybe Int
+    , simulationResult : SimulationResult
     }
 
 
@@ -63,6 +72,14 @@ type Mode
     | MoveState
 
 
+type SimulationResult
+    = Idle
+    | Running
+    | Success
+    | Rejected
+    | DeadEnd
+    | MissingStart
+
 init : Model
 init =
     { states = []
@@ -77,6 +94,12 @@ init =
     , transitionFrom = Nothing
     , transitionLabel = ""
     , codeDraft = ""
+    , simulationInput = ""
+    , simulationDelay = "500"
+    , simulationRunning = False
+    , simulationQueue = []
+    , simulationCurrent = Nothing
+    , simulationResult = Idle
     }
 
 
@@ -92,11 +115,18 @@ type Msg
     | DoubleClickState Int
     | SelectState Int
     | DeleteState Int
+    | ToggleStart Int
+    | ToggleAccepting Int
     | SetMode Mode
     | SetTransitionLabel String
     | ImportCode
     | ExportCode
     | CodeEdited String
+    | SetSimulationInput String
+    | SetSimulationDelay String
+    | StartSimulation
+    | AdvanceSimulation
+    | StopSimulation
     | NoOp
 
 
@@ -105,193 +135,482 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        CanvasMouseDown targetTag button cx cy ->
-            case button of
-                1 ->
-                    ( { model
-                        | panning =
-                            Just
-                                { startX = cx
-                                , startY = cy
-                                , originX = model.panX
-                                , originY = model.panY
-                                }
-                      }
-                    , Cmd.none
-                    )
+    if model.simulationRunning then
+        case msg of
+            AdvanceSimulation ->
+                stepSimulation model
 
-                0 ->
-                    case model.mode of
-                        AddState ->
-                            if targetTag /= "svg" then
+            StopSimulation ->
+                ( stopSimulation Idle model, Cmd.none )
+
+            SetSimulationInput s ->
+                ( { model | simulationInput = s }, Cmd.none )
+
+            SetSimulationDelay s ->
+                ( { model | simulationDelay = s }, Cmd.none )
+
+            _ ->
+                ( model, Cmd.none )
+
+    else
+        case msg of
+            CanvasMouseDown targetTag button cx cy ->
+                case button of
+                    1 ->
+                        ( { model
+                            | panning =
+                                Just
+                                    { startX = cx
+                                    , startY = cy
+                                    , originX = model.panX
+                                    , originY = model.panY
+                                    }
+                          }
+                        , Cmd.none
+                        )
+
+                    0 ->
+                        case model.mode of
+                            AddState ->
+                                if targetTag /= "svg" then
+                                    ( model, Cmd.none )
+
+                                else
+                                    let
+                                        ( wx, wy ) = screenToWorld model cx cy
+
+                                        newState =
+                                            { id = model.nextId, x = wx, y = wy, accepting = False, isStart = False }
+                                    in
+                                    ( { model
+                                        | states = model.states ++ [ newState ]
+                                        , nextId = model.nextId + 1
+                                        , selected = Just newState.id
+                                        , dragging = Nothing
+                                        , transitionFrom = Nothing
+                                      }
+                                    , Cmd.none
+                                    )
+
+                            _ ->
                                 ( model, Cmd.none )
 
-                            else
+                    _ ->
+                        ( model, Cmd.none )
+
+            MovePointer mx my ->
+                let
+                    updatedPan =
+                        case model.panning of
+                            Nothing ->
+                                model
+
+                            Just pan ->
+                                { model
+                                    | panX = pan.originX + (mx - pan.startX)
+                                    , panY = pan.originY + (my - pan.startY)
+                                }
+
+                    updatedStates =
+                        case updatedPan.dragging of
+                            Nothing ->
+                                updatedPan
+
+                            Just sid ->
                                 let
-                                    ( wx, wy ) = screenToWorld model cx cy
+                                    ( wx, wy ) = screenToWorld updatedPan mx my
 
-                                    newState =
-                                        { id = model.nextId, x = wx, y = wy, accepting = False, isStart = False }
+                                    move s = if s.id == sid then { s | x = wx, y = wy } else s
                                 in
-                                ( { model
-                                    | states = model.states ++ [ newState ]
-                                    , nextId = model.nextId + 1
-                                    , selected = Just newState.id
-                                    , dragging = Nothing
-                                    , transitionFrom = Nothing
-                                  }
-                                , Cmd.none
-                                )
+                                { updatedPan | states = List.map move updatedPan.states }
+                in
+                ( updatedStates, Cmd.none )
 
-                        _ ->
-                            ( model, Cmd.none )
+            CanvasMouseUp button ->
+                let
+                    clearedPan =
+                        if button == 1 then
+                            { model | panning = Nothing }
 
-                _ ->
-                    ( model, Cmd.none )
-
-        MovePointer mx my ->
-            let
-                updatedPan =
-                    case model.panning of
-                        Nothing ->
+                        else
                             model
 
-                        Just pan ->
-                            { model
-                                | panX = pan.originX + (mx - pan.startX)
-                                , panY = pan.originY + (my - pan.startY)
-                            }
+                    clearedDrag =
+                        if button == 0 then
+                            { clearedPan | dragging = Nothing }
 
-                updatedStates =
-                    case updatedPan.dragging of
-                        Nothing ->
-                            updatedPan
+                        else
+                            clearedPan
+                in
+                ( clearedDrag, Cmd.none )
 
-                        Just sid ->
-                            let
-                                ( wx, wy ) = screenToWorld updatedPan mx my
+            StartDrag sid ->
+                case model.mode of
+                    MoveState ->
+                        ( { model | dragging = Just sid, selected = Just sid }, Cmd.none )
 
-                                move s = if s.id == sid then { s | x = wx, y = wy } else s
-                            in
-                            { updatedPan | states = List.map move updatedPan.states }
-            in
-            ( updatedStates, Cmd.none )
+                    _ ->
+                        ( model, Cmd.none )
 
-        CanvasMouseUp button ->
-            let
-                clearedPan =
-                    if button == 1 then
-                        { model | panning = Nothing }
+            DoubleClickState sid ->
+                case model.mode of
+                    MoveState ->
+                        let
+                            toggle s = if s.id == sid then { s | accepting = not s.accepting } else s
+                        in
+                        ( { model | states = List.map toggle model.states }, Cmd.none )
 
-                    else
-                        model
+                    _ ->
+                        ( model, Cmd.none )
 
-                clearedDrag =
-                    if button == 0 then
-                        { clearedPan | dragging = Nothing }
+            SelectState sid ->
+                case model.mode of
+                    AddTransition ->
+                        case model.transitionFrom of
+                            Nothing ->
+                                ( { model | transitionFrom = Just sid, selected = Just sid }, Cmd.none )
 
-                    else
-                        clearedPan
-            in
-            ( clearedDrag, Cmd.none )
+                            Just fromId ->
+                                if fromId == sid then
+                                    ( { model | transitionFrom = Nothing, selected = Just sid }, Cmd.none )
 
-        StartDrag sid ->
-            case model.mode of
-                MoveState ->
-                    ( { model | dragging = Just sid, selected = Just sid }, Cmd.none )
+                                else
+                                    let
+                                        label =
+                                            let
+                                                trimmed = String.trim model.transitionLabel
+                                            in
+                                            if String.isEmpty trimmed then
+                                                "λ"
 
-                _ ->
-                    ( model, Cmd.none )
+                                            else
+                                                trimmed
 
-        DoubleClickState sid ->
-            let
-                toggle s = if s.id == sid then { s | accepting = not s.accepting } else s
-            in
-            ( { model | states = List.map toggle model.states }, Cmd.none )
+                                        newTransition =
+                                            { id = model.nextId
+                                            , from = fromId
+                                            , to = sid
+                                            , label = label
+                                            }
+                                    in
+                                    ( { model
+                                        | transitions = model.transitions ++ [ newTransition ]
+                                        , nextId = model.nextId + 1
+                                        , transitionFrom = Nothing
+                                        , selected = Nothing
+                                      }
+                                    , Cmd.none
+                                    )
 
-        SelectState sid ->
-            case model.mode of
-                AddTransition ->
-                    case model.transitionFrom of
-                        Nothing ->
-                            ( { model | transitionFrom = Just sid, selected = Just sid }, Cmd.none )
+                    _ ->
+                        ( { model | selected = Just sid }, Cmd.none )
 
-                        Just fromId ->
-                            if fromId == sid then
-                                ( { model | transitionFrom = Nothing, selected = Just sid }, Cmd.none )
+            DeleteState sid ->
+                let
+                    statesFiltered = List.filter (\s -> s.id /= sid) model.states
+                    transFiltered = List.filter (\t -> t.from /= sid && t.to /= sid) model.transitions
+                in
+                ( { model | states = statesFiltered, transitions = transFiltered, selected = Nothing }, Cmd.none )
 
-                            else
-                                let
-                                    label =
-                                        let
-                                            trimmed = String.trim model.transitionLabel
-                                        in
-                                        if String.isEmpty trimmed then
-                                            "λ"
+            ToggleStart sid ->
+                case model.mode of
+                    MoveState ->
+                        let
+                            updatedStates =
+                                case getStateById sid model.states of
+                                    Nothing ->
+                                        model.states
+
+                                    Just s ->
+                                        if s.isStart then
+                                            List.map (\t -> if t.id == sid then { t | isStart = False } else t) model.states
 
                                         else
-                                            trimmed
+                                            ensureSingleStart sid model.states
+                        in
+                        ( { model | states = updatedStates, selected = Just sid }, Cmd.none )
 
-                                    newTransition =
-                                        { id = model.nextId
-                                        , from = fromId
-                                        , to = sid
-                                        , label = label
-                                        }
-                                in
-                                ( { model
-                                    | transitions = model.transitions ++ [ newTransition ]
-                                    , nextId = model.nextId + 1
-                                    , transitionFrom = Nothing
-                                    , selected = Nothing
-                                  }
-                                , Cmd.none
-                                )
+                    _ ->
+                        ( model, Cmd.none )
 
-                _ ->
-                    ( { model | selected = Just sid }, Cmd.none )
+            ToggleAccepting sid ->
+                case model.mode of
+                    MoveState ->
+                        let
+                            toggle s = if s.id == sid then { s | accepting = not s.accepting } else s
+                        in
+                        ( { model | states = List.map toggle model.states, selected = Just sid }, Cmd.none )
 
-        DeleteState sid ->
+                    _ ->
+                        ( model, Cmd.none )
+
+            SetMode newMode ->
+                ( { model
+                    | mode = newMode
+                    , transitionFrom = Nothing
+                    , dragging = Nothing
+                  }
+                , Cmd.none
+                )
+
+            SetTransitionLabel label ->
+                ( { model | transitionLabel = label }, Cmd.none )
+
+            ImportCode ->
+                case Decode.decodeString decodeAutomaton model.codeDraft of
+                    Ok ( ss, ts ) ->
+                        let
+                            normalizedStates = enforceSingleStartFlag ss
+                            maxId = List.maximum (List.map .id normalizedStates ++ List.map .id ts) |> Maybe.withDefault 0
+                        in
+                        ( { model | states = normalizedStates, transitions = ts, nextId = maxId + 1 }, Cmd.none )
+
+                    Err _ -> ( model, Cmd.none )
+
+            ExportCode ->
+                let
+                    json = Encode.encode 4 (encodeAutomaton model.states model.transitions)
+                in
+                ( { model | codeDraft = json }, Cmd.none )
+
+            CodeEdited s ->
+                ( { model | codeDraft = s }, Cmd.none )
+
+            SetSimulationInput s ->
+                ( { model | simulationInput = s }, Cmd.none )
+
+            SetSimulationDelay s ->
+                ( { model | simulationDelay = s }, Cmd.none )
+
+            StartSimulation ->
+                startSimulation model
+
+            AdvanceSimulation ->
+                stepSimulation model
+
+            StopSimulation ->
+                ( stopSimulation Idle model, Cmd.none )
+
+            NoOp ->
+                ( model, Cmd.none )
+
+
+
+-- START/STOP HELPERS
+
+
+ensureSingleStart : Int -> List State -> List State
+ensureSingleStart id states =
+    List.map (\s -> { s | isStart = s.id == id }) states
+
+
+enforceSingleStartFlag : List State -> List State
+enforceSingleStartFlag states =
+    case List.filter .isStart states of
+        [] ->
+            states
+
+        s :: _ ->
+            ensureSingleStart s.id states
+
+
+findStartState : List State -> Maybe State
+findStartState states =
+    List.head <| List.filter .isStart states
+
+
+hasLambdaFrom : Int -> List Transition -> Bool
+hasLambdaFrom sid transitions =
+    List.any (\t -> t.from == sid && t.label == "λ") transitions
+
+
+isDeterministic : List Transition -> Bool
+isDeterministic transitions =
+    let
+        step t dict =
+            Dict.update ( t.from, t.label )
+                (\maybe -> Just (Maybe.withDefault 0 maybe + 1))
+                dict
+
+        counts =
+            List.foldl step Dict.empty transitions
+
+        hasDuplicate =
+            Dict.values counts |> List.any (\n -> n > 1)
+
+        hasLambda =
+            List.any (\t -> t.label == "λ") transitions
+    in
+    (not hasDuplicate) && (not hasLambda)
+
+
+parseDelay : String -> Float
+parseDelay raw =
+    case String.toFloat (String.trim raw) of
+        Just n ->
+            Basics.max 0 n
+
+        Nothing ->
+            500
+
+
+stopSimulation : SimulationResult -> Model -> Model
+stopSimulation result model =
+    { model
+        | simulationRunning = False
+        , simulationQueue = []
+        , simulationCurrent = Nothing
+        , simulationResult = result
+    }
+
+
+startSimulation : Model -> ( Model, Cmd Msg )
+startSimulation model =
+    case findStartState model.states of
+        Nothing ->
+            ( { model | simulationResult = MissingStart }, Cmd.none )
+
+        Just startState ->
             let
-                statesFiltered = List.filter (\s -> s.id /= sid) model.states
-                transFiltered = List.filter (\t -> t.from /= sid && t.to /= sid) model.transitions
-            in
-            ( { model | states = statesFiltered, transitions = transFiltered, selected = Nothing }, Cmd.none )
+                queue = String.toList model.simulationInput
+                delay = parseDelay model.simulationDelay
+                willRun = not (List.isEmpty queue) || hasLambdaFrom startState.id model.transitions
+                initialResult =
+                    if willRun then
+                        Running
 
-        SetMode newMode ->
+                    else if startState.accepting then
+                        Success
+
+                    else
+                        Rejected
+                cmd =
+                    if willRun then
+                        Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
+
+                    else
+                        Cmd.none
+            in
             ( { model
-                | mode = newMode
-                , transitionFrom = Nothing
-                , dragging = Nothing
+                | simulationRunning = willRun
+                , simulationQueue = queue
+                , simulationCurrent = Just startState.id
+                , selected = Just startState.id
+                , simulationResult = initialResult
               }
-            , Cmd.none
+            , cmd
             )
 
-        SetTransitionLabel label ->
-            ( { model | transitionLabel = label }, Cmd.none )
 
-        ImportCode ->
-            case Decode.decodeString decodeAutomaton model.codeDraft of
-                Ok ( ss, ts ) ->
-                    let
-                        maxId = List.maximum (List.map .id ss ++ List.map .id ts) |> Maybe.withDefault 0
-                    in
-                    ( { model | states = ss, transitions = ts, nextId = maxId + 1 }, Cmd.none )
+stepSimulation : Model -> ( Model, Cmd Msg )
+stepSimulation model =
+    case ( model.simulationCurrent, model.simulationQueue ) of
+        ( Nothing, _ ) ->
+            ( stopSimulation DeadEnd model, Cmd.none )
 
-                Err _ -> ( model, Cmd.none )
-
-        ExportCode ->
+        ( Just sid, queue ) ->
             let
-                json = Encode.encode 4 (encodeAutomaton model.states model.transitions)
+                ( maybeChar, rest ) =
+                    case queue of
+                        [] ->
+                            ( Nothing, [] )
+
+                        c :: remaining ->
+                            ( Just (String.fromChar c), remaining )
+
+                pickTransition =
+                    let
+                        charMatch =
+                            case maybeChar of
+                                Nothing ->
+                                    Nothing
+
+                                Just lbl ->
+                                    List.filter (\t -> t.from == sid && t.label == lbl) model.transitions
+                                        |> List.head
+
+                        lambdaMatch =
+                            List.filter (\t -> t.from == sid && t.label == "λ") model.transitions
+                                |> List.head
+                    in
+                    case ( charMatch, lambdaMatch ) of
+                        ( Just t, _ ) ->
+                            Just ( t, True )
+
+                        ( Nothing, Just t ) ->
+                            Just ( t, False )
+
+                        _ ->
+                            Nothing
             in
-            ( { model | codeDraft = json }, Cmd.none )
+            case pickTransition of
+                Nothing ->
+                    let
+                        result =
+                            case queue of
+                                [] ->
+                                    case getStateById sid model.states of
+                                        Just s ->
+                                            if s.accepting then
+                                                Success
 
-        CodeEdited s ->
-            ( { model | codeDraft = s }, Cmd.none )
+                                            else
+                                                Rejected
 
-        NoOp ->
-            ( model, Cmd.none )
+                                        Nothing ->
+                                            DeadEnd
+
+                                _ ->
+                                    DeadEnd
+                    in
+                    ( stopSimulation result model, Cmd.none )
+
+                Just ( t, consumesInput ) ->
+                    let
+                        delay = parseDelay model.simulationDelay
+                        nextQueue =
+                            if consumesInput then
+                                rest
+
+                            else
+                                queue
+
+                        willContinue =
+                            (not (List.isEmpty nextQueue)) || hasLambdaFrom t.to model.transitions
+
+                        cmd =
+                            if willContinue then
+                                Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
+
+                            else
+                                Cmd.none
+                    in
+                    ( { model
+                        | simulationQueue = nextQueue
+                        , simulationCurrent = Just t.to
+                        , selected = Just t.to
+                        , simulationRunning = willContinue
+                        , simulationResult =
+                            if willContinue then
+                                Running
+
+                            else
+                                case getStateById t.to model.states of
+                                    Just s ->
+                                        if s.accepting && List.isEmpty nextQueue then
+                                            Success
+
+                                        else if List.isEmpty nextQueue then
+                                            Rejected
+
+                                        else
+                                            DeadEnd
+
+                                    Nothing ->
+                                        DeadEnd
+                      }
+                    , cmd
+                    )
 
 
 
@@ -359,7 +678,26 @@ screenToWorld model x y =
     ( x - model.panX, y - model.panY )
 
 
+simulationStatus : SimulationResult -> Maybe ( String, String )
+simulationStatus result =
+    case result of
+        Idle ->
+            Nothing
 
+        Running ->
+            Just ( "Simulation running...", "#2980b9" )
+
+        Success ->
+            Just ( "Success", "#2ecc71" )
+
+        Rejected ->
+            Just ( "Word does not match the automaton", "#e67e22" )
+
+        DeadEnd ->
+            Just ( "Error: no suitable transition for input", "#e74c3c" )
+
+        MissingStart ->
+            Just ( "Error: no start state selected", "#e74c3c" )
 -- VIEW
 
 
@@ -371,6 +709,7 @@ view ctx model =
             , svgView ctx model
             ]
         , sidePanel ctx model
+        , automatonPanel ctx model
         ]
 
 
@@ -409,7 +748,7 @@ svgView ctx model =
         , SE.on "mouseup"
             (Decode.map CanvasMouseUp (Decode.field "button" Decode.int))
         ]
-        [ S.defs [] [ arrowMarker (textColor ctx.theme) ]
+        [ S.defs [] [ arrowMarker (textColor ctx.theme), startArrowMarker (textColor ctx.theme) ]
         , S.g
             [ SA.transform
                 ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ")")
@@ -453,9 +792,28 @@ viewState ctx model s =
 
             else
                 []
+
+        startIndicator =
+            if s.isStart then
+                [ S.line
+                    [ SA.x1 (String.fromFloat (s.x - 64))
+                    , SA.y1 (String.fromFloat s.y)
+                    , SA.x2 (String.fromFloat (s.x - (toFloat r + 6)))
+                    , SA.y2 (String.fromFloat s.y)
+                    , SA.stroke (textColor ctx.theme)
+                    , SA.strokeWidth "3"
+                    , SA.markerEnd "url(#start-arrow)"
+                    , SA.pointerEvents "none"
+                    ]
+                    []
+                ]
+
+            else
+                []
     in
     S.g []
-        (highlight
+        (startIndicator
+            ++ highlight
             ++ [ S.circle
                     [ SA.cx (String.fromFloat s.x)
                     , SA.cy (String.fromFloat s.y)
@@ -584,6 +942,61 @@ arrowMarker color =
         ]
 
 
+automatonPanel : { a | theme : Theme } -> Model -> Html Msg
+automatonPanel ctx model =
+    if List.isEmpty model.states && List.isEmpty model.transitions then
+        text ""
+
+    else
+        let
+            deterministic = isDeterministic model.transitions
+            label =
+                if deterministic then
+                    "Deterministic automaton"
+
+                else
+                    "Non-deterministic automaton"
+
+            color =
+                if deterministic then
+                    "#2ecc71"
+
+                else
+                    "#e67e22"
+        in
+        div
+            [ HA.style "min-width" "220px"
+            , HA.style "background" (panelBg ctx.theme)
+            , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+            , HA.style "padding" "12px"
+            , HA.style "border-radius" "12px"
+            , HA.style "align-self" "flex-start"
+            ]
+            [ H.h2 [] [ H.text "Type" ]
+            , H.div [ HA.style "color" color, HA.style "font-weight" "bold" ] [ H.text label ]
+            ]
+
+
+startArrowMarker : String -> S.Svg msg
+startArrowMarker color =
+    S.marker
+        [ SA.id "start-arrow"
+        , SA.markerWidth "14"
+        , SA.markerHeight "14"
+        , SA.viewBox "0 0 14 14"
+        , SA.refX "14"
+        , SA.refY "7"
+        , SA.orient "auto"
+        , SA.markerUnits "strokeWidth"
+        ]
+        [ S.path
+            [ SA.d "M0,0 L0,14 L14,7 z"
+            , SA.fill color
+            ]
+            []
+        ]
+
+
 sidePanel ctx model =
     let
         modeButton target label =
@@ -591,6 +1004,7 @@ sidePanel ctx model =
                 [ onClick (SetMode target)
                 , HA.style "background" (if model.mode == target then "#2ecc71" else "")
                 , HA.style "color" "#000"
+                , HA.disabled model.simulationRunning
                 ]
                 [ H.text label ]
     in
@@ -650,7 +1064,58 @@ sidePanel ctx model =
                             , div [] [ H.text ("Pos: " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
                             , div [] [ H.text ("Accepting: " ++ (if s.accepting then "Yes" else "No")) ]
                             , div [] [ H.text ("Start: " ++ (if s.isStart then "Yes" else "No")) ]
-                            , div [ HA.style "margin-top" "8px" ]
+                            , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
                                 [ H.button [ onClick (DeleteState s.id) ] [ H.text "Delete state" ] ]
+                            , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
+                                [ H.button
+                                    [ onClick (ToggleStart s.id)
+                                    , HA.disabled (model.mode /= MoveState || model.simulationRunning)
+                                    ]
+                                    [ H.text (if s.isStart then "Unset start" else "Make start") ]
+                                , H.button
+                                    [ onClick (ToggleAccepting s.id)
+                                    , HA.disabled (model.mode /= MoveState || model.simulationRunning)
+                                    ]
+                                    [ H.text (if s.accepting then "Unset accepting" else "Make accepting") ]
+                                ]
                             ]
+        , H.h2 [] [ H.text "Simulation" ]
+        , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
+            [ textarea
+                [ rows 1
+                , cols 18
+                , placeholder "Input string"
+                , value model.simulationInput
+                , onInput SetSimulationInput
+                , HA.disabled model.simulationRunning
+                ]
+                []
+            , textarea
+                [ rows 1
+                , cols 8
+                , placeholder "Delay ms"
+                , value model.simulationDelay
+                , onInput SetSimulationDelay
+                , HA.disabled model.simulationRunning
+                ]
+                []
+            ]
+        , div [ HA.style "margin-top" "6px", HA.style "display" "flex", HA.style "gap" "8px" ]
+            [ H.button
+                [ onClick StartSimulation
+                , HA.disabled model.simulationRunning
+                ]
+                [ H.text "Start simulation" ]
+            , H.button
+                [ onClick StopSimulation
+                , HA.disabled (not model.simulationRunning)
+                ]
+                [ H.text "Stop" ]
+            ]
+        , case simulationStatus model.simulationResult of
+            Nothing ->
+                text ""
+
+            Just ( msg, color ) ->
+                div [ HA.style "color" color, HA.style "margin-top" "6px" ] [ H.text msg ]
         ]
