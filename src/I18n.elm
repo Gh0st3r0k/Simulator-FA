@@ -52,9 +52,19 @@ type Key
     | EditorType
     | EditorAutomatonDeterministic
     | EditorAutomatonNonDeterministic
-    | EditorJson
+    | EditorTransitionFunction
     | EditorImport
     | EditorExport
+    | EditorSave
+    | EditorSaveModalTitle
+    | EditorSaveToSlot
+    | EditorDeleteFromSlot
+    | EditorRenameSlot
+    | EditorSlot
+    | EditorSlotEmpty
+    | EditorClose
+    | EditorStateName
+    | EditorStateNameUniqueError
     | EditorMode
     | EditorModeAddState
     | EditorModeAddTransition
@@ -212,10 +222,10 @@ t lang key =
         ( SK, EditorAutomatonNonDeterministic ) -> "Nedeterministický automat"
         ( UA, EditorAutomatonNonDeterministic ) -> "Недетермінований автомат"
 
-        ( RU, EditorJson ) -> "JSON"
-        ( EN, EditorJson ) -> "JSON"
-        ( SK, EditorJson ) -> "JSON"
-        ( UA, EditorJson ) -> "JSON"
+        ( RU, EditorTransitionFunction ) -> "Функция переходов"
+        ( EN, EditorTransitionFunction ) -> "Transition function"
+        ( SK, EditorTransitionFunction ) -> "Prechodová funkcia"
+        ( UA, EditorTransitionFunction ) -> "Функція переходів"
 
         ( RU, EditorImport ) -> "Импорт"
         ( EN, EditorImport ) -> "Import"
@@ -226,6 +236,56 @@ t lang key =
         ( EN, EditorExport ) -> "Export"
         ( SK, EditorExport ) -> "Export"
         ( UA, EditorExport ) -> "Експорт"
+
+        ( RU, EditorSave ) -> "Сохранение"
+        ( EN, EditorSave ) -> "Save"
+        ( SK, EditorSave ) -> "Uložiť"
+        ( UA, EditorSave ) -> "Зберегти"
+
+        ( RU, EditorSaveModalTitle ) -> "Слоты сохранения"
+        ( EN, EditorSaveModalTitle ) -> "Save slots"
+        ( SK, EditorSaveModalTitle ) -> "Ukladacie sloty"
+        ( UA, EditorSaveModalTitle ) -> "Слоти збереження"
+
+        ( RU, EditorSaveToSlot ) -> "Сохранить текущий"
+        ( EN, EditorSaveToSlot ) -> "Save current"
+        ( SK, EditorSaveToSlot ) -> "Uložiť aktuálny"
+        ( UA, EditorSaveToSlot ) -> "Зберегти поточний"
+
+        ( RU, EditorDeleteFromSlot ) -> "Удалить из слота"
+        ( EN, EditorDeleteFromSlot ) -> "Delete from slot"
+        ( SK, EditorDeleteFromSlot ) -> "Vymazať zo slotu"
+        ( UA, EditorDeleteFromSlot ) -> "Видалити зі слота"
+
+        ( RU, EditorRenameSlot ) -> "Переименовать"
+        ( EN, EditorRenameSlot ) -> "Rename"
+        ( SK, EditorRenameSlot ) -> "Premenovať"
+        ( UA, EditorRenameSlot ) -> "Перейменувати"
+
+        ( RU, EditorSlot ) -> "Ячейка"
+        ( EN, EditorSlot ) -> "Slot"
+        ( SK, EditorSlot ) -> "Slot"
+        ( UA, EditorSlot ) -> "Комірка"
+
+        ( RU, EditorSlotEmpty ) -> "пусто"
+        ( EN, EditorSlotEmpty ) -> "empty"
+        ( SK, EditorSlotEmpty ) -> "prázdne"
+        ( UA, EditorSlotEmpty ) -> "порожньо"
+
+        ( RU, EditorClose ) -> "Закрыть"
+        ( EN, EditorClose ) -> "Close"
+        ( SK, EditorClose ) -> "Zavrieť"
+        ( UA, EditorClose ) -> "Закрити"
+
+        ( RU, EditorStateName ) -> "Название"
+        ( EN, EditorStateName ) -> "Name"
+        ( SK, EditorStateName ) -> "Názov"
+        ( UA, EditorStateName ) -> "Назва"
+
+        ( RU, EditorStateNameUniqueError ) -> "Ошибка: названия состояний должны быть уникальными"
+        ( EN, EditorStateNameUniqueError ) -> "Error: state names must be unique"
+        ( SK, EditorStateNameUniqueError ) -> "Chyba: názvy stavov musia byť jedinečné"
+        ( UA, EditorStateNameUniqueError ) -> "Помилка: назви станів мають бути унікальними"
 
         ( RU, EditorMode ) -> "Режим"
         ( EN, EditorMode ) -> "Mode"

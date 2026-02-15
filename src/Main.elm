@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
@@ -79,7 +79,13 @@ type Msg
 type alias Flags =
     { lang : String
     , theme : String
+    , automatonSlots : String
     }
+    
+
+port saveAutomatonSlots : String -> Cmd msg
+
+
 main : Program Flags Model Msg
 main =
     Browser.application
@@ -100,7 +106,7 @@ init flags url key =
       , lang = langFromString flags.lang
       , theme = themeFromString flags.theme
       , scale = Large
-      , editor = Editor.init
+      , editor = Editor.initWithSlots (Editor.decodeSaveSlots flags.automatonSlots)
       , instructions = Instructions.init
       , about = About.init
       , hover = Nothing
@@ -152,8 +158,18 @@ update msg model =
             ( { model | hover = maybeR }, Cmd.none )
 
         EditorMsg sub ->
-            let (subModel, subCmd) = Editor.update sub model.editor
-            in ( { model | editor = subModel }, Cmd.map EditorMsg subCmd )
+            let
+                ( subModel, subCmd ) =
+                    Editor.update sub model.editor
+
+                persistCmd =
+                    if model.editor.saveSlots /= subModel.saveSlots then
+                        saveAutomatonSlots (Editor.encodeSaveSlots subModel.saveSlots)
+
+                    else
+                        Cmd.none
+            in
+            ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd ] )
 
         InstructionsMsg sub ->
             let (subModel, subCmd) = Instructions.update sub model.instructions

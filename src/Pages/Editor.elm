@@ -1,4 +1,4 @@
-module Pages.Editor exposing (Model, Msg(..), init, update, view)
+module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, init, initWithSlots, update, view)
 
 import Dict
 import Html as H exposing (Html, button, div, h2, input, textarea, text)
@@ -40,6 +40,9 @@ type alias Model =
     , simulationQueue : List Char
     , simulationCurrent : Maybe Int
     , simulationResult : SimulationResult
+    , stateNameConflict : Bool
+    , saveModalOpen : Bool
+    , saveSlots : List SaveSlot
     }
 
 
@@ -58,6 +61,13 @@ type alias Transition =
     , from : Int
     , to : Int
     , label : String
+    }
+
+
+type alias SaveSlot =
+    { id : Int
+    , name : String
+    , automatonJson : String
     }
 
 
@@ -86,6 +96,11 @@ type SimulationResult
 
 init : Model
 init =
+    initWithSlots (defaultSaveSlots 5)
+
+
+initWithSlots : List SaveSlot -> Model
+initWithSlots slots =
     { states = []
     , transitions = []
     , nextStateId = 1
@@ -106,6 +121,9 @@ init =
     , simulationQueue = []
     , simulationCurrent = Nothing
     , simulationResult = Idle
+    , stateNameConflict = False
+    , saveModalOpen = False
+    , saveSlots = ensureSlotCount 5 slots
     }
 
 
@@ -137,6 +155,11 @@ type Msg
     | StartSimulation
     | AdvanceSimulation
     | StopSimulation
+    | OpenSaveModal
+    | CloseSaveModal
+    | SaveToSlot Int
+    | DeleteFromSlot Int
+    | RenameSlot Int String
     | NoOp
 
 
@@ -448,24 +471,35 @@ update msg model =
 
                                 else
                                     s
+                            updatedStates =
+                                List.map updateState model.states
                         in
-                        ( { model | states = List.map updateState model.states }, Cmd.none )
+                        if hasDuplicateStateNames updatedStates then
+                            ( { model | stateNameConflict = True }, Cmd.none )
+
+                        else
+                            ( { model | states = updatedStates, stateNameConflict = False }, Cmd.none )
 
             ImportCode ->
                 case Decode.decodeString decodeAutomaton model.codeDraft of
                     Ok ( ss, ts ) ->
-                        let
-                            normalizedStates = enforceSingleStartFlag ss
-                            normalizedAutomaton = normalizeAutomatonIds normalizedStates ts
-                        in
-                        ( { model
-                            | states = normalizedAutomaton.states
-                            , transitions = normalizedAutomaton.transitions
-                            , nextStateId = normalizedAutomaton.nextStateId
-                            , nextTransitionId = normalizedAutomaton.nextTransitionId
-                          }
-                        , Cmd.none
-                        )
+                        if hasDuplicateStateNames ss then
+                            ( { model | stateNameConflict = True }, Cmd.none )
+
+                        else
+                            let
+                                normalizedStates = enforceSingleStartFlag ss
+                                normalizedAutomaton = normalizeAutomatonIds normalizedStates ts
+                            in
+                            ( { model
+                                | states = normalizedAutomaton.states
+                                , transitions = normalizedAutomaton.transitions
+                                , nextStateId = normalizedAutomaton.nextStateId
+                                , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                , stateNameConflict = False
+                              }
+                            , Cmd.none
+                            )
 
                     Err _ ->
                         case decodeTransitionLanguage model.states model.codeDraft of
@@ -478,6 +512,7 @@ update msg model =
                                     , transitions = normalizedAutomaton.transitions
                                     , nextStateId = normalizedAutomaton.nextStateId
                                     , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                    , stateNameConflict = False
                                   }
                                 , Cmd.none
                                 )
@@ -486,7 +521,7 @@ update msg model =
                                 ( model, Cmd.none )
 
             ExportCode ->
-                ( { model | codeDraft = encodeTransitionLanguage model.transitions }, Cmd.none )
+                ( { model | codeDraft = encodeTransitionLanguage model.states model.transitions }, Cmd.none )
 
             CodeEdited s ->
                 ( { model | codeDraft = s }, Cmd.none )
@@ -505,6 +540,48 @@ update msg model =
 
             StopSimulation ->
                 ( stopSimulation Idle model, Cmd.none )
+
+            OpenSaveModal ->
+                ( { model | saveModalOpen = True }, Cmd.none )
+
+            CloseSaveModal ->
+                ( { model | saveModalOpen = False }, Cmd.none )
+
+            SaveToSlot slotId ->
+                let
+                    automatonJson =
+                        Encode.encode 2 (encodeAutomaton model.states model.transitions)
+
+                    updateSlot slot =
+                        if slot.id == slotId then
+                            { slot | automatonJson = automatonJson }
+
+                        else
+                            slot
+                in
+                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+
+            DeleteFromSlot slotId ->
+                let
+                    updateSlot slot =
+                        if slot.id == slotId then
+                            { slot | automatonJson = "", name = "" }
+
+                        else
+                            slot
+                in
+                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+
+            RenameSlot slotId slotName ->
+                let
+                    updateSlot slot =
+                        if slot.id == slotId then
+                            { slot | name = String.trim slotName }
+
+                        else
+                            slot
+                in
+                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
 
             NoOp ->
                 ( model, Cmd.none )
@@ -532,6 +609,24 @@ enforceSingleStartFlag states =
 normalizeTransitionLabel : String -> String
 normalizeTransitionLabel raw =
     String.left 1 raw
+
+
+hasDuplicateStateNames : List State -> Bool
+hasDuplicateStateNames states =
+    let
+        names =
+            states |> List.map (.name >> String.trim)
+    in
+    List.length names /= List.length (List.foldl unique [] names)
+
+
+unique : String -> List String -> List String
+unique value acc =
+    if List.member value acc then
+        acc
+
+    else
+        value :: acc
 
 
 isLambdaLabel : String -> Bool
@@ -819,6 +914,56 @@ stepSimulation model =
 
 -- JSON helpers
 
+defaultSaveSlots : Int -> List SaveSlot
+defaultSaveSlots count =
+    List.range 1 count
+        |> List.map (\slotId -> { id = slotId, name = "", automatonJson = "" })
+
+
+ensureSlotCount : Int -> List SaveSlot -> List SaveSlot
+ensureSlotCount count slots =
+    let
+        byId sid =
+            List.head (List.filter (\slot -> slot.id == sid) slots)
+                |> Maybe.withDefault { id = sid, name = "", automatonJson = "" }
+    in
+    List.range 1 count |> List.map byId
+
+
+encodeSaveSlots : List SaveSlot -> String
+encodeSaveSlots slots =
+    slots
+        |> Encode.list
+            (\slot ->
+                Encode.object
+                    [ ( "id", Encode.int slot.id )
+                    , ( "name", Encode.string slot.name )
+                    , ( "automatonJson", Encode.string slot.automatonJson )
+                    ]
+            )
+        |> Encode.encode 0
+
+
+decodeSaveSlots : String -> List SaveSlot
+decodeSaveSlots raw =
+    case Decode.decodeString (Decode.list decodeSaveSlot) raw of
+        Ok slots ->
+            ensureSlotCount 5 slots
+
+        Err _ ->
+            defaultSaveSlots 5
+
+
+decodeSaveSlot : Decode.Decoder SaveSlot
+decodeSaveSlot =
+    Decode.map3
+        (\id name automatonJson ->
+            { id = id, name = name, automatonJson = automatonJson }
+        )
+        (Decode.field "id" Decode.int)
+        (Decode.field "name" Decode.string)
+        (Decode.field "automatonJson" Decode.string)
+
 type alias ParsedTransition =
     { fromName : String
     , toName : String
@@ -826,14 +971,14 @@ type alias ParsedTransition =
     }
 
 
-encodeTransitionLanguage : List Transition -> String
-encodeTransitionLanguage transitions =
+encodeTransitionLanguage : List State -> List Transition -> String
+encodeTransitionLanguage states transitions =
     transitions
         |> List.sortBy .id
         |> List.map
             (\tr ->
                 "("
-                    ++ String.fromInt tr.from
+                    ++ stateNameById states tr.from
                     ++ ", "
                     ++ (if isLambdaLabel tr.label then
                             "λ"
@@ -842,9 +987,19 @@ encodeTransitionLanguage transitions =
                             tr.label
                        )
                     ++ ") => "
-                    ++ String.fromInt tr.to
+                    ++ stateNameById states tr.to
             )
         |> String.join "\n"
+
+
+stateNameById : List State -> Int -> String
+stateNameById states stateId =
+    case getStateById stateId states of
+        Just state ->
+            state.name
+
+        Nothing ->
+            String.fromInt stateId
 
 
 decodeTransitionLanguage : List State -> String -> Result String ( List State, List Transition )
@@ -1201,13 +1356,26 @@ simulationStatus lang result =
 
 view : { lang : Lang, theme : Theme } -> Model -> Html Msg
 view ctx model =
-    div [ HA.style "display" "flex", HA.style "gap" "12px", HA.style "color" (textColor ctx.theme) ]
-        [ div []
-            [ H.h2 [] [ H.text (t ctx.lang EditorTitle) ]
-            , svgView ctx model
-            ]
-        , sidePanel ctx model
-        , automatonPanel ctx model
+    let
+        content =
+            div [ HA.style "display" "flex", HA.style "gap" "12px", HA.style "color" (textColor ctx.theme) ]
+                [ div []
+                    [ H.h2 [] [ H.text (t ctx.lang EditorTitle) ]
+                    , svgView ctx model
+                    ]
+                , sidePanel ctx model
+                , automatonPanel ctx model
+                ]
+    in
+    div []
+        [ div [ HA.style "margin-bottom" "8px" ]
+            [ H.button [ onClick OpenSaveModal ] [ H.text (t ctx.lang EditorSave) ] ]
+        , content
+        , if model.saveModalOpen then
+            saveModal ctx model
+
+          else
+            text ""
         ]
 
 
@@ -1547,6 +1715,61 @@ startArrowMarker color =
         ]
 
 
+saveModal : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
+saveModal ctx model =
+    let
+        viewSlot slot =
+            let
+                slotLabel =
+                    if String.isEmpty slot.name then
+                        t ctx.lang EditorSlotEmpty
+
+                    else
+                        slot.name
+            in
+            div
+                [ HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                , HA.style "padding" "10px"
+                , HA.style "border-radius" "8px"
+                ]
+                [ H.div [] [ H.text (t ctx.lang EditorSlot ++ " " ++ String.fromInt slot.id ++ ": " ++ slotLabel) ]
+                , input
+                    [ HA.type_ "text"
+                    , value slot.name
+                    , placeholder (t ctx.lang EditorRenameSlot)
+                    , onInput (RenameSlot slot.id)
+                    ]
+                    []
+                , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
+                    [ H.button [ onClick (SaveToSlot slot.id) ] [ H.text (t ctx.lang EditorSaveToSlot) ]
+                    , H.button [ onClick (DeleteFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ] [ H.text (t ctx.lang EditorDeleteFromSlot) ]
+                    ]
+                ]
+    in
+    div
+        [ HA.style "position" "fixed"
+        , HA.style "inset" "0"
+        , HA.style "background" "rgba(0,0,0,0.45)"
+        , HA.style "z-index" "2000"
+        , onClick CloseSaveModal
+        ]
+        [ div
+            [ HA.style "max-width" "740px"
+            , HA.style "margin" "40px auto"
+            , HA.style "background" (panelBg ctx.theme)
+            , HA.style "color" (textColor ctx.theme)
+            , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+            , HA.style "border-radius" "12px"
+            , HA.style "padding" "16px"
+            , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+            ]
+            [ H.h2 [] [ H.text (t ctx.lang EditorSaveModalTitle) ]
+            , div [ HA.style "display" "grid", HA.style "grid-template-columns" "1fr", HA.style "gap" "10px" ] (List.map viewSlot model.saveSlots)
+            , div [ HA.style "margin-top" "12px" ] [ H.button [ onClick CloseSaveModal ] [ H.text (t ctx.lang EditorClose) ] ]
+            ]
+        ]
+
+
 sidePanel ctx model =
     let
         baseButtonStyles =
@@ -1572,7 +1795,7 @@ sidePanel ctx model =
         , HA.style "padding" "12px"
         , HA.style "border-radius" "12px"
         ]
-        [ H.h2 [] [ H.text (t ctx.lang EditorJson) ]
+        [ H.h2 [] [ H.text (t ctx.lang EditorTransitionFunction) ]
         , textarea [ rows 18, cols 40, onInput CodeEdited, value model.codeDraft ] []
         , div [ HA.style "margin-top" "8px" ]
             [ H.button (baseButtonStyles ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
@@ -1605,7 +1828,7 @@ sidePanel ctx model =
 
                     Just sid ->
                         div [ HA.style "margin-top" "4px" ]
-                            [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
+                            [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ stateNameById model.states sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
                   )
                 ]
             else
@@ -1626,7 +1849,7 @@ sidePanel ctx model =
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedState ++ ": " ++ String.fromInt s.id) ]
                                     , div [ HA.style "margin-top" "6px" ]
-                                        [ H.text "Name: "
+                                        [ H.text (t ctx.lang EditorStateName ++ ": ")
                                         , input
                                             [ HA.type_ "text"
                                             , value s.name
@@ -1634,6 +1857,11 @@ sidePanel ctx model =
                                             ]
                                             []
                                         ]
+                                    , if model.stateNameConflict then
+                                        div [ HA.style "color" "#e74c3c", HA.style "margin-top" "4px" ] [ H.text (t ctx.lang EditorStateNameUniqueError) ]
+
+                                      else
+                                        text ""
                                     , div [] [ H.text (t ctx.lang EditorSelectedPos ++ ": " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
@@ -1669,7 +1897,7 @@ sidePanel ctx model =
                             Just transition ->
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ String.fromInt transition.id) ]
-                                    , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt transition.from ++ " → " ++ String.fromInt transition.to) ]
+                                    , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ stateNameById model.states transition.from ++ " → " ++ stateNameById model.states transition.to) ]
                                     , input
                                         [ HA.type_ "text"
                                         , size 12

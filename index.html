@@ -47,6 +47,7 @@
           const ls = window.localStorage;
           let lang  = ls.getItem("lang")  || "sk";
           let theme = ls.getItem("theme") || "dark";
+          let automatonSlots = ls.getItem("automatonSlots") || "[]";
 
           document.documentElement.lang = lang;
           document.documentElement.setAttribute("data-theme", theme);
@@ -56,9 +57,9 @@
             metaTheme.setAttribute("content", theme === "dark" ? "#0b0f14" : "#f9fafb");
           }
 
-          window.__APP_FLAGS__ = { lang, theme };
+          window.__APP_FLAGS__ = { lang, theme, automatonSlots };
         } catch (e) {
-          window.__APP_FLAGS__ = { lang: "sk", theme: "dark" };
+          window.__APP_FLAGS__ = { lang: "sk", theme: "dark", automatonSlots: "[]" };
         }
       })();
     </script>
@@ -67,7 +68,17 @@
     <script src="main.js"></script>
     <script>
       if (!location.hash) location.hash = "#/";
-      Elm.Main.init({ flags: window.__APP_FLAGS__ });
+      const app = Elm.Main.init({ flags: window.__APP_FLAGS__ });
+
+      if (app.ports && app.ports.saveAutomatonSlots) {
+        app.ports.saveAutomatonSlots.subscribe(function (payload) {
+          try {
+            window.localStorage.setItem("automatonSlots", payload);
+          } catch (e) {
+            // ignore storage write errors
+          }
+        });
+      }
     </script>
   </body>
 </html>
