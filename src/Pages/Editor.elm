@@ -1,7 +1,7 @@
 module Pages.Editor exposing (Model, Msg(..), init, update, view)
 
 import Dict
-import Html as H exposing (Html, button, div, h2, textarea, text)
+import Html as H exposing (Html, button, div, h2, input, textarea, text)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (onClick, onInput, stopPropagationOn)
 import I18n exposing (Key(..), Lang, t)
@@ -22,7 +22,8 @@ import Theme exposing (Theme, interactiveBg, interactiveBorder, panelBg, panelBo
 type alias Model =
     { states : List State
     , transitions : List Transition
-    , nextId : Int
+    , nextStateId : Int
+    , nextTransitionId : Int
     , dragging : Maybe Int
     , panning : Maybe PanState
     , panX : Float
@@ -44,6 +45,7 @@ type alias Model =
 
 type alias State =
     { id : Int
+    , name : String
     , x : Float
     , y : Float
     , accepting : Bool
@@ -86,7 +88,8 @@ init : Model
 init =
     { states = []
     , transitions = []
-    , nextId = 1
+    , nextStateId = 1
+    , nextTransitionId = 1
     , dragging = Nothing
     , panning = Nothing
     , panX = 0
@@ -125,6 +128,7 @@ type Msg
     | SetMode Mode
     | SetTransitionLabel String
     | SetSelectedTransitionLabel String
+    | SetSelectedStateName String
     | ImportCode
     | ExportCode
     | CodeEdited String
@@ -185,12 +189,14 @@ update msg model =
                                     let
                                         ( wx, wy ) = screenToWorld model cx cy
 
+                                        stateId = model.nextStateId
+
                                         newState =
-                                            { id = model.nextId, x = wx, y = wy, accepting = False, isStart = False }
+                                            { id = stateId, name = String.fromInt stateId, x = wx, y = wy, accepting = False, isStart = False }
                                     in
                                     ( { model
                                         | states = model.states ++ [ newState ]
-                                        , nextId = model.nextId + 1
+                                        , nextStateId = model.nextStateId + 1
                                         , selected = Just newState.id
                                         , selectedTransition = Nothing
                                         , dragging = Nothing
@@ -283,18 +289,10 @@ update msg model =
 
                                 else
                                     let
-                                        label =
-                                            let
-                                                trimmed = String.trim model.transitionLabel
-                                            in
-                                            if String.isEmpty trimmed then
-                                                "λ"
-
-                                            else
-                                                trimmed
+                                        label = normalizeTransitionLabel model.transitionLabel
 
                                         newTransition =
-                                            { id = model.nextId
+                                            { id = model.nextTransitionId
                                             , from = fromId
                                             , to = sid
                                             , label = label
@@ -302,7 +300,7 @@ update msg model =
                                     in
                                     ( { model
                                         | transitions = model.transitions ++ [ newTransition ]
-                                        , nextId = model.nextId + 1
+                                        , nextTransitionId = model.nextTransitionId + 1
                                         , transitionFrom = Nothing
                                         , selected = Nothing
                                         , selectedTransition = Nothing
@@ -328,14 +326,31 @@ update msg model =
                 let
                     statesFiltered = List.filter (\s -> s.id /= sid) model.states
                     transFiltered = List.filter (\t -> t.from /= sid && t.to /= sid) model.transitions
+                    normalized = normalizeAutomatonIds statesFiltered transFiltered
                 in
-                ( { model | states = statesFiltered, transitions = transFiltered, selected = Nothing, selectedTransition = Nothing }, Cmd.none )
+                ( { model
+                    | states = normalized.states
+                    , transitions = normalized.transitions
+                    , nextStateId = normalized.nextStateId
+                    , nextTransitionId = normalized.nextTransitionId
+                    , selected = Nothing
+                    , selectedTransition = Nothing
+                  }
+                , Cmd.none
+                )
 
             DeleteTransition tid ->
                 let
                     transFiltered = List.filter (\t -> t.id /= tid) model.transitions
+                    normalized = normalizeTransitionIds transFiltered
                 in
-                ( { model | transitions = transFiltered, selectedTransition = Nothing }, Cmd.none )
+                ( { model
+                    | transitions = normalized.transitions
+                    , nextTransitionId = normalized.nextTransitionId
+                    , selectedTransition = Nothing
+                  }
+                , Cmd.none
+                )
 
             ToggleStart sid ->
                 case model.mode of
@@ -381,7 +396,7 @@ update msg model =
                 )
 
             SetTransitionLabel label ->
-                ( { model | transitionLabel = label }, Cmd.none )
+                ( { model | transitionLabel = normalizeTransitionLabel label }, Cmd.none )
 
             SetSelectedTransitionLabel label ->
                 case model.selectedTransition of
@@ -390,15 +405,7 @@ update msg model =
 
                     Just tid ->
                         let
-                            normalizedLabel =
-                                let
-                                    trimmed = String.trim label
-                                in
-                                if String.isEmpty trimmed then
-                                    "λ"
-
-                                else
-                                    trimmed
+                            normalizedLabel = normalizeTransitionLabel label
 
                             updateTransition transition =
                                 if transition.id == tid then
@@ -409,14 +416,44 @@ update msg model =
                         in
                         ( { model | transitions = List.map updateTransition model.transitions }, Cmd.none )
 
+            SetSelectedStateName name ->
+                case model.selected of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just sid ->
+                        let
+                            normalizedName =
+                                if String.isEmpty (String.trim name) then
+                                    String.fromInt sid
+
+                                else
+                                    name
+
+                            updateState s =
+                                if s.id == sid then
+                                    { s | name = normalizedName }
+
+                                else
+                                    s
+                        in
+                        ( { model | states = List.map updateState model.states }, Cmd.none )
+
             ImportCode ->
                 case Decode.decodeString decodeAutomaton model.codeDraft of
                     Ok ( ss, ts ) ->
                         let
                             normalizedStates = enforceSingleStartFlag ss
-                            maxId = List.maximum (List.map .id normalizedStates ++ List.map .id ts) |> Maybe.withDefault 0
+                            normalizedAutomaton = normalizeAutomatonIds normalizedStates ts
                         in
-                        ( { model | states = normalizedStates, transitions = ts, nextId = maxId + 1 }, Cmd.none )
+                        ( { model
+                            | states = normalizedAutomaton.states
+                            , transitions = normalizedAutomaton.transitions
+                            , nextStateId = normalizedAutomaton.nextStateId
+                            , nextTransitionId = normalizedAutomaton.nextTransitionId
+                          }
+                        , Cmd.none
+                        )
 
                     Err _ -> ( model, Cmd.none )
 
@@ -467,6 +504,87 @@ enforceSingleStartFlag states =
             ensureSingleStart s.id states
 
 
+normalizeTransitionLabel : String -> String
+normalizeTransitionLabel raw =
+    String.left 1 raw
+
+
+isLambdaLabel : String -> Bool
+isLambdaLabel label =
+    String.isEmpty label
+
+
+type alias NormalizedTransitionIds =
+    { transitions : List Transition
+    , nextTransitionId : Int
+    }
+
+
+type alias NormalizedAutomaton =
+    { states : List State
+    , transitions : List Transition
+    , nextStateId : Int
+    , nextTransitionId : Int
+    }
+
+
+normalizeTransitionIds : List Transition -> NormalizedTransitionIds
+normalizeTransitionIds transitions =
+    let
+        sorted = List.sortBy .id transitions
+
+        step transition ( nextId, acc ) =
+            ( nextId + 1, { transition | id = nextId } :: acc )
+
+        ( nextTransitionId, reversed ) =
+            List.foldl step ( 1, [] ) sorted
+    in
+    { transitions = List.reverse reversed
+    , nextTransitionId = nextTransitionId
+    }
+
+
+normalizeAutomatonIds : List State -> List Transition -> NormalizedAutomaton
+normalizeAutomatonIds states transitions =
+    let
+        sortedStates = List.sortBy .id states
+
+        renumberStates state ( nextId, mapping, acc ) =
+            let
+                newState =
+                    { state | id = nextId }
+            in
+            ( nextId + 1
+            , Dict.insert state.id nextId mapping
+            , newState :: acc
+            )
+
+        ( nextStateId, stateIdMap, reversedStates ) =
+            List.foldl renumberStates ( 1, Dict.empty, [] ) sortedStates
+
+        remapStateId oldId =
+            Dict.get oldId stateIdMap |> Maybe.withDefault oldId
+
+        remappedTransitions =
+            List.map
+                (\transition ->
+                    { transition
+                        | from = remapStateId transition.from
+                        , to = remapStateId transition.to
+                    }
+                )
+                transitions
+
+        normalizedTransitions =
+            normalizeTransitionIds remappedTransitions
+    in
+    { states = List.reverse reversedStates
+    , transitions = normalizedTransitions.transitions
+    , nextStateId = nextStateId
+    , nextTransitionId = normalizedTransitions.nextTransitionId
+    }
+
+
 findStartState : List State -> Maybe State
 findStartState states =
     List.head <| List.filter .isStart states
@@ -474,7 +592,7 @@ findStartState states =
 
 hasLambdaFrom : Int -> List Transition -> Bool
 hasLambdaFrom sid transitions =
-    List.any (\t -> t.from == sid && t.label == "λ") transitions
+    List.any (\t -> t.from == sid && isLambdaLabel t.label) transitions
 
 
 isDeterministic : List Transition -> Bool
@@ -492,7 +610,7 @@ isDeterministic transitions =
             Dict.values counts |> List.any (\n -> n > 1)
 
         hasLambda =
-            List.any (\t -> t.label == "λ") transitions
+            List.any (\t -> isLambdaLabel t.label) transitions
     in
     (not hasDuplicate) && (not hasLambda)
 
@@ -583,7 +701,7 @@ stepSimulation model =
                                         |> List.head
 
                         lambdaMatch =
-                            List.filter (\t -> t.from == sid && t.label == "λ") model.transitions
+                            List.filter (\t -> t.from == sid && isLambdaLabel t.label) model.transitions
                                 |> List.head
                     in
                     case ( charMatch, lambdaMatch ) of
@@ -674,6 +792,7 @@ encodeState : State -> Encode.Value
 encodeState s =
     Encode.object
         [ ( "id", Encode.int s.id )
+        , ( "name", Encode.string s.name )
         , ( "x", Encode.float s.x )
         , ( "y", Encode.float s.y )
         , ( "accepting", Encode.bool s.accepting )
@@ -708,12 +827,25 @@ decodeAutomaton =
 
 decodeState : Decode.Decoder State
 decodeState =
-    Decode.map5 State
-        (Decode.field "id" Decode.int)
-        (Decode.field "x" Decode.float)
-        (Decode.field "y" Decode.float)
-        (Decode.field "accepting" Decode.bool)
-        (Decode.field "isStart" Decode.bool)
+    Decode.field "id" Decode.int
+        |> Decode.andThen
+            (\id ->
+                Decode.map5
+                    (\x y accepting isStart maybeName ->
+                        { id = id
+                        , name = Maybe.withDefault (String.fromInt id) maybeName
+                        , x = x
+                        , y = y
+                        , accepting = accepting
+                        , isStart = isStart
+                        }
+                    )
+                    (Decode.field "x" Decode.float)
+                    (Decode.field "y" Decode.float)
+                    (Decode.field "accepting" Decode.bool)
+                    (Decode.field "isStart" Decode.bool)
+                    (Decode.maybe (Decode.field "name" Decode.string))
+            )
 
 
 decodeTransition : Decode.Decoder Transition
@@ -925,14 +1057,14 @@ viewState ctx model s =
                     S.text_ [] []
                  )
                , S.text_
-                    [ SA.x (String.fromFloat (s.x - 6))
+                    [ SA.x (String.fromFloat (s.x - (toFloat (String.length s.name) * 3.5)))
                     , SA.y (String.fromFloat (s.y + 6))
                     , SA.fontSize "14"
                     , SA.fill (textColor ctx.theme)
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
-                    [ S.text (String.fromInt s.id) ]
+                    [ S.text s.name ]
                ]
         )
 
@@ -955,7 +1087,14 @@ viewTransition ctx model t =
                 midY = (startY + endY) / 2
                 labelX = midX + 6
                 labelY = midY - 6
-                hitWidth = Basics.max 24 (toFloat (String.length t.label) * 9)
+                shownLabel =
+                    if isLambdaLabel t.label then
+                        "λ"
+
+                    else
+                        t.label
+
+                hitWidth = Basics.max 24 (toFloat (String.length shownLabel) * 9)
                 hitHeight = 18
                 isSelected = model.selectedTransition == Just t.id
                 strokeWidth = if isSelected then "4" else "2"
@@ -992,6 +1131,22 @@ viewTransition ctx model t =
                     , selectTransitionOnClick
                     ]
                     []
+                , (if isLambdaLabel t.label then
+                    S.rect
+                        [ SA.x (String.fromFloat (labelX - 7))
+                        , SA.y (String.fromFloat (labelY - hitHeight + 3))
+                        , SA.width (String.fromFloat (hitWidth - 8))
+                        , SA.height (String.fromFloat hitHeight)
+                        , SA.rx "4"
+                        , SA.ry "4"
+                        , SA.fill "#b0b7c366"
+                        , SA.stroke "none"
+                        , SA.pointerEvents "none"
+                        ]
+                        []
+                   else
+                    S.text_ [] []
+                  )
                 , S.text_
                     [ SA.x (String.fromFloat labelX)
                     , SA.y (String.fromFloat labelY)
@@ -1000,7 +1155,7 @@ viewTransition ctx model t =
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
-                    [ S.text t.label ]
+                    [ S.text shownLabel ]
                 ]
 
         _ ->
@@ -1129,9 +1284,10 @@ sidePanel ctx model =
             div []
                 [ H.h2 [] [ H.text (t ctx.lang EditorTransitions) ]
                 , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
-                    [ textarea
-                        [ rows 1
-                        , cols 12
+                    [ input
+                        [ HA.type_ "text"
+                        , size 12
+                        , maxlength 1
                         , placeholder (t ctx.lang EditorTransitionLabel)
                         , value model.transitionLabel
                         , onInput SetTransitionLabel
@@ -1164,6 +1320,15 @@ sidePanel ctx model =
                             Just s ->
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedState ++ ": " ++ String.fromInt s.id) ]
+                                    , div [ HA.style "margin-top" "6px" ]
+                                        [ H.text "Name: "
+                                        , input
+                                            [ HA.type_ "text"
+                                            , value s.name
+                                            , onInput SetSelectedStateName
+                                            ]
+                                            []
+                                        ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedPos ++ ": " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
@@ -1200,9 +1365,10 @@ sidePanel ctx model =
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ String.fromInt transition.id) ]
                                     , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt transition.from ++ " → " ++ String.fromInt transition.to) ]
-                                    , textarea
-                                        [ rows 1
-                                        , cols 12
+                                    , input
+                                        [ HA.type_ "text"
+                                        , size 12
+                                        , maxlength 1
                                         , placeholder (t ctx.lang EditorTransitionLabel)
                                         , value transition.label
                                         , onInput SetSelectedTransitionLabel
