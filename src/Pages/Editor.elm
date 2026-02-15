@@ -1149,6 +1149,10 @@ buildAutomatonFromParsedTransitions existingStates parsedTransitions =
             existingStates
                 |> List.foldl (\state acc -> Dict.insert state.name ( state.x, state.y ) acc) Dict.empty
 
+        existingStateByName =
+            existingStates
+                |> List.foldl (\state acc -> Dict.insert state.name state acc) Dict.empty
+
         isOccupied occupied ( x, y ) =
             List.any (\( ox, oy ) -> ox == x && oy == y) occupied
 
@@ -1281,13 +1285,14 @@ buildAutomatonFromParsedTransitions existingStates parsedTransitions =
                     (\( name, sid ) ->
                         let
                             ( x, y ) = Dict.get name allPositions |> Maybe.withDefault ( 100, 100 )
+                            maybeExistingState = Dict.get name existingStateByName
                         in
                         { id = sid
                         , name = name
                         , x = x
                         , y = y
-                        , accepting = False
-                        , isStart = sid == 1
+                        , accepting = maybeExistingState |> Maybe.map .accepting |> Maybe.withDefault False
+                        , isStart = maybeExistingState |> Maybe.map .isStart |> Maybe.withDefault (sid == 1)
                         }
                     )
 
@@ -1770,8 +1775,11 @@ saveModal ctx model =
         viewSlot slot =
             let
                 slotLabel =
-                    if String.isEmpty slot.name then
+                    if String.isEmpty slot.automatonJson then
                         t ctx.lang EditorSlotEmpty
+
+                    else if String.isEmpty slot.name then
+                        ""
 
                     else
                         slot.name
