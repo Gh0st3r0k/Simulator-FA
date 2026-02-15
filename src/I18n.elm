@@ -48,6 +48,45 @@ type Key
     | InstructionsBody
     | AboutTitle
     | AboutBody
+    | EditorTitle
+    | EditorType
+    | EditorAutomatonDeterministic
+    | EditorAutomatonNonDeterministic
+    | EditorJson
+    | EditorImport
+    | EditorExport
+    | EditorMode
+    | EditorModeAddState
+    | EditorModeAddTransition
+    | EditorModeMoveState
+    | EditorTransitions
+    | EditorTransitionLabel
+    | EditorTransitionSelectStart
+    | EditorTransitionFrom
+    | EditorSelected
+    | EditorSelectedNone
+    | EditorSelectedNotFound
+    | EditorSelectedState
+    | EditorSelectedPos
+    | EditorSelectedAccepting
+    | EditorSelectedStart
+    | EditorYes
+    | EditorNo
+    | EditorDeleteState
+    | EditorUnsetStart
+    | EditorMakeStart
+    | EditorUnsetAccepting
+    | EditorMakeAccepting
+    | EditorSimulation
+    | EditorSimulationInput
+    | EditorSimulationDelay
+    | EditorSimulationStart
+    | EditorSimulationStop
+    | EditorSimulationRunning
+    | EditorSimulationSuccess
+    | EditorSimulationRejected
+    | EditorSimulationDeadEnd
+    | EditorSimulationMissingStart
     | BackHomeIcon
     | BackHomeText
     | BackHomeIconText
@@ -147,6 +186,202 @@ t lang key =
         ( EN, AboutBody ) -> "Educational project: a visual editor and simulator for finite automata in Elm."
         ( SK, AboutBody ) -> "Vzdelávací projekt: vizuálny editor a simulátor konečných automatov v Elme."
         ( UA, AboutBody ) -> "Навчальний проєкт для FIIT STU: візуальний редактор і симулятор кінцевих автоматів на Elm."
+
+
+        ( RU, EditorTitle ) -> "Редактор"
+        ( EN, EditorTitle ) -> "Editor"
+        ( SK, EditorTitle ) -> "Editor"
+        ( UA, EditorTitle ) -> "Редактор"
+
+        ( RU, EditorType ) -> "Тип"
+        ( EN, EditorType ) -> "Type"
+        ( SK, EditorType ) -> "Typ"
+        ( UA, EditorType ) -> "Тип"
+
+        ( RU, EditorAutomatonDeterministic ) -> "Детерминированный автомат"
+        ( EN, EditorAutomatonDeterministic ) -> "Deterministic automaton"
+        ( SK, EditorAutomatonDeterministic ) -> "Deterministický automat"
+        ( UA, EditorAutomatonDeterministic ) -> "Детермінований автомат"
+
+        ( RU, EditorAutomatonNonDeterministic ) -> "Недетерминированный автомат"
+        ( EN, EditorAutomatonNonDeterministic ) -> "Non-deterministic automaton"
+        ( SK, EditorAutomatonNonDeterministic ) -> "Nedeterministický automat"
+        ( UA, EditorAutomatonNonDeterministic ) -> "Недетермінований автомат"
+
+        ( RU, EditorJson ) -> "JSON"
+        ( EN, EditorJson ) -> "JSON"
+        ( SK, EditorJson ) -> "JSON"
+        ( UA, EditorJson ) -> "JSON"
+
+        ( RU, EditorImport ) -> "Импорт"
+        ( EN, EditorImport ) -> "Import"
+        ( SK, EditorImport ) -> "Import"
+        ( UA, EditorImport ) -> "Імпорт"
+
+        ( RU, EditorExport ) -> "Экспорт"
+        ( EN, EditorExport ) -> "Export"
+        ( SK, EditorExport ) -> "Export"
+        ( UA, EditorExport ) -> "Експорт"
+
+        ( RU, EditorMode ) -> "Режим"
+        ( EN, EditorMode ) -> "Mode"
+        ( SK, EditorMode ) -> "Režim"
+        ( UA, EditorMode ) -> "Режим"
+
+        ( RU, EditorModeAddState ) -> "Создать состояния"
+        ( EN, EditorModeAddState ) -> "Create states"
+        ( SK, EditorModeAddState ) -> "Vytvoriť stavy"
+        ( UA, EditorModeAddState ) -> "Створити стани"
+
+        ( RU, EditorModeAddTransition ) -> "Создать переходы"
+        ( EN, EditorModeAddTransition ) -> "Create transitions"
+        ( SK, EditorModeAddTransition ) -> "Vytvoriť prechody"
+        ( UA, EditorModeAddTransition ) -> "Створити переходи"
+
+        ( RU, EditorModeMoveState ) -> "Перемещать состояния"
+        ( EN, EditorModeMoveState ) -> "Move states"
+        ( SK, EditorModeMoveState ) -> "Presúvať stavy"
+        ( UA, EditorModeMoveState ) -> "Переміщувати стани"
+
+        ( RU, EditorTransitions ) -> "Переходы"
+        ( EN, EditorTransitions ) -> "Transitions"
+        ( SK, EditorTransitions ) -> "Prechody"
+        ( UA, EditorTransitions ) -> "Переходи"
+
+        ( RU, EditorTransitionLabel ) -> "Метка"
+        ( EN, EditorTransitionLabel ) -> "Label"
+        ( SK, EditorTransitionLabel ) -> "Označenie"
+        ( UA, EditorTransitionLabel ) -> "Мітка"
+
+        ( RU, EditorTransitionSelectStart ) -> "Выберите состояние как начальный узел"
+        ( EN, EditorTransitionSelectStart ) -> "Select a state as the start node"
+        ( SK, EditorTransitionSelectStart ) -> "Vyberte stav ako počiatočný uzol"
+        ( UA, EditorTransitionSelectStart ) -> "Оберіть стан як початковий вузол"
+
+        ( RU, EditorTransitionFrom ) -> "Из"
+        ( EN, EditorTransitionFrom ) -> "From"
+        ( SK, EditorTransitionFrom ) -> "Zo stavu"
+        ( UA, EditorTransitionFrom ) -> "Зі стану"
+
+        ( RU, EditorSelected ) -> "Выбрано"
+        ( EN, EditorSelected ) -> "Selected"
+        ( SK, EditorSelected ) -> "Vybrané"
+        ( UA, EditorSelected ) -> "Вибрано"
+
+        ( RU, EditorSelectedNone ) -> "Ничего"
+        ( EN, EditorSelectedNone ) -> "None"
+        ( SK, EditorSelectedNone ) -> "Nič"
+        ( UA, EditorSelectedNone ) -> "Нічого"
+
+        ( RU, EditorSelectedNotFound ) -> "Не найдено"
+        ( EN, EditorSelectedNotFound ) -> "Not found"
+        ( SK, EditorSelectedNotFound ) -> "Nenájdené"
+        ( UA, EditorSelectedNotFound ) -> "Не знайдено"
+
+        ( RU, EditorSelectedState ) -> "Состояние"
+        ( EN, EditorSelectedState ) -> "State"
+        ( SK, EditorSelectedState ) -> "Stav"
+        ( UA, EditorSelectedState ) -> "Стан"
+
+        ( RU, EditorSelectedPos ) -> "Позиция"
+        ( EN, EditorSelectedPos ) -> "Pos"
+        ( SK, EditorSelectedPos ) -> "Pozícia"
+        ( UA, EditorSelectedPos ) -> "Позиція"
+
+        ( RU, EditorSelectedAccepting ) -> "Принимающее"
+        ( EN, EditorSelectedAccepting ) -> "Accepting"
+        ( SK, EditorSelectedAccepting ) -> "Akceptujúci"
+        ( UA, EditorSelectedAccepting ) -> "Приймаючий"
+
+        ( RU, EditorSelectedStart ) -> "Стартовое"
+        ( EN, EditorSelectedStart ) -> "Start"
+        ( SK, EditorSelectedStart ) -> "Počiatočný"
+        ( UA, EditorSelectedStart ) -> "Початковий"
+
+        ( RU, EditorYes ) -> "Да"
+        ( EN, EditorYes ) -> "Yes"
+        ( SK, EditorYes ) -> "Áno"
+        ( UA, EditorYes ) -> "Так"
+
+        ( RU, EditorNo ) -> "Нет"
+        ( EN, EditorNo ) -> "No"
+        ( SK, EditorNo ) -> "Nie"
+        ( UA, EditorNo ) -> "Ні"
+
+        ( RU, EditorDeleteState ) -> "Удалить состояние"
+        ( EN, EditorDeleteState ) -> "Delete state"
+        ( SK, EditorDeleteState ) -> "Zmazať stav"
+        ( UA, EditorDeleteState ) -> "Видалити стан"
+
+        ( RU, EditorUnsetStart ) -> "Снять старт"
+        ( EN, EditorUnsetStart ) -> "Unset start"
+        ( SK, EditorUnsetStart ) -> "Zrušiť počiatočný"
+        ( UA, EditorUnsetStart ) -> "Зняти початковий"
+
+        ( RU, EditorMakeStart ) -> "Сделать стартом"
+        ( EN, EditorMakeStart ) -> "Make start"
+        ( SK, EditorMakeStart ) -> "Nastaviť počiatočný"
+        ( UA, EditorMakeStart ) -> "Зробити початковим"
+
+        ( RU, EditorUnsetAccepting ) -> "Снять принимающее"
+        ( EN, EditorUnsetAccepting ) -> "Unset accepting"
+        ( SK, EditorUnsetAccepting ) -> "Zrušiť akceptujúci"
+        ( UA, EditorUnsetAccepting ) -> "Зняти приймаючий"
+
+        ( RU, EditorMakeAccepting ) -> "Сделать принимающим"
+        ( EN, EditorMakeAccepting ) -> "Make accepting"
+        ( SK, EditorMakeAccepting ) -> "Nastaviť akceptujúci"
+        ( UA, EditorMakeAccepting ) -> "Зробити приймаючим"
+
+        ( RU, EditorSimulation ) -> "Симуляция"
+        ( EN, EditorSimulation ) -> "Simulation"
+        ( SK, EditorSimulation ) -> "Simulácia"
+        ( UA, EditorSimulation ) -> "Симуляція"
+
+        ( RU, EditorSimulationInput ) -> "Входная строка"
+        ( EN, EditorSimulationInput ) -> "Input string"
+        ( SK, EditorSimulationInput ) -> "Vstupný reťazec"
+        ( UA, EditorSimulationInput ) -> "Вхідний рядок"
+
+        ( RU, EditorSimulationDelay ) -> "Задержка мс"
+        ( EN, EditorSimulationDelay ) -> "Delay ms"
+        ( SK, EditorSimulationDelay ) -> "Oneskorenie ms"
+        ( UA, EditorSimulationDelay ) -> "Затримка мс"
+
+        ( RU, EditorSimulationStart ) -> "Запустить симуляцию"
+        ( EN, EditorSimulationStart ) -> "Start simulation"
+        ( SK, EditorSimulationStart ) -> "Spustiť simuláciu"
+        ( UA, EditorSimulationStart ) -> "Запустити симуляцію"
+
+        ( RU, EditorSimulationStop ) -> "Стоп"
+        ( EN, EditorSimulationStop ) -> "Stop"
+        ( SK, EditorSimulationStop ) -> "Stop"
+        ( UA, EditorSimulationStop ) -> "Стоп"
+
+        ( RU, EditorSimulationRunning ) -> "Симуляция выполняется..."
+        ( EN, EditorSimulationRunning ) -> "Simulation running..."
+        ( SK, EditorSimulationRunning ) -> "Simulácia beží..."
+        ( UA, EditorSimulationRunning ) -> "Симуляція виконується..."
+
+        ( RU, EditorSimulationSuccess ) -> "Успех"
+        ( EN, EditorSimulationSuccess ) -> "Success"
+        ( SK, EditorSimulationSuccess ) -> "Úspech"
+        ( UA, EditorSimulationSuccess ) -> "Успіх"
+
+        ( RU, EditorSimulationRejected ) -> "Строка не соответствует автомату"
+        ( EN, EditorSimulationRejected ) -> "Word does not match the automaton"
+        ( SK, EditorSimulationRejected ) -> "Reťazec nezodpovedá automatu"
+        ( UA, EditorSimulationRejected ) -> "Рядок не відповідає автомату"
+
+        ( RU, EditorSimulationDeadEnd ) -> "Ошибка: нет подходящего перехода для входа"
+        ( EN, EditorSimulationDeadEnd ) -> "Error: no suitable transition for input"
+        ( SK, EditorSimulationDeadEnd ) -> "Chyba: žiadny vhodný prechod pre vstup"
+        ( UA, EditorSimulationDeadEnd ) -> "Помилка: немає відповідного переходу для входу"
+
+        ( RU, EditorSimulationMissingStart ) -> "Ошибка: не выбрано стартовое состояние"
+        ( EN, EditorSimulationMissingStart ) -> "Error: no start state selected"
+        ( SK, EditorSimulationMissingStart ) -> "Chyba: nie je zvolený počiatočný stav"
+        ( UA, EditorSimulationMissingStart ) -> "Помилка: не вибрано початковий стан"
 
         ( RU, BackHomeIcon  ) -> "←"
         ( EN, BackHomeIcon  ) -> "←"

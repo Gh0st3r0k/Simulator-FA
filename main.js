@@ -7138,14 +7138,170 @@ var $author$project$I18n$t = F2(
 					case 13:
 						var _v105 = _v0.a;
 						var _v106 = _v0.b;
-						return '←';
+						return 'Редактор';
 					case 14:
 						var _v113 = _v0.a;
 						var _v114 = _v0.b;
-						return 'На главную';
-					default:
+						return 'Тип';
+					case 15:
 						var _v121 = _v0.a;
 						var _v122 = _v0.b;
+						return 'Детерминированный автомат';
+					case 16:
+						var _v129 = _v0.a;
+						var _v130 = _v0.b;
+						return 'Недетерминированный автомат';
+					case 17:
+						var _v137 = _v0.a;
+						var _v138 = _v0.b;
+						return 'JSON';
+					case 18:
+						var _v145 = _v0.a;
+						var _v146 = _v0.b;
+						return 'Импорт';
+					case 19:
+						var _v153 = _v0.a;
+						var _v154 = _v0.b;
+						return 'Экспорт';
+					case 20:
+						var _v161 = _v0.a;
+						var _v162 = _v0.b;
+						return 'Режим';
+					case 21:
+						var _v169 = _v0.a;
+						var _v170 = _v0.b;
+						return 'Создать состояния';
+					case 22:
+						var _v177 = _v0.a;
+						var _v178 = _v0.b;
+						return 'Создать переходы';
+					case 23:
+						var _v185 = _v0.a;
+						var _v186 = _v0.b;
+						return 'Перемещать состояния';
+					case 24:
+						var _v193 = _v0.a;
+						var _v194 = _v0.b;
+						return 'Переходы';
+					case 25:
+						var _v201 = _v0.a;
+						var _v202 = _v0.b;
+						return 'Метка';
+					case 26:
+						var _v209 = _v0.a;
+						var _v210 = _v0.b;
+						return 'Выберите состояние как начальный узел';
+					case 27:
+						var _v217 = _v0.a;
+						var _v218 = _v0.b;
+						return 'Из';
+					case 28:
+						var _v225 = _v0.a;
+						var _v226 = _v0.b;
+						return 'Выбрано';
+					case 29:
+						var _v233 = _v0.a;
+						var _v234 = _v0.b;
+						return 'Ничего';
+					case 30:
+						var _v241 = _v0.a;
+						var _v242 = _v0.b;
+						return 'Не найдено';
+					case 31:
+						var _v249 = _v0.a;
+						var _v250 = _v0.b;
+						return 'Состояние';
+					case 32:
+						var _v257 = _v0.a;
+						var _v258 = _v0.b;
+						return 'Позиция';
+					case 33:
+						var _v265 = _v0.a;
+						var _v266 = _v0.b;
+						return 'Принимающее';
+					case 34:
+						var _v273 = _v0.a;
+						var _v274 = _v0.b;
+						return 'Стартовое';
+					case 35:
+						var _v281 = _v0.a;
+						var _v282 = _v0.b;
+						return 'Да';
+					case 36:
+						var _v289 = _v0.a;
+						var _v290 = _v0.b;
+						return 'Нет';
+					case 37:
+						var _v297 = _v0.a;
+						var _v298 = _v0.b;
+						return 'Удалить состояние';
+					case 38:
+						var _v305 = _v0.a;
+						var _v306 = _v0.b;
+						return 'Снять старт';
+					case 39:
+						var _v313 = _v0.a;
+						var _v314 = _v0.b;
+						return 'Сделать стартом';
+					case 40:
+						var _v321 = _v0.a;
+						var _v322 = _v0.b;
+						return 'Снять принимающее';
+					case 41:
+						var _v329 = _v0.a;
+						var _v330 = _v0.b;
+						return 'Сделать принимающим';
+					case 42:
+						var _v337 = _v0.a;
+						var _v338 = _v0.b;
+						return 'Симуляция';
+					case 43:
+						var _v345 = _v0.a;
+						var _v346 = _v0.b;
+						return 'Входная строка';
+					case 44:
+						var _v353 = _v0.a;
+						var _v354 = _v0.b;
+						return 'Задержка мс';
+					case 45:
+						var _v361 = _v0.a;
+						var _v362 = _v0.b;
+						return 'Запустить симуляцию';
+					case 46:
+						var _v369 = _v0.a;
+						var _v370 = _v0.b;
+						return 'Стоп';
+					case 47:
+						var _v377 = _v0.a;
+						var _v378 = _v0.b;
+						return 'Симуляция выполняется...';
+					case 48:
+						var _v385 = _v0.a;
+						var _v386 = _v0.b;
+						return 'Успех';
+					case 49:
+						var _v393 = _v0.a;
+						var _v394 = _v0.b;
+						return 'Строка не соответствует автомату';
+					case 50:
+						var _v401 = _v0.a;
+						var _v402 = _v0.b;
+						return 'Ошибка: нет подходящего перехода для входа';
+					case 51:
+						var _v409 = _v0.a;
+						var _v410 = _v0.b;
+						return 'Ошибка: не выбрано стартовое состояние';
+					case 52:
+						var _v417 = _v0.a;
+						var _v418 = _v0.b;
+						return '←';
+					case 53:
+						var _v425 = _v0.a;
+						var _v426 = _v0.b;
+						return 'На главную';
+					default:
+						var _v433 = _v0.a;
+						var _v434 = _v0.b;
 						return '← На главную';
 				}
 			case 1:
@@ -7209,14 +7365,170 @@ var $author$project$I18n$t = F2(
 					case 13:
 						var _v107 = _v0.a;
 						var _v108 = _v0.b;
-						return '←';
+						return 'Editor';
 					case 14:
 						var _v115 = _v0.a;
 						var _v116 = _v0.b;
-						return 'Home';
-					default:
+						return 'Type';
+					case 15:
 						var _v123 = _v0.a;
 						var _v124 = _v0.b;
+						return 'Deterministic automaton';
+					case 16:
+						var _v131 = _v0.a;
+						var _v132 = _v0.b;
+						return 'Non-deterministic automaton';
+					case 17:
+						var _v139 = _v0.a;
+						var _v140 = _v0.b;
+						return 'JSON';
+					case 18:
+						var _v147 = _v0.a;
+						var _v148 = _v0.b;
+						return 'Import';
+					case 19:
+						var _v155 = _v0.a;
+						var _v156 = _v0.b;
+						return 'Export';
+					case 20:
+						var _v163 = _v0.a;
+						var _v164 = _v0.b;
+						return 'Mode';
+					case 21:
+						var _v171 = _v0.a;
+						var _v172 = _v0.b;
+						return 'Create states';
+					case 22:
+						var _v179 = _v0.a;
+						var _v180 = _v0.b;
+						return 'Create transitions';
+					case 23:
+						var _v187 = _v0.a;
+						var _v188 = _v0.b;
+						return 'Move states';
+					case 24:
+						var _v195 = _v0.a;
+						var _v196 = _v0.b;
+						return 'Transitions';
+					case 25:
+						var _v203 = _v0.a;
+						var _v204 = _v0.b;
+						return 'Label';
+					case 26:
+						var _v211 = _v0.a;
+						var _v212 = _v0.b;
+						return 'Select a state as the start node';
+					case 27:
+						var _v219 = _v0.a;
+						var _v220 = _v0.b;
+						return 'From';
+					case 28:
+						var _v227 = _v0.a;
+						var _v228 = _v0.b;
+						return 'Selected';
+					case 29:
+						var _v235 = _v0.a;
+						var _v236 = _v0.b;
+						return 'None';
+					case 30:
+						var _v243 = _v0.a;
+						var _v244 = _v0.b;
+						return 'Not found';
+					case 31:
+						var _v251 = _v0.a;
+						var _v252 = _v0.b;
+						return 'State';
+					case 32:
+						var _v259 = _v0.a;
+						var _v260 = _v0.b;
+						return 'Pos';
+					case 33:
+						var _v267 = _v0.a;
+						var _v268 = _v0.b;
+						return 'Accepting';
+					case 34:
+						var _v275 = _v0.a;
+						var _v276 = _v0.b;
+						return 'Start';
+					case 35:
+						var _v283 = _v0.a;
+						var _v284 = _v0.b;
+						return 'Yes';
+					case 36:
+						var _v291 = _v0.a;
+						var _v292 = _v0.b;
+						return 'No';
+					case 37:
+						var _v299 = _v0.a;
+						var _v300 = _v0.b;
+						return 'Delete state';
+					case 38:
+						var _v307 = _v0.a;
+						var _v308 = _v0.b;
+						return 'Unset start';
+					case 39:
+						var _v315 = _v0.a;
+						var _v316 = _v0.b;
+						return 'Make start';
+					case 40:
+						var _v323 = _v0.a;
+						var _v324 = _v0.b;
+						return 'Unset accepting';
+					case 41:
+						var _v331 = _v0.a;
+						var _v332 = _v0.b;
+						return 'Make accepting';
+					case 42:
+						var _v339 = _v0.a;
+						var _v340 = _v0.b;
+						return 'Simulation';
+					case 43:
+						var _v347 = _v0.a;
+						var _v348 = _v0.b;
+						return 'Input string';
+					case 44:
+						var _v355 = _v0.a;
+						var _v356 = _v0.b;
+						return 'Delay ms';
+					case 45:
+						var _v363 = _v0.a;
+						var _v364 = _v0.b;
+						return 'Start simulation';
+					case 46:
+						var _v371 = _v0.a;
+						var _v372 = _v0.b;
+						return 'Stop';
+					case 47:
+						var _v379 = _v0.a;
+						var _v380 = _v0.b;
+						return 'Simulation running...';
+					case 48:
+						var _v387 = _v0.a;
+						var _v388 = _v0.b;
+						return 'Success';
+					case 49:
+						var _v395 = _v0.a;
+						var _v396 = _v0.b;
+						return 'Word does not match the automaton';
+					case 50:
+						var _v403 = _v0.a;
+						var _v404 = _v0.b;
+						return 'Error: no suitable transition for input';
+					case 51:
+						var _v411 = _v0.a;
+						var _v412 = _v0.b;
+						return 'Error: no start state selected';
+					case 52:
+						var _v419 = _v0.a;
+						var _v420 = _v0.b;
+						return '←';
+					case 53:
+						var _v427 = _v0.a;
+						var _v428 = _v0.b;
+						return 'Home';
+					default:
+						var _v435 = _v0.a;
+						var _v436 = _v0.b;
 						return '← Home';
 				}
 			case 2:
@@ -7280,14 +7592,170 @@ var $author$project$I18n$t = F2(
 					case 13:
 						var _v109 = _v0.a;
 						var _v110 = _v0.b;
-						return '←';
+						return 'Editor';
 					case 14:
 						var _v117 = _v0.a;
 						var _v118 = _v0.b;
-						return 'Domov';
-					default:
+						return 'Typ';
+					case 15:
 						var _v125 = _v0.a;
 						var _v126 = _v0.b;
+						return 'Deterministický automat';
+					case 16:
+						var _v133 = _v0.a;
+						var _v134 = _v0.b;
+						return 'Nedeterministický automat';
+					case 17:
+						var _v141 = _v0.a;
+						var _v142 = _v0.b;
+						return 'JSON';
+					case 18:
+						var _v149 = _v0.a;
+						var _v150 = _v0.b;
+						return 'Import';
+					case 19:
+						var _v157 = _v0.a;
+						var _v158 = _v0.b;
+						return 'Export';
+					case 20:
+						var _v165 = _v0.a;
+						var _v166 = _v0.b;
+						return 'Režim';
+					case 21:
+						var _v173 = _v0.a;
+						var _v174 = _v0.b;
+						return 'Vytvoriť stavy';
+					case 22:
+						var _v181 = _v0.a;
+						var _v182 = _v0.b;
+						return 'Vytvoriť prechody';
+					case 23:
+						var _v189 = _v0.a;
+						var _v190 = _v0.b;
+						return 'Presúvať stavy';
+					case 24:
+						var _v197 = _v0.a;
+						var _v198 = _v0.b;
+						return 'Prechody';
+					case 25:
+						var _v205 = _v0.a;
+						var _v206 = _v0.b;
+						return 'Označenie';
+					case 26:
+						var _v213 = _v0.a;
+						var _v214 = _v0.b;
+						return 'Vyberte stav ako počiatočný uzol';
+					case 27:
+						var _v221 = _v0.a;
+						var _v222 = _v0.b;
+						return 'Zo stavu';
+					case 28:
+						var _v229 = _v0.a;
+						var _v230 = _v0.b;
+						return 'Vybrané';
+					case 29:
+						var _v237 = _v0.a;
+						var _v238 = _v0.b;
+						return 'Nič';
+					case 30:
+						var _v245 = _v0.a;
+						var _v246 = _v0.b;
+						return 'Nenájdené';
+					case 31:
+						var _v253 = _v0.a;
+						var _v254 = _v0.b;
+						return 'Stav';
+					case 32:
+						var _v261 = _v0.a;
+						var _v262 = _v0.b;
+						return 'Pozícia';
+					case 33:
+						var _v269 = _v0.a;
+						var _v270 = _v0.b;
+						return 'Akceptujúci';
+					case 34:
+						var _v277 = _v0.a;
+						var _v278 = _v0.b;
+						return 'Počiatočný';
+					case 35:
+						var _v285 = _v0.a;
+						var _v286 = _v0.b;
+						return 'Áno';
+					case 36:
+						var _v293 = _v0.a;
+						var _v294 = _v0.b;
+						return 'Nie';
+					case 37:
+						var _v301 = _v0.a;
+						var _v302 = _v0.b;
+						return 'Zmazať stav';
+					case 38:
+						var _v309 = _v0.a;
+						var _v310 = _v0.b;
+						return 'Zrušiť počiatočný';
+					case 39:
+						var _v317 = _v0.a;
+						var _v318 = _v0.b;
+						return 'Nastaviť počiatočný';
+					case 40:
+						var _v325 = _v0.a;
+						var _v326 = _v0.b;
+						return 'Zrušiť akceptujúci';
+					case 41:
+						var _v333 = _v0.a;
+						var _v334 = _v0.b;
+						return 'Nastaviť akceptujúci';
+					case 42:
+						var _v341 = _v0.a;
+						var _v342 = _v0.b;
+						return 'Simulácia';
+					case 43:
+						var _v349 = _v0.a;
+						var _v350 = _v0.b;
+						return 'Vstupný reťazec';
+					case 44:
+						var _v357 = _v0.a;
+						var _v358 = _v0.b;
+						return 'Oneskorenie ms';
+					case 45:
+						var _v365 = _v0.a;
+						var _v366 = _v0.b;
+						return 'Spustiť simuláciu';
+					case 46:
+						var _v373 = _v0.a;
+						var _v374 = _v0.b;
+						return 'Stop';
+					case 47:
+						var _v381 = _v0.a;
+						var _v382 = _v0.b;
+						return 'Simulácia beží...';
+					case 48:
+						var _v389 = _v0.a;
+						var _v390 = _v0.b;
+						return 'Úspech';
+					case 49:
+						var _v397 = _v0.a;
+						var _v398 = _v0.b;
+						return 'Reťazec nezodpovedá automatu';
+					case 50:
+						var _v405 = _v0.a;
+						var _v406 = _v0.b;
+						return 'Chyba: žiadny vhodný prechod pre vstup';
+					case 51:
+						var _v413 = _v0.a;
+						var _v414 = _v0.b;
+						return 'Chyba: nie je zvolený počiatočný stav';
+					case 52:
+						var _v421 = _v0.a;
+						var _v422 = _v0.b;
+						return '←';
+					case 53:
+						var _v429 = _v0.a;
+						var _v430 = _v0.b;
+						return 'Domov';
+					default:
+						var _v437 = _v0.a;
+						var _v438 = _v0.b;
 						return '← Domov';
 				}
 			default:
@@ -7351,14 +7819,170 @@ var $author$project$I18n$t = F2(
 					case 13:
 						var _v111 = _v0.a;
 						var _v112 = _v0.b;
-						return '←';
+						return 'Редактор';
 					case 14:
 						var _v119 = _v0.a;
 						var _v120 = _v0.b;
-						return 'На головну';
-					default:
+						return 'Тип';
+					case 15:
 						var _v127 = _v0.a;
 						var _v128 = _v0.b;
+						return 'Детермінований автомат';
+					case 16:
+						var _v135 = _v0.a;
+						var _v136 = _v0.b;
+						return 'Недетермінований автомат';
+					case 17:
+						var _v143 = _v0.a;
+						var _v144 = _v0.b;
+						return 'JSON';
+					case 18:
+						var _v151 = _v0.a;
+						var _v152 = _v0.b;
+						return 'Імпорт';
+					case 19:
+						var _v159 = _v0.a;
+						var _v160 = _v0.b;
+						return 'Експорт';
+					case 20:
+						var _v167 = _v0.a;
+						var _v168 = _v0.b;
+						return 'Режим';
+					case 21:
+						var _v175 = _v0.a;
+						var _v176 = _v0.b;
+						return 'Створити стани';
+					case 22:
+						var _v183 = _v0.a;
+						var _v184 = _v0.b;
+						return 'Створити переходи';
+					case 23:
+						var _v191 = _v0.a;
+						var _v192 = _v0.b;
+						return 'Переміщувати стани';
+					case 24:
+						var _v199 = _v0.a;
+						var _v200 = _v0.b;
+						return 'Переходи';
+					case 25:
+						var _v207 = _v0.a;
+						var _v208 = _v0.b;
+						return 'Мітка';
+					case 26:
+						var _v215 = _v0.a;
+						var _v216 = _v0.b;
+						return 'Оберіть стан як початковий вузол';
+					case 27:
+						var _v223 = _v0.a;
+						var _v224 = _v0.b;
+						return 'Зі стану';
+					case 28:
+						var _v231 = _v0.a;
+						var _v232 = _v0.b;
+						return 'Вибрано';
+					case 29:
+						var _v239 = _v0.a;
+						var _v240 = _v0.b;
+						return 'Нічого';
+					case 30:
+						var _v247 = _v0.a;
+						var _v248 = _v0.b;
+						return 'Не знайдено';
+					case 31:
+						var _v255 = _v0.a;
+						var _v256 = _v0.b;
+						return 'Стан';
+					case 32:
+						var _v263 = _v0.a;
+						var _v264 = _v0.b;
+						return 'Позиція';
+					case 33:
+						var _v271 = _v0.a;
+						var _v272 = _v0.b;
+						return 'Приймаючий';
+					case 34:
+						var _v279 = _v0.a;
+						var _v280 = _v0.b;
+						return 'Початковий';
+					case 35:
+						var _v287 = _v0.a;
+						var _v288 = _v0.b;
+						return 'Так';
+					case 36:
+						var _v295 = _v0.a;
+						var _v296 = _v0.b;
+						return 'Ні';
+					case 37:
+						var _v303 = _v0.a;
+						var _v304 = _v0.b;
+						return 'Видалити стан';
+					case 38:
+						var _v311 = _v0.a;
+						var _v312 = _v0.b;
+						return 'Зняти початковий';
+					case 39:
+						var _v319 = _v0.a;
+						var _v320 = _v0.b;
+						return 'Зробити початковим';
+					case 40:
+						var _v327 = _v0.a;
+						var _v328 = _v0.b;
+						return 'Зняти приймаючий';
+					case 41:
+						var _v335 = _v0.a;
+						var _v336 = _v0.b;
+						return 'Зробити приймаючим';
+					case 42:
+						var _v343 = _v0.a;
+						var _v344 = _v0.b;
+						return 'Симуляція';
+					case 43:
+						var _v351 = _v0.a;
+						var _v352 = _v0.b;
+						return 'Вхідний рядок';
+					case 44:
+						var _v359 = _v0.a;
+						var _v360 = _v0.b;
+						return 'Затримка мс';
+					case 45:
+						var _v367 = _v0.a;
+						var _v368 = _v0.b;
+						return 'Запустити симуляцію';
+					case 46:
+						var _v375 = _v0.a;
+						var _v376 = _v0.b;
+						return 'Стоп';
+					case 47:
+						var _v383 = _v0.a;
+						var _v384 = _v0.b;
+						return 'Симуляція виконується...';
+					case 48:
+						var _v391 = _v0.a;
+						var _v392 = _v0.b;
+						return 'Успіх';
+					case 49:
+						var _v399 = _v0.a;
+						var _v400 = _v0.b;
+						return 'Рядок не відповідає автомату';
+					case 50:
+						var _v407 = _v0.a;
+						var _v408 = _v0.b;
+						return 'Помилка: немає відповідного переходу для входу';
+					case 51:
+						var _v415 = _v0.a;
+						var _v416 = _v0.b;
+						return 'Помилка: не вибрано початковий стан';
+					case 52:
+						var _v423 = _v0.a;
+						var _v424 = _v0.b;
+						return '←';
+					case 53:
+						var _v431 = _v0.a;
+						var _v432 = _v0.b;
+						return 'На головну';
+					default:
+						var _v439 = _v0.a;
+						var _v440 = _v0.b;
 						return '← На головну';
 				}
 		}
@@ -7442,8 +8066,8 @@ var $author$project$Theme$textColor = function (th) {
 		return '#e6e6e6';
 	}
 };
-var $author$project$I18n$BackHomeIcon = 13;
-var $author$project$I18n$BackHomeIconText = 15;
+var $author$project$I18n$BackHomeIcon = 52;
+var $author$project$I18n$BackHomeIconText = 54;
 var $author$project$Main$SetLang = function (a) {
 	return {$: 2, a: a};
 };
@@ -7539,7 +8163,7 @@ var $author$project$Main$topBar = function (model) {
 			A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 		]);
 	var onHome = !model.av;
-	var homeLabel = (w < 500) ? A2($author$project$I18n$t, model.e, 15) : ((w < 760) ? A2($author$project$I18n$t, model.e, 13) : A2($author$project$I18n$t, model.e, 15));
+	var homeLabel = (w < 500) ? A2($author$project$I18n$t, model.e, 54) : ((w < 760) ? A2($author$project$I18n$t, model.e, 52) : A2($author$project$I18n$t, model.e, 54));
 	var c = A2($author$project$Design$control, tk.aG.o, tk);
 	var minW = function () {
 		var kChars = tk.aF;
@@ -7789,6 +8413,10 @@ var $author$project$Pages$About$view = F2(
 						]))
 				]));
 	});
+var $author$project$I18n$EditorTitle = 13;
+var $author$project$I18n$EditorAutomatonDeterministic = 15;
+var $author$project$I18n$EditorAutomatonNonDeterministic = 16;
+var $author$project$I18n$EditorType = 14;
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
 		get:
@@ -8236,7 +8864,7 @@ var $author$project$Pages$Editor$automatonPanel = F2(
 			return $elm$html$Html$text('');
 		} else {
 			var deterministic = $author$project$Pages$Editor$isDeterministic(model.s);
-			var label = deterministic ? 'Deterministic automaton' : 'Non-deterministic automaton';
+			var label = deterministic ? A2($author$project$I18n$t, ctx.e, 15) : A2($author$project$I18n$t, ctx.e, 16);
 			var color = deterministic ? '#2ecc71' : '#e67e22';
 			return A2(
 				$elm$html$Html$div,
@@ -8262,7 +8890,8 @@ var $author$project$Pages$Editor$automatonPanel = F2(
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Type')
+								$elm$html$Html$text(
+								A2($author$project$I18n$t, ctx.e, 14))
 							])),
 						A2(
 						$elm$html$Html$div,
@@ -8285,6 +8914,36 @@ var $author$project$Pages$Editor$CodeEdited = function (a) {
 var $author$project$Pages$Editor$DeleteState = function (a) {
 	return {$: 6, a: a};
 };
+var $author$project$I18n$EditorDeleteState = 37;
+var $author$project$I18n$EditorExport = 19;
+var $author$project$I18n$EditorImport = 18;
+var $author$project$I18n$EditorJson = 17;
+var $author$project$I18n$EditorMakeAccepting = 41;
+var $author$project$I18n$EditorMakeStart = 39;
+var $author$project$I18n$EditorMode = 20;
+var $author$project$I18n$EditorModeAddState = 21;
+var $author$project$I18n$EditorModeAddTransition = 22;
+var $author$project$I18n$EditorModeMoveState = 23;
+var $author$project$I18n$EditorNo = 36;
+var $author$project$I18n$EditorSelected = 28;
+var $author$project$I18n$EditorSelectedAccepting = 33;
+var $author$project$I18n$EditorSelectedNone = 29;
+var $author$project$I18n$EditorSelectedNotFound = 30;
+var $author$project$I18n$EditorSelectedPos = 32;
+var $author$project$I18n$EditorSelectedStart = 34;
+var $author$project$I18n$EditorSelectedState = 31;
+var $author$project$I18n$EditorSimulation = 42;
+var $author$project$I18n$EditorSimulationDelay = 44;
+var $author$project$I18n$EditorSimulationInput = 43;
+var $author$project$I18n$EditorSimulationStart = 45;
+var $author$project$I18n$EditorSimulationStop = 46;
+var $author$project$I18n$EditorTransitionFrom = 27;
+var $author$project$I18n$EditorTransitionLabel = 25;
+var $author$project$I18n$EditorTransitionSelectStart = 26;
+var $author$project$I18n$EditorTransitions = 24;
+var $author$project$I18n$EditorUnsetAccepting = 40;
+var $author$project$I18n$EditorUnsetStart = 38;
+var $author$project$I18n$EditorYes = 35;
 var $author$project$Pages$Editor$ExportCode = {$: 12};
 var $author$project$Pages$Editor$ImportCode = {$: 11};
 var $author$project$Pages$Editor$MoveState = 2;
@@ -8330,27 +8989,43 @@ var $elm$html$Html$Attributes$rows = function (n) {
 		'rows',
 		$elm$core$String$fromInt(n));
 };
-var $author$project$Pages$Editor$simulationStatus = function (result) {
-	switch (result) {
-		case 0:
-			return $elm$core$Maybe$Nothing;
-		case 1:
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2('Simulation running...', '#2980b9'));
-		case 2:
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2('Всё хорошо', '#2ecc71'));
-		case 3:
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2('Слово не подходит под автомат', '#e67e22'));
-		case 4:
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2('Ошибка: нет подходящего перехода для входа', '#e74c3c'));
-		default:
-			return $elm$core$Maybe$Just(
-				_Utils_Tuple2('Ошибка: сначала выберите стартовый став', '#e74c3c'));
-	}
-};
+var $author$project$I18n$EditorSimulationDeadEnd = 50;
+var $author$project$I18n$EditorSimulationMissingStart = 51;
+var $author$project$I18n$EditorSimulationRejected = 49;
+var $author$project$I18n$EditorSimulationRunning = 47;
+var $author$project$I18n$EditorSimulationSuccess = 48;
+var $author$project$Pages$Editor$simulationStatus = F2(
+	function (lang, result) {
+		switch (result) {
+			case 0:
+				return $elm$core$Maybe$Nothing;
+			case 1:
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A2($author$project$I18n$t, lang, 47),
+						'#2980b9'));
+			case 2:
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A2($author$project$I18n$t, lang, 48),
+						'#2ecc71'));
+			case 3:
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A2($author$project$I18n$t, lang, 49),
+						'#e67e22'));
+			case 4:
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A2($author$project$I18n$t, lang, 50),
+						'#e74c3c'));
+			default:
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A2($author$project$I18n$t, lang, 51),
+						'#e74c3c'));
+		}
+	});
 var $elm$html$Html$textarea = _VirtualDom_node('textarea');
 var $author$project$Pages$Editor$sidePanel = F2(
 	function (ctx, model) {
@@ -8366,7 +9041,10 @@ var $author$project$Pages$Editor$sidePanel = F2(
 							$elm$html$Html$Attributes$style,
 							'background',
 							_Utils_eq(model.q, target) ? '#2ecc71' : ''),
-							A2($elm$html$Html$Attributes$style, 'color', '#000'),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'color',
+							$author$project$Theme$textColor(ctx.d)),
 							$elm$html$Html$Attributes$disabled(model.x)
 						]),
 					_List_fromArray(
@@ -8397,7 +9075,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('JSON')
+							$elm$html$Html$text(
+							A2($author$project$I18n$t, ctx.e, 17))
 						])),
 					A2(
 					$elm$html$Html$textarea,
@@ -8425,7 +9104,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text('Import')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 18))
 								])),
 							A2(
 							$elm$html$Html$button,
@@ -8436,7 +9116,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text('Export')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 19))
 								]))
 						])),
 					A2(
@@ -8444,7 +9125,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Mode')
+							$elm$html$Html$text(
+							A2($author$project$I18n$t, ctx.e, 20))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -8456,16 +9138,26 @@ var $author$project$Pages$Editor$sidePanel = F2(
 						]),
 					_List_fromArray(
 						[
-							A2(modeButton, 0, 'Create states'),
-							A2(modeButton, 1, 'Create transitions'),
-							A2(modeButton, 2, 'Move states')
+							A2(
+							modeButton,
+							0,
+							A2($author$project$I18n$t, ctx.e, 21)),
+							A2(
+							modeButton,
+							1,
+							A2($author$project$I18n$t, ctx.e, 22)),
+							A2(
+							modeButton,
+							2,
+							A2($author$project$I18n$t, ctx.e, 23))
 						])),
 					A2(
 					$elm$html$Html$h2,
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Transitions')
+							$elm$html$Html$text(
+							A2($author$project$I18n$t, ctx.e, 24))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -8483,7 +9175,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								[
 									$elm$html$Html$Attributes$rows(1),
 									$elm$html$Html$Attributes$cols(12),
-									$elm$html$Html$Attributes$placeholder('Label'),
+									$elm$html$Html$Attributes$placeholder(
+									A2($author$project$I18n$t, ctx.e, 25)),
 									$elm$html$Html$Attributes$value(model.ay),
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetTransitionLabel),
 									$elm$html$Html$Attributes$disabled(model.q !== 1)
@@ -8496,7 +9189,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 						if (_v0.b.$ === 1) {
 							var _v1 = _v0.a;
 							var _v2 = _v0.b;
-							return $elm$html$Html$text('Select a state as the start node');
+							return $elm$html$Html$text(
+								A2($author$project$I18n$t, ctx.e, 26));
 						} else {
 							var _v3 = _v0.a;
 							var sid = _v0.b.a;
@@ -8509,7 +9203,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
-										'From: ' + ($elm$core$String$fromInt(sid) + ' → click destination'))
+										A2($author$project$I18n$t, ctx.e, 27) + (': ' + ($elm$core$String$fromInt(sid) + (' → ' + A2($author$project$I18n$t, ctx.e, 26)))))
 									]));
 						}
 					} else {
@@ -8521,7 +9215,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Selected')
+							$elm$html$Html$text(
+							A2($author$project$I18n$t, ctx.e, 28))
 						])),
 					function () {
 					var _v4 = model.r;
@@ -8531,7 +9226,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 							_List_Nil,
 							_List_fromArray(
 								[
-									$elm$html$Html$text('None')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 29))
 								]));
 					} else {
 						var sid = _v4.a;
@@ -8542,7 +9238,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Not found')
+										$elm$html$Html$text(
+										A2($author$project$I18n$t, ctx.e, 30))
 									]));
 						} else {
 							var s = _v5.a;
@@ -8557,7 +9254,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												'State: ' + $elm$core$String$fromInt(s.a))
+												A2($author$project$I18n$t, ctx.e, 31) + (': ' + $elm$core$String$fromInt(s.a)))
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8565,7 +9262,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												'Pos: ' + ($elm$core$String$fromFloat(s.t) + (', ' + $elm$core$String$fromFloat(s.u))))
+												A2($author$project$I18n$t, ctx.e, 32) + (': ' + ($elm$core$String$fromFloat(s.t) + (', ' + $elm$core$String$fromFloat(s.u)))))
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8573,7 +9270,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												'Accepting: ' + (s.v ? 'Yes' : 'No'))
+												A2($author$project$I18n$t, ctx.e, 33) + (': ' + (s.v ? A2($author$project$I18n$t, ctx.e, 35) : A2($author$project$I18n$t, ctx.e, 36))))
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8581,7 +9278,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												'Start: ' + (s.A ? 'Yes' : 'No'))
+												A2($author$project$I18n$t, ctx.e, 34) + (': ' + (s.A ? A2($author$project$I18n$t, ctx.e, 35) : A2($author$project$I18n$t, ctx.e, 36))))
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8602,7 +9299,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 													]),
 												_List_fromArray(
 													[
-														$elm$html$Html$text('Delete state')
+														$elm$html$Html$text(
+														A2($author$project$I18n$t, ctx.e, 37))
 													]))
 											])),
 										A2(
@@ -8626,7 +9324,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														s.A ? 'Unset start' : 'Make start')
+														s.A ? A2($author$project$I18n$t, ctx.e, 38) : A2($author$project$I18n$t, ctx.e, 39))
 													])),
 												A2(
 												$elm$html$Html$button,
@@ -8639,7 +9337,7 @@ var $author$project$Pages$Editor$sidePanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														s.v ? 'Unset accepting' : 'Make accepting')
+														s.v ? A2($author$project$I18n$t, ctx.e, 40) : A2($author$project$I18n$t, ctx.e, 41))
 													]))
 											]))
 									]));
@@ -8651,7 +9349,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text('Simulation')
+							$elm$html$Html$text(
+							A2($author$project$I18n$t, ctx.e, 42))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -8669,7 +9368,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								[
 									$elm$html$Html$Attributes$rows(1),
 									$elm$html$Html$Attributes$cols(18),
-									$elm$html$Html$Attributes$placeholder('Input string'),
+									$elm$html$Html$Attributes$placeholder(
+									A2($author$project$I18n$t, ctx.e, 43)),
 									$elm$html$Html$Attributes$value(model.aj),
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationInput),
 									$elm$html$Html$Attributes$disabled(model.x)
@@ -8681,7 +9381,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								[
 									$elm$html$Html$Attributes$rows(1),
 									$elm$html$Html$Attributes$cols(8),
-									$elm$html$Html$Attributes$placeholder('Delay ms'),
+									$elm$html$Html$Attributes$placeholder(
+									A2($author$project$I18n$t, ctx.e, 44)),
 									$elm$html$Html$Attributes$value(model._),
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationDelay),
 									$elm$html$Html$Attributes$disabled(model.x)
@@ -8707,7 +9408,8 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text('Start simulation')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 45))
 								])),
 							A2(
 							$elm$html$Html$button,
@@ -8718,11 +9420,12 @@ var $author$project$Pages$Editor$sidePanel = F2(
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text('Stop')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 46))
 								]))
 						])),
 					function () {
-					var _v6 = $author$project$Pages$Editor$simulationStatus(model.aa);
+					var _v6 = A2($author$project$Pages$Editor$simulationStatus, ctx.e, model.aa);
 					if (_v6.$ === 1) {
 						return $elm$html$Html$text('');
 					} else {
@@ -8897,7 +9600,26 @@ var $author$project$Pages$Editor$viewState = F3(
 			model.r,
 			$elm$core$Maybe$Just(s.a));
 		var strokeWidth = isSelected ? '3' : '2';
-		var fillColor = s.A ? '#fffbe6' : '#ffffff';
+		var fillColor = function () {
+			var _v4 = _Utils_Tuple2(ctx.d, s.A);
+			if (!_v4.a) {
+				if (_v4.b) {
+					var _v5 = _v4.a;
+					return '#fffbe6';
+				} else {
+					var _v7 = _v4.a;
+					return '#ffffff';
+				}
+			} else {
+				if (_v4.b) {
+					var _v6 = _v4.a;
+					return '#3d3316';
+				} else {
+					var _v8 = _v4.a;
+					return '#1d2433';
+				}
+			}
+		}();
 		var _v0 = function () {
 			var _v1 = ctx.d;
 			if (!_v1) {
@@ -9013,7 +9735,7 @@ var $author$project$Pages$Editor$viewState = F3(
 									$elm$core$String$fromFloat(s.u + 6)),
 									$elm$svg$Svg$Attributes$fontSize('14'),
 									$elm$svg$Svg$Attributes$fill(
-									$author$project$Theme$textColor(0)),
+									$author$project$Theme$textColor(ctx.d)),
 									$elm$svg$Svg$Attributes$style('user-select: none; -webkit-user-select: none; -moz-user-select: none;'),
 									$elm$svg$Svg$Attributes$pointerEvents('none')
 								]),
@@ -9118,7 +9840,7 @@ var $author$project$Pages$Editor$svgView = F2(
 					$elm$svg$Svg$Attributes$height(
 					$elm$core$String$fromInt(height)),
 					$elm$svg$Svg$Attributes$style(
-					'border:1px solid ' + ($author$project$Theme$panelBorder(ctx.d) + ('; background:#0b0b0b10; cursor: ' + (cursor + '; user-select: none; -webkit-user-select: none; -moz-user-select: none;')))),
+					'border:1px solid ' + ($author$project$Theme$panelBorder(ctx.d) + ('; background:' + (((ctx.d === 1) ? '#0b1320' : '#f8f9fb') + ('; cursor: ' + (cursor + '; user-select: none; -webkit-user-select: none; -moz-user-select: none;')))))),
 					A2(
 					$elm$svg$Svg$Events$on,
 					'mousedown',
@@ -9218,7 +9940,8 @@ var $author$project$Pages$Editor$view = F2(
 							_List_Nil,
 							_List_fromArray(
 								[
-									$elm$html$Html$text('Editor')
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.e, 13))
 								])),
 							A2($author$project$Pages$Editor$svgView, ctx, model)
 						])),

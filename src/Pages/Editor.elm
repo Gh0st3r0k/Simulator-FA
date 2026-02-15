@@ -4,7 +4,7 @@ import Dict
 import Html as H exposing (Html, button, div, h2, textarea, text)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (onClick, onInput, stopPropagationOn)
-import I18n exposing (Lang)
+import I18n exposing (Key(..), Lang, t)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Process
@@ -678,26 +678,26 @@ screenToWorld model x y =
     ( x - model.panX, y - model.panY )
 
 
-simulationStatus : SimulationResult -> Maybe ( String, String )
-simulationStatus result =
+simulationStatus : Lang -> SimulationResult -> Maybe ( String, String )
+simulationStatus lang result =
     case result of
         Idle ->
             Nothing
 
         Running ->
-            Just ( "Simulation running...", "#2980b9" )
+            Just ( t lang I18n.EditorSimulationRunning, "#2980b9" )
 
         Success ->
-            Just ( "Success", "#2ecc71" )
+            Just ( t lang I18n.EditorSimulationSuccess, "#2ecc71" )
 
         Rejected ->
-            Just ( "Word does not match the automaton", "#e67e22" )
+            Just ( t lang I18n.EditorSimulationRejected, "#e67e22" )
 
         DeadEnd ->
-            Just ( "Error: no suitable transition for input", "#e74c3c" )
+            Just ( t lang I18n.EditorSimulationDeadEnd, "#e74c3c" )
 
         MissingStart ->
-            Just ( "Error: no start state selected", "#e74c3c" )
+            Just ( t lang I18n.EditorSimulationMissingStart, "#e74c3c" )
 -- VIEW
 
 
@@ -705,7 +705,7 @@ view : { lang : Lang, theme : Theme } -> Model -> Html Msg
 view ctx model =
     div [ HA.style "display" "flex", HA.style "gap" "12px", HA.style "color" (textColor ctx.theme) ]
         [ div []
-            [ H.h2 [] [ H.text "Editor" ]
+            [ H.h2 [] [ H.text (t ctx.lang EditorTitle) ]
             , svgView ctx model
             ]
         , sidePanel ctx model
@@ -729,7 +729,9 @@ svgView ctx model =
         , SA.style
             ("border:1px solid "
                 ++ panelBorder ctx.theme
-                ++ "; background:#0b0b0b10; cursor: "
+                ++ "; background:"
+                ++ (if ctx.theme == Theme.Dark then "#0b1320" else "#f8f9fb")
+                ++ "; cursor: "
                 ++ cursor
                 ++ "; user-select: none; -webkit-user-select: none; -moz-user-select: none;"
             )
@@ -765,7 +767,12 @@ viewState ctx model s =
     let
         r = 22
         strokeColor = if s.accepting then "#2ecc71" else (textColor ctx.theme)
-        fillColor = if s.isStart then "#fffbe6" else "#ffffff"
+        fillColor =
+            case ( ctx.theme, s.isStart ) of
+                ( Theme.Light, True ) -> "#fffbe6"
+                ( Theme.Dark, True ) -> "#3d3316"
+                ( Theme.Light, False ) -> "#ffffff"
+                ( Theme.Dark, False ) -> "#1d2433"
         isSelected = model.selected == Just s.id
         strokeWidth = if isSelected then "3" else "2"
         ( highlightFill, highlightStroke ) =
@@ -867,7 +874,7 @@ viewState ctx model s =
                     [ SA.x (String.fromFloat (s.x - 6))
                     , SA.y (String.fromFloat (s.y + 6))
                     , SA.fontSize "14"
-                    , SA.fill (textColor Theme.Light)
+                    , SA.fill (textColor ctx.theme)
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
@@ -942,7 +949,7 @@ arrowMarker color =
         ]
 
 
-automatonPanel : { a | theme : Theme } -> Model -> Html Msg
+automatonPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 automatonPanel ctx model =
     if List.isEmpty model.states && List.isEmpty model.transitions then
         text ""
@@ -952,10 +959,10 @@ automatonPanel ctx model =
             deterministic = isDeterministic model.transitions
             label =
                 if deterministic then
-                    "Deterministic automaton"
+                    t ctx.lang EditorAutomatonDeterministic
 
                 else
-                    "Non-deterministic automaton"
+                    t ctx.lang EditorAutomatonNonDeterministic
 
             color =
                 if deterministic then
@@ -972,7 +979,7 @@ automatonPanel ctx model =
             , HA.style "border-radius" "12px"
             , HA.style "align-self" "flex-start"
             ]
-            [ H.h2 [] [ H.text "Type" ]
+            [ H.h2 [] [ H.text (t ctx.lang EditorType) ]
             , H.div [ HA.style "color" color, HA.style "font-weight" "bold" ] [ H.text label ]
             ]
 
@@ -1003,7 +1010,7 @@ sidePanel ctx model =
             H.button
                 [ onClick (SetMode target)
                 , HA.style "background" (if model.mode == target then "#2ecc71" else "")
-                , HA.style "color" "#000"
+                , HA.style "color" (textColor ctx.theme)
                 , HA.disabled model.simulationRunning
                 ]
                 [ H.text label ]
@@ -1015,24 +1022,24 @@ sidePanel ctx model =
         , HA.style "padding" "12px"
         , HA.style "border-radius" "12px"
         ]
-        [ H.h2 [] [ H.text "JSON" ]
+        [ H.h2 [] [ H.text (t ctx.lang EditorJson) ]
         , textarea [ rows 18, cols 40, onInput CodeEdited, value model.codeDraft ] []
         , div [ HA.style "margin-top" "8px" ]
-            [ H.button [ onClick ImportCode ] [ H.text "Import" ]
-            , H.button [ onClick ExportCode, HA.style "margin-left" "8px" ] [ H.text "Export" ]
+            [ H.button [ onClick ImportCode ] [ H.text (t ctx.lang EditorImport) ]
+            , H.button [ onClick ExportCode, HA.style "margin-left" "8px" ] [ H.text (t ctx.lang EditorExport) ]
             ]
-        , H.h2 [] [ H.text "Mode" ]
+        , H.h2 [] [ H.text (t ctx.lang EditorMode) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
-            [ modeButton AddState "Create states"
-            , modeButton AddTransition "Create transitions"
-            , modeButton MoveState "Move states"
+            [ modeButton AddState (t ctx.lang EditorModeAddState)
+            , modeButton AddTransition (t ctx.lang EditorModeAddTransition)
+            , modeButton MoveState (t ctx.lang EditorModeMoveState)
             ]
-        , H.h2 [] [ H.text "Transitions" ]
+        , H.h2 [] [ H.text (t ctx.lang EditorTransitions) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
             [ textarea
                 [ rows 1
                 , cols 12
-                , placeholder "Label"
+                , placeholder (t ctx.lang EditorTransitionLabel)
                 , value model.transitionLabel
                 , onInput SetTransitionLabel
                 , HA.disabled (model.mode /= AddTransition)
@@ -1041,50 +1048,50 @@ sidePanel ctx model =
             ]
         , (case ( model.mode, model.transitionFrom ) of
             ( AddTransition, Nothing ) ->
-                text "Select a state as the start node"
+                text (t ctx.lang EditorTransitionSelectStart)
 
             ( AddTransition, Just sid ) ->
                 div [ HA.style "margin-top" "4px" ]
-                    [ text ("From: " ++ String.fromInt sid ++ " → click destination") ]
+                    [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
 
             _ ->
                 text ""
           )
-        , H.h2 [] [ H.text "Selected" ]
+        , H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
         , case model.selected of
-            Nothing -> div [] [ H.text "None" ]
+            Nothing -> div [] [ H.text (t ctx.lang EditorSelectedNone) ]
 
             Just sid ->
                 case getStateById sid model.states of
-                    Nothing -> div [] [ H.text "Not found" ]
+                    Nothing -> div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
 
                     Just s ->
                         div []
-                            [ div [] [ H.text ("State: " ++ String.fromInt s.id) ]
-                            , div [] [ H.text ("Pos: " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
-                            , div [] [ H.text ("Accepting: " ++ (if s.accepting then "Yes" else "No")) ]
-                            , div [] [ H.text ("Start: " ++ (if s.isStart then "Yes" else "No")) ]
+                            [ div [] [ H.text (t ctx.lang EditorSelectedState ++ ": " ++ String.fromInt s.id) ]
+                            , div [] [ H.text (t ctx.lang EditorSelectedPos ++ ": " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
+                            , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
+                            , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
                             , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
-                                [ H.button [ onClick (DeleteState s.id) ] [ H.text "Delete state" ] ]
+                                [ H.button [ onClick (DeleteState s.id) ] [ H.text (t ctx.lang EditorDeleteState) ] ]
                             , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
                                 [ H.button
                                     [ onClick (ToggleStart s.id)
                                     , HA.disabled (model.mode /= MoveState || model.simulationRunning)
                                     ]
-                                    [ H.text (if s.isStart then "Unset start" else "Make start") ]
+                                    [ H.text (if s.isStart then t ctx.lang EditorUnsetStart else t ctx.lang EditorMakeStart) ]
                                 , H.button
                                     [ onClick (ToggleAccepting s.id)
                                     , HA.disabled (model.mode /= MoveState || model.simulationRunning)
                                     ]
-                                    [ H.text (if s.accepting then "Unset accepting" else "Make accepting") ]
+                                    [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
                                 ]
                             ]
-        , H.h2 [] [ H.text "Simulation" ]
+        , H.h2 [] [ H.text (t ctx.lang EditorSimulation) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
             [ textarea
                 [ rows 1
                 , cols 18
-                , placeholder "Input string"
+                , placeholder (t ctx.lang EditorSimulationInput)
                 , value model.simulationInput
                 , onInput SetSimulationInput
                 , HA.disabled model.simulationRunning
@@ -1093,7 +1100,7 @@ sidePanel ctx model =
             , textarea
                 [ rows 1
                 , cols 8
-                , placeholder "Delay ms"
+                , placeholder (t ctx.lang EditorSimulationDelay)
                 , value model.simulationDelay
                 , onInput SetSimulationDelay
                 , HA.disabled model.simulationRunning
@@ -1105,14 +1112,14 @@ sidePanel ctx model =
                 [ onClick StartSimulation
                 , HA.disabled model.simulationRunning
                 ]
-                [ H.text "Start simulation" ]
+                [ H.text (t ctx.lang EditorSimulationStart) ]
             , H.button
                 [ onClick StopSimulation
                 , HA.disabled (not model.simulationRunning)
                 ]
-                [ H.text "Stop" ]
+                [ H.text (t ctx.lang EditorSimulationStop) ]
             ]
-        , case simulationStatus model.simulationResult of
+        , case simulationStatus ctx.lang model.simulationResult of
             Nothing ->
                 text ""
 
