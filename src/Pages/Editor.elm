@@ -206,7 +206,19 @@ update msg model =
                                     )
 
                             _ ->
-                                ( model, Cmd.none )
+                                if targetTag == "svg" then
+                                    case model.mode of
+                                        MoveState ->
+                                            ( { model | selected = Nothing }, Cmd.none )
+
+                                        ConfigureTransition ->
+                                            ( { model | selectedTransition = Nothing }, Cmd.none )
+
+                                        _ ->
+                                            ( model, Cmd.none )
+
+                                else
+                                    ( model, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
@@ -455,13 +467,26 @@ update msg model =
                         , Cmd.none
                         )
 
-                    Err _ -> ( model, Cmd.none )
+                    Err _ ->
+                        case decodeTransitionLanguage model.codeDraft of
+                            Ok ( ss, ts ) ->
+                                let
+                                    normalizedAutomaton = normalizeAutomatonIds ss ts
+                                in
+                                ( { model
+                                    | states = normalizedAutomaton.states
+                                    , transitions = normalizedAutomaton.transitions
+                                    , nextStateId = normalizedAutomaton.nextStateId
+                                    , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                  }
+                                , Cmd.none
+                                )
+
+                            Err _ ->
+                                ( model, Cmd.none )
 
             ExportCode ->
-                let
-                    json = Encode.encode 4 (encodeAutomaton model.states model.transitions)
-                in
-                ( { model | codeDraft = json }, Cmd.none )
+                ( { model | codeDraft = encodeTransitionLanguage model.transitions }, Cmd.none )
 
             CodeEdited s ->
                 ( { model | codeDraft = s }, Cmd.none )
@@ -793,6 +818,203 @@ stepSimulation model =
 
 
 -- JSON helpers
+
+type alias ParsedTransition =
+    { fromName : String
+    , toName : String
+    , label : String
+    }
+
+
+encodeTransitionLanguage : List Transition -> String
+encodeTransitionLanguage transitions =
+    transitions
+        |> List.sortBy .id
+        |> List.map
+            (\tr ->
+                "("
+                    ++ String.fromInt tr.from
+                    ++ ", "
+                    ++ (if isLambdaLabel tr.label then
+                            "λ"
+
+                        else
+                            tr.label
+                       )
+                    ++ ") => "
+                    ++ String.fromInt tr.to
+            )
+        |> String.join "\n"
+
+
+decodeTransitionLanguage : String -> Result String ( List State, List Transition )
+decodeTransitionLanguage raw =
+    let
+        lines =
+            raw
+                |> String.lines
+                |> List.map String.trim
+                |> List.filter (not << String.isEmpty)
+    in
+    case traverseResults parseTransitionLine lines of
+        Err err ->
+            Err err
+
+        Ok parsedTransitions ->
+            Ok (buildAutomatonFromParsedTransitions parsedTransitions)
+
+
+parseTransitionLine : String -> Result String ParsedTransition
+parseTransitionLine line =
+    case String.split "=>" line of
+        [ leftRaw, rightRaw ] ->
+            let
+                left = String.trim leftRaw
+                right = String.trim rightRaw
+            in
+            if String.startsWith "(" left && String.endsWith ")" left then
+                let
+                    inside =
+                        left
+                            |> String.dropLeft 1
+                            |> String.dropRight 1
+
+                    parts =
+                        String.split "," inside
+                            |> List.map String.trim
+                in
+                case parts of
+                    [ fromName, condition ] ->
+                        if String.isEmpty fromName || String.isEmpty right then
+                            Err line
+
+                        else
+                            Ok
+                                { fromName = fromName
+                                , toName = right
+                                , label =
+                                    if condition == "λ" then
+                                        ""
+
+                                    else
+                                        normalizeTransitionLabel condition
+                                }
+
+                    _ ->
+                        Err line
+
+            else
+                Err line
+
+        _ ->
+            Err line
+
+
+traverseResults : (a -> Result x b) -> List a -> Result x (List b)
+traverseResults f list =
+    List.foldr
+        (\item acc ->
+            case ( f item, acc ) of
+                ( Ok v, Ok vs ) ->
+                    Ok (v :: vs)
+
+                ( Err e, _ ) ->
+                    Err e
+
+                ( _, Err e ) ->
+                    Err e
+        )
+        (Ok [])
+        list
+
+
+buildAutomatonFromParsedTransitions : List ParsedTransition -> ( List State, List Transition )
+buildAutomatonFromParsedTransitions parsedTransitions =
+    let
+        spacingX = 160
+        spacingY = 100
+
+        names =
+            parsedTransitions
+                |> List.concatMap (\t -> [ t.fromName, t.toName ])
+                |> List.foldl
+                    (\name acc -> if List.member name acc then acc else acc ++ [ name ])
+                    []
+
+        placeState fallbackName positions =
+            case Dict.get fallbackName positions of
+                Just _ ->
+                    positions
+
+                Nothing ->
+                    let
+                        index = Dict.size positions
+                        yRow = remainderBy 5 index
+                        xCol = index // 5
+                    in
+                    Dict.insert fallbackName ( 100 + toFloat (xCol * spacingX), 100 + toFloat (yRow * spacingY) ) positions
+
+        placeFromTo transition positions =
+            let
+                fromPosition = Dict.get transition.fromName positions
+                toPosition = Dict.get transition.toName positions
+            in
+            case ( fromPosition, toPosition ) of
+                ( Just ( fx, fy ), Nothing ) ->
+                    Dict.insert transition.toName ( fx + toFloat spacingX, fy ) positions
+
+                ( Nothing, Just ( tx, ty ) ) ->
+                    Dict.insert transition.fromName ( tx - toFloat spacingX, ty ) positions
+
+                ( Nothing, Nothing ) ->
+                    let
+                        seeded = placeState transition.fromName positions
+                    in
+                    placeFromTo transition seeded
+
+                _ ->
+                    positions
+
+        seededPositions =
+            List.foldl placeFromTo Dict.empty parsedTransitions
+
+        allPositions =
+            List.foldl placeState seededPositions names
+
+        indexedNames =
+            List.indexedMap (\idx name -> ( name, idx + 1 )) names
+
+        idByName =
+            Dict.fromList indexedNames
+
+        states =
+            indexedNames
+                |> List.map
+                    (\( name, sid ) ->
+                        let
+                            ( x, y ) = Dict.get name allPositions |> Maybe.withDefault ( 100, 100 )
+                        in
+                        { id = sid
+                        , name = name
+                        , x = x
+                        , y = y
+                        , accepting = False
+                        , isStart = sid == 1
+                        }
+                    )
+
+        transitions =
+            parsedTransitions
+                |> List.indexedMap
+                    (\idx tr ->
+                        { id = idx + 1
+                        , from = Dict.get tr.fromName idByName |> Maybe.withDefault 1
+                        , to = Dict.get tr.toName idByName |> Maybe.withDefault 1
+                        , label = tr.label
+                        }
+                    )
+    in
+    ( states, transitions )
 
 
 encodeState : State -> Encode.Value
