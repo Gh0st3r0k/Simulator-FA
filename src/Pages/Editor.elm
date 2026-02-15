@@ -468,7 +468,7 @@ update msg model =
                         )
 
                     Err _ ->
-                        case decodeTransitionLanguage model.codeDraft of
+                        case decodeTransitionLanguage model.states model.codeDraft of
                             Ok ( ss, ts ) ->
                                 let
                                     normalizedAutomaton = normalizeAutomatonIds ss ts
@@ -847,8 +847,8 @@ encodeTransitionLanguage transitions =
         |> String.join "\n"
 
 
-decodeTransitionLanguage : String -> Result String ( List State, List Transition )
-decodeTransitionLanguage raw =
+decodeTransitionLanguage : List State -> String -> Result String ( List State, List Transition )
+decodeTransitionLanguage existingStates raw =
     let
         lines =
             raw
@@ -861,7 +861,7 @@ decodeTransitionLanguage raw =
             Err err
 
         Ok parsedTransitions ->
-            Ok (buildAutomatonFromParsedTransitions parsedTransitions)
+            Ok (buildAutomatonFromParsedTransitions existingStates parsedTransitions)
 
 
 parseTransitionLine : String -> Result String ParsedTransition
@@ -928,8 +928,8 @@ traverseResults f list =
         list
 
 
-buildAutomatonFromParsedTransitions : List ParsedTransition -> ( List State, List Transition )
-buildAutomatonFromParsedTransitions parsedTransitions =
+buildAutomatonFromParsedTransitions : List State -> List ParsedTransition -> ( List State, List Transition )
+buildAutomatonFromParsedTransitions existingStates parsedTransitions =
     let
         spacingX = 160
         spacingY = 100
@@ -940,6 +940,90 @@ buildAutomatonFromParsedTransitions parsedTransitions =
                 |> List.foldl
                     (\name acc -> if List.member name acc then acc else acc ++ [ name ])
                     []
+
+        existingPositionsByName =
+            existingStates
+                |> List.foldl (\state acc -> Dict.insert state.name ( state.x, state.y ) acc) Dict.empty
+
+        isOccupied occupied ( x, y ) =
+            List.any (\( ox, oy ) -> ox == x && oy == y) occupied
+
+        placeWithoutOverlap occupied ( x, y ) =
+            if isOccupied occupied ( x, y ) then
+                placeWithoutOverlap occupied ( x, y + toFloat spacingY )
+
+            else
+                ( x, y )
+
+        findAnchorFromIncoming name positions =
+            parsedTransitions
+                |> List.filter (\tr -> tr.toName == name)
+                |> List.head
+                |> Maybe.andThen (\tr -> Dict.get tr.fromName positions)
+
+        findAnchorFromOutgoing name positions =
+            parsedTransitions
+                |> List.filter (\tr -> tr.fromName == name)
+                |> List.head
+                |> Maybe.andThen (\tr -> Dict.get tr.toName positions)
+
+        placeUnresolved namesToPlace positions =
+            if List.isEmpty namesToPlace then
+                positions
+
+            else
+                let
+                    step name ( accPositions, unresolved, hasProgress ) =
+                        case Dict.get name accPositions of
+                            Just _ ->
+                                ( accPositions, unresolved, hasProgress )
+
+                            Nothing ->
+                                let
+                                    occupied = Dict.values accPositions
+                                in
+                                case findAnchorFromIncoming name accPositions of
+                                    Just ( ax, ay ) ->
+                                        let
+                                            target = placeWithoutOverlap occupied ( ax + toFloat spacingX, ay )
+                                        in
+                                        ( Dict.insert name target accPositions, unresolved, True )
+
+                                    Nothing ->
+                                        case findAnchorFromOutgoing name accPositions of
+                                            Just ( tx, ty ) ->
+                                                let
+                                                    target = placeWithoutOverlap occupied ( tx + toFloat spacingX, ty )
+                                                in
+                                                ( Dict.insert name target accPositions, unresolved, True )
+
+                                            Nothing ->
+                                                ( accPositions, unresolved ++ [ name ], hasProgress )
+
+                    ( progressedPositions, unresolvedNames, didProgress ) =
+                        List.foldl step ( positions, [], False ) namesToPlace
+                in
+                if didProgress then
+                    placeUnresolved unresolvedNames progressedPositions
+
+                else
+                    let
+                        fallback name acc =
+                            case Dict.get name acc of
+                                Just _ ->
+                                    acc
+
+                                Nothing ->
+                                    let
+                                        index = Dict.size acc
+                                        yRow = remainderBy 5 index
+                                        xCol = index // 5
+                                        candidate = ( 100 + toFloat (xCol * spacingX), 100 + toFloat (yRow * spacingY) )
+                                        target = placeWithoutOverlap (Dict.values acc) candidate
+                                    in
+                                    Dict.insert name target acc
+                    in
+                    List.foldl fallback progressedPositions unresolvedNames
 
         placeState fallbackName positions =
             case Dict.get fallbackName positions of
@@ -976,10 +1060,10 @@ buildAutomatonFromParsedTransitions parsedTransitions =
                     positions
 
         seededPositions =
-            List.foldl placeFromTo Dict.empty parsedTransitions
+            List.foldl placeFromTo existingPositionsByName parsedTransitions
 
         allPositions =
-            List.foldl placeState seededPositions names
+            placeUnresolved names seededPositions
 
         indexedNames =
             List.indexedMap (\idx name -> ( name, idx + 1 )) names
@@ -1344,10 +1428,18 @@ viewTransition ctx model t =
                 [ S.line
                     [ SA.x1 (String.fromFloat startX), SA.y1 (String.fromFloat startY)
                     , SA.x2 (String.fromFloat endX), SA.y2 (String.fromFloat endY)
+                    , SA.stroke "transparent"
+                    , SA.strokeWidth "10"
+                    , selectTransitionOnClick
+                    ]
+                    []
+                , S.line
+                    [ SA.x1 (String.fromFloat startX), SA.y1 (String.fromFloat startY)
+                    , SA.x2 (String.fromFloat endX), SA.y2 (String.fromFloat endY)
                     , SA.stroke (textColor ctx.theme)
                     , SA.strokeWidth strokeWidth
                     , SA.markerEnd "url(#arrowhead)"
-                    , selectTransitionOnClick
+                    , SA.pointerEvents "none"
                     ]
                     []
                 , S.rect
