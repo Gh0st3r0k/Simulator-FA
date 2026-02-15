@@ -13,7 +13,7 @@ import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
 import Task
-import Theme exposing (Theme, panelBg, panelBorder, textColor)
+import Theme exposing (Theme, interactiveBg, interactiveBorder, panelBg, panelBorder, textColor)
 
 
 -- MODEL
@@ -28,6 +28,7 @@ type alias Model =
     , panX : Float
     , panY : Float
     , selected : Maybe Int
+    , selectedTransition : Maybe Int
     , mode : Mode
     , transitionFrom : Maybe Int
     , transitionLabel : String
@@ -70,6 +71,7 @@ type Mode
     = AddState
     | AddTransition
     | MoveState
+    | ConfigureTransition
 
 
 type SimulationResult
@@ -90,6 +92,7 @@ init =
     , panX = 0
     , panY = 0
     , selected = Nothing
+    , selectedTransition = Nothing
     , mode = AddState
     , transitionFrom = Nothing
     , transitionLabel = ""
@@ -114,11 +117,14 @@ type Msg
     | StartDrag Int
     | DoubleClickState Int
     | SelectState Int
+    | SelectTransition Int
     | DeleteState Int
+    | DeleteTransition Int
     | ToggleStart Int
     | ToggleAccepting Int
     | SetMode Mode
     | SetTransitionLabel String
+    | SetSelectedTransitionLabel String
     | ImportCode
     | ExportCode
     | CodeEdited String
@@ -186,6 +192,7 @@ update msg model =
                                         | states = model.states ++ [ newState ]
                                         , nextId = model.nextId + 1
                                         , selected = Just newState.id
+                                        , selectedTransition = Nothing
                                         , dragging = Nothing
                                         , transitionFrom = Nothing
                                       }
@@ -298,19 +305,37 @@ update msg model =
                                         , nextId = model.nextId + 1
                                         , transitionFrom = Nothing
                                         , selected = Nothing
+                                        , selectedTransition = Nothing
                                       }
                                     , Cmd.none
                                     )
 
-                    _ ->
+                    MoveState ->
                         ( { model | selected = Just sid }, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
+
+            SelectTransition tid ->
+                case model.mode of
+                    ConfigureTransition ->
+                        ( { model | selectedTransition = Just tid, selected = Nothing }, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
 
             DeleteState sid ->
                 let
                     statesFiltered = List.filter (\s -> s.id /= sid) model.states
                     transFiltered = List.filter (\t -> t.from /= sid && t.to /= sid) model.transitions
                 in
-                ( { model | states = statesFiltered, transitions = transFiltered, selected = Nothing }, Cmd.none )
+                ( { model | states = statesFiltered, transitions = transFiltered, selected = Nothing, selectedTransition = Nothing }, Cmd.none )
+
+            DeleteTransition tid ->
+                let
+                    transFiltered = List.filter (\t -> t.id /= tid) model.transitions
+                in
+                ( { model | transitions = transFiltered, selectedTransition = Nothing }, Cmd.none )
 
             ToggleStart sid ->
                 case model.mode of
@@ -349,12 +374,40 @@ update msg model =
                     | mode = newMode
                     , transitionFrom = Nothing
                     , dragging = Nothing
+                    , selected = Nothing
+                    , selectedTransition = Nothing
                   }
                 , Cmd.none
                 )
 
             SetTransitionLabel label ->
                 ( { model | transitionLabel = label }, Cmd.none )
+
+            SetSelectedTransitionLabel label ->
+                case model.selectedTransition of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just tid ->
+                        let
+                            normalizedLabel =
+                                let
+                                    trimmed = String.trim label
+                                in
+                                if String.isEmpty trimmed then
+                                    "λ"
+
+                                else
+                                    trimmed
+
+                            updateTransition transition =
+                                if transition.id == tid then
+                                    { transition | label = normalizedLabel }
+
+                                else
+                                    transition
+                        in
+                        ( { model | transitions = List.map updateTransition model.transitions }, Cmd.none )
 
             ImportCode ->
                 case Decode.decodeString decodeAutomaton model.codeDraft of
@@ -722,6 +775,7 @@ svgView ctx model =
                 AddState -> "crosshair"
                 AddTransition -> "pointer"
                 MoveState -> "move"
+                ConfigureTransition -> "pointer"
     in
     S.svg
         [ SA.width (String.fromInt width)
@@ -769,7 +823,7 @@ viewState ctx model s =
         strokeColor = if s.accepting then "#2ecc71" else (textColor ctx.theme)
         fillColor =
             case ( ctx.theme, s.isStart ) of
-                ( Theme.Light, True ) -> "#fffbe6"
+                ( Theme.Light, True ) -> "#ffd84d"
                 ( Theme.Dark, True ) -> "#3d3316"
                 ( Theme.Light, False ) -> "#ffffff"
                 ( Theme.Dark, False ) -> "#1d2433"
@@ -899,19 +953,48 @@ viewTransition ctx model t =
                 endY = b.y - uy * (toFloat r + 6)
                 midX = (startX + endX) / 2
                 midY = (startY + endY) / 2
+                labelX = midX + 6
+                labelY = midY - 6
+                hitWidth = Basics.max 24 (toFloat (String.length t.label) * 9)
+                hitHeight = 18
+                isSelected = model.selectedTransition == Just t.id
+                strokeWidth = if isSelected then "4" else "2"
+                selectTransitionOnClick =
+                    stopPropagationOn "click"
+                        (Decode.map
+                            (\button ->
+                                if button == 0 then
+                                    ( SelectTransition t.id, True )
+
+                                else
+                                    ( NoOp, True )
+                            )
+                            (Decode.field "button" Decode.int)
+                        )
             in
             S.g []
                 [ S.line
                     [ SA.x1 (String.fromFloat startX), SA.y1 (String.fromFloat startY)
                     , SA.x2 (String.fromFloat endX), SA.y2 (String.fromFloat endY)
                     , SA.stroke (textColor ctx.theme)
-                    , SA.strokeWidth "2"
+                    , SA.strokeWidth strokeWidth
                     , SA.markerEnd "url(#arrowhead)"
+                    , selectTransitionOnClick
+                    ]
+                    []
+                , S.rect
+                    [ SA.x (String.fromFloat (labelX - 4))
+                    , SA.y (String.fromFloat (labelY - hitHeight + 2))
+                    , SA.width (String.fromFloat hitWidth)
+                    , SA.height (String.fromFloat hitHeight)
+                    , SA.fill "transparent"
+                    , SA.stroke "none"
+                    , selectTransitionOnClick
                     ]
                     []
                 , S.text_
-                    [ SA.x (String.fromFloat (midX + 6))
-                    , SA.y (String.fromFloat (midY - 6))
+                    [ SA.x (String.fromFloat labelX)
+                    , SA.y (String.fromFloat labelY)
                     , SA.fontSize "12"
                     , SA.fill (textColor ctx.theme)
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
@@ -1006,13 +1089,20 @@ startArrowMarker color =
 
 sidePanel ctx model =
     let
+        baseButtonStyles =
+            [ HA.style "background" (interactiveBg ctx.theme)
+            , HA.style "color" (textColor ctx.theme)
+            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+            , HA.style "border-radius" "8px"
+            ]
         modeButton target label =
             H.button
-                [ onClick (SetMode target)
-                , HA.style "background" (if model.mode == target then "#2ecc71" else "")
-                , HA.style "color" (textColor ctx.theme)
-                , HA.disabled model.simulationRunning
-                ]
+                (baseButtonStyles
+                    ++ [ onClick (SetMode target)
+                       , HA.style "background" (if model.mode == target then "#2ecc71" else interactiveBg ctx.theme)
+                       , HA.disabled model.simulationRunning
+                       ]
+                )
                 [ H.text label ]
     in
     div
@@ -1025,67 +1115,106 @@ sidePanel ctx model =
         [ H.h2 [] [ H.text (t ctx.lang EditorJson) ]
         , textarea [ rows 18, cols 40, onInput CodeEdited, value model.codeDraft ] []
         , div [ HA.style "margin-top" "8px" ]
-            [ H.button [ onClick ImportCode ] [ H.text (t ctx.lang EditorImport) ]
-            , H.button [ onClick ExportCode, HA.style "margin-left" "8px" ] [ H.text (t ctx.lang EditorExport) ]
+            [ H.button (baseButtonStyles ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
+            , H.button (baseButtonStyles ++ [ onClick ExportCode, HA.style "margin-left" "8px" ]) [ H.text (t ctx.lang EditorExport) ]
             ]
         , H.h2 [] [ H.text (t ctx.lang EditorMode) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
             [ modeButton AddState (t ctx.lang EditorModeAddState)
             , modeButton AddTransition (t ctx.lang EditorModeAddTransition)
             , modeButton MoveState (t ctx.lang EditorModeMoveState)
+            , modeButton ConfigureTransition (t ctx.lang EditorModeConfigureTransition)
             ]
-        , H.h2 [] [ H.text (t ctx.lang EditorTransitions) ]
-        , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
-            [ textarea
-                [ rows 1
-                , cols 12
-                , placeholder (t ctx.lang EditorTransitionLabel)
-                , value model.transitionLabel
-                , onInput SetTransitionLabel
-                , HA.disabled (model.mode /= AddTransition)
+        , if model.mode == AddTransition then
+            div []
+                [ H.h2 [] [ H.text (t ctx.lang EditorTransitions) ]
+                , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
+                    [ textarea
+                        [ rows 1
+                        , cols 12
+                        , placeholder (t ctx.lang EditorTransitionLabel)
+                        , value model.transitionLabel
+                        , onInput SetTransitionLabel
+                        ]
+                        []
+                    ]
+                , (case model.transitionFrom of
+                    Nothing ->
+                        text (t ctx.lang EditorTransitionSelectStart)
+
+                    Just sid ->
+                        div [ HA.style "margin-top" "4px" ]
+                            [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
+                  )
                 ]
-                []
-            ]
-        , (case ( model.mode, model.transitionFrom ) of
-            ( AddTransition, Nothing ) ->
-                text (t ctx.lang EditorTransitionSelectStart)
+            else
+            text ""
+        , if model.mode == MoveState then
+            div []
+                [ H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
+                , case model.selected of
+                    Nothing ->
+                        div [] [ H.text (t ctx.lang EditorSelectedNone) ]
 
-            ( AddTransition, Just sid ) ->
-                div [ HA.style "margin-top" "4px" ]
-                    [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
+                    Just sid ->
+                        case getStateById sid model.states of
+                            Nothing ->
+                                div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
 
-            _ ->
-                text ""
-          )
-        , H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
-        , case model.selected of
-            Nothing -> div [] [ H.text (t ctx.lang EditorSelectedNone) ]
-
-            Just sid ->
-                case getStateById sid model.states of
-                    Nothing -> div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
-
-                    Just s ->
-                        div []
-                            [ div [] [ H.text (t ctx.lang EditorSelectedState ++ ": " ++ String.fromInt s.id) ]
-                            , div [] [ H.text (t ctx.lang EditorSelectedPos ++ ": " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
-                            , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
-                            , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
-                            , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
-                                [ H.button [ onClick (DeleteState s.id) ] [ H.text (t ctx.lang EditorDeleteState) ] ]
-                            , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
-                                [ H.button
-                                    [ onClick (ToggleStart s.id)
-                                    , HA.disabled (model.mode /= MoveState || model.simulationRunning)
+                            Just s ->
+                                div []
+                                    [ div [] [ H.text (t ctx.lang EditorSelectedState ++ ": " ++ String.fromInt s.id) ]
+                                    , div [] [ H.text (t ctx.lang EditorSelectedPos ++ ": " ++ String.fromFloat s.x ++ ", " ++ String.fromFloat s.y) ]
+                                    , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
+                                    , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
+                                    , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
+                                        [ H.button [ onClick (DeleteState s.id) ] [ H.text (t ctx.lang EditorDeleteState) ] ]
+                                    , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
+                                        [ H.button
+                                            [ onClick (ToggleStart s.id)
+                                            , HA.disabled model.simulationRunning
+                                            ]
+                                            [ H.text (if s.isStart then t ctx.lang EditorUnsetStart else t ctx.lang EditorMakeStart) ]
+                                        , H.button
+                                            [ onClick (ToggleAccepting s.id)
+                                            , HA.disabled model.simulationRunning
+                                            ]
+                                            [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
+                                        ]
                                     ]
-                                    [ H.text (if s.isStart then t ctx.lang EditorUnsetStart else t ctx.lang EditorMakeStart) ]
-                                , H.button
-                                    [ onClick (ToggleAccepting s.id)
-                                    , HA.disabled (model.mode /= MoveState || model.simulationRunning)
+                ]
+
+          else if model.mode == ConfigureTransition then
+            div []
+                [ H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
+                , case model.selectedTransition of
+                    Nothing ->
+                        div [] [ H.text (t ctx.lang EditorTransitionSelectForEdit) ]
+
+                    Just tid ->
+                        case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
+                            Nothing ->
+                                div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
+
+                            Just transition ->
+                                div []
+                                    [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ String.fromInt transition.id) ]
+                                    , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ String.fromInt transition.from ++ " → " ++ String.fromInt transition.to) ]
+                                    , textarea
+                                        [ rows 1
+                                        , cols 12
+                                        , placeholder (t ctx.lang EditorTransitionLabel)
+                                        , value transition.label
+                                        , onInput SetSelectedTransitionLabel
+                                        ]
+                                        []
+                                    , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
+                                        [ H.button [ onClick (DeleteTransition transition.id) ] [ H.text (t ctx.lang EditorDeleteTransition) ] ]
                                     ]
-                                    [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
-                                ]
-                            ]
+                ]
+
+          else
+            text ""            
         , H.h2 [] [ H.text (t ctx.lang EditorSimulation) ]
         , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
             [ textarea
@@ -1109,14 +1238,18 @@ sidePanel ctx model =
             ]
         , div [ HA.style "margin-top" "6px", HA.style "display" "flex", HA.style "gap" "8px" ]
             [ H.button
-                [ onClick StartSimulation
-                , HA.disabled model.simulationRunning
-                ]
+                (baseButtonStyles
+                    ++ [ onClick StartSimulation
+                       , HA.disabled model.simulationRunning
+                       ]
+                )
                 [ H.text (t ctx.lang EditorSimulationStart) ]
             , H.button
-                [ onClick StopSimulation
-                , HA.disabled (not model.simulationRunning)
-                ]
+                (baseButtonStyles
+                    ++ [ onClick StopSimulation
+                       , HA.disabled (not model.simulationRunning)
+                       ]
+                )
                 [ H.text (t ctx.lang EditorSimulationStop) ]
             ]
         , case simulationStatus ctx.lang model.simulationResult of

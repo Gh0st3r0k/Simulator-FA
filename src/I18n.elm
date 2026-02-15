@@ -59,9 +59,11 @@ type Key
     | EditorModeAddState
     | EditorModeAddTransition
     | EditorModeMoveState
+    | EditorModeConfigureTransition
     | EditorTransitions
     | EditorTransitionLabel
     | EditorTransitionSelectStart
+    | EditorTransitionSelectForEdit
     | EditorTransitionFrom
     | EditorSelected
     | EditorSelectedNone
@@ -73,6 +75,8 @@ type Key
     | EditorYes
     | EditorNo
     | EditorDeleteState
+    | EditorSelectedTransition
+    | EditorDeleteTransition
     | EditorUnsetStart
     | EditorMakeStart
     | EditorUnsetAccepting
@@ -243,6 +247,11 @@ t lang key =
         ( SK, EditorModeMoveState ) -> "Presúvať stavy"
         ( UA, EditorModeMoveState ) -> "Переміщувати стани"
 
+        ( RU, EditorModeConfigureTransition ) -> "Настройка переходов"
+        ( EN, EditorModeConfigureTransition ) -> "Configure transitions"
+        ( SK, EditorModeConfigureTransition ) -> "Nastaviť prechody"
+        ( UA, EditorModeConfigureTransition ) -> "Налаштування переходів"
+
         ( RU, EditorTransitions ) -> "Переходы"
         ( EN, EditorTransitions ) -> "Transitions"
         ( SK, EditorTransitions ) -> "Prechody"
@@ -257,6 +266,11 @@ t lang key =
         ( EN, EditorTransitionSelectStart ) -> "Select a state as the start node"
         ( SK, EditorTransitionSelectStart ) -> "Vyberte stav ako počiatočný uzol"
         ( UA, EditorTransitionSelectStart ) -> "Оберіть стан як початковий вузол"
+
+        ( RU, EditorTransitionSelectForEdit ) -> "Выберите переход для редактирования"
+        ( EN, EditorTransitionSelectForEdit ) -> "Select a transition to edit"
+        ( SK, EditorTransitionSelectForEdit ) -> "Vyberte prechod na úpravu"
+        ( UA, EditorTransitionSelectForEdit ) -> "Оберіть перехід для редагування"
 
         ( RU, EditorTransitionFrom ) -> "Из"
         ( EN, EditorTransitionFrom ) -> "From"
@@ -313,6 +327,16 @@ t lang key =
         ( SK, EditorDeleteState ) -> "Zmazať stav"
         ( UA, EditorDeleteState ) -> "Видалити стан"
 
+        ( RU, EditorSelectedTransition ) -> "Переход"
+        ( EN, EditorSelectedTransition ) -> "Transition"
+        ( SK, EditorSelectedTransition ) -> "Prechod"
+        ( UA, EditorSelectedTransition ) -> "Перехід"
+
+        ( RU, EditorDeleteTransition ) -> "Удалить переход"
+        ( EN, EditorDeleteTransition ) -> "Delete transition"
+        ( SK, EditorDeleteTransition ) -> "Zmazať prechod"
+        ( UA, EditorDeleteTransition ) -> "Видалити перехід"
+
         ( RU, EditorUnsetStart ) -> "Снять старт"
         ( EN, EditorUnsetStart ) -> "Unset start"
         ( SK, EditorUnsetStart ) -> "Zrušiť počiatočný"
@@ -323,15 +347,15 @@ t lang key =
         ( SK, EditorMakeStart ) -> "Nastaviť počiatočný"
         ( UA, EditorMakeStart ) -> "Зробити початковим"
 
-        ( RU, EditorUnsetAccepting ) -> "Снять принимающее"
+        ( RU, EditorUnsetAccepting ) -> "Снять конечный"
         ( EN, EditorUnsetAccepting ) -> "Unset accepting"
         ( SK, EditorUnsetAccepting ) -> "Zrušiť akceptujúci"
-        ( UA, EditorUnsetAccepting ) -> "Зняти приймаючий"
+        ( UA, EditorUnsetAccepting ) -> "Зняти кінцевий"
 
-        ( RU, EditorMakeAccepting ) -> "Сделать принимающим"
+        ( RU, EditorMakeAccepting ) -> "Сделать конечным"
         ( EN, EditorMakeAccepting ) -> "Make accepting"
         ( SK, EditorMakeAccepting ) -> "Nastaviť akceptujúci"
-        ( UA, EditorMakeAccepting ) -> "Зробити приймаючим"
+        ( UA, EditorMakeAccepting ) -> "Зробити кінцевим"
 
         ( RU, EditorSimulation ) -> "Симуляция"
         ( EN, EditorSimulation ) -> "Simulation"
