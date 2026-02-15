@@ -158,6 +158,7 @@ type Msg
     | OpenSaveModal
     | CloseSaveModal
     | SaveToSlot Int
+    | LoadFromSlot Int
     | DeleteFromSlot Int
     | RenameSlot Int String
     | NoOp
@@ -560,6 +561,54 @@ update msg model =
                             slot
                 in
                 ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+
+            LoadFromSlot slotId ->
+                let
+                    maybeSlot =
+                        List.head (List.filter (\slot -> slot.id == slotId) model.saveSlots)
+                in
+                case maybeSlot of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just slot ->
+                        if String.isEmpty slot.automatonJson then
+                            ( model, Cmd.none )
+
+                        else
+                            case Decode.decodeString decodeAutomaton slot.automatonJson of
+                                Ok ( ss, ts ) ->
+                                    if hasDuplicateStateNames ss then
+                                        ( { model | stateNameConflict = True }, Cmd.none )
+
+                                    else
+                                        let
+                                            normalizedStates =
+                                                enforceSingleStartFlag ss
+
+                                            normalizedAutomaton =
+                                                normalizeAutomatonIds normalizedStates ts
+                                        in
+                                        ( { model
+                                            | states = normalizedAutomaton.states
+                                            , transitions = normalizedAutomaton.transitions
+                                            , nextStateId = normalizedAutomaton.nextStateId
+                                            , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                            , selected = Nothing
+                                            , selectedTransition = Nothing
+                                            , dragging = Nothing
+                                            , transitionFrom = Nothing
+                                            , simulationRunning = False
+                                            , simulationQueue = []
+                                            , simulationCurrent = Nothing
+                                            , simulationResult = Idle
+                                            , stateNameConflict = False
+                                          }
+                                        , Cmd.none
+                                        )
+
+                                Err _ ->
+                                    ( model, Cmd.none )
 
             DeleteFromSlot slotId ->
                 let
@@ -1742,6 +1791,7 @@ saveModal ctx model =
                     []
                 , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
                     [ H.button [ onClick (SaveToSlot slot.id) ] [ H.text (t ctx.lang EditorSaveToSlot) ]
+                    , H.button [ onClick (LoadFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ] [ H.text (t ctx.lang EditorLoadFromSlot) ]
                     , H.button [ onClick (DeleteFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ] [ H.text (t ctx.lang EditorDeleteFromSlot) ]
                     ]
                 ]

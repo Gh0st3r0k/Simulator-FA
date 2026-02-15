@@ -58,6 +58,7 @@ type Key
     | EditorSave
     | EditorSaveModalTitle
     | EditorSaveToSlot
+    | EditorLoadFromSlot
     | EditorDeleteFromSlot
     | EditorRenameSlot
     | EditorSlot
@@ -251,6 +252,11 @@ t lang key =
         ( EN, EditorSaveToSlot ) -> "Save current"
         ( SK, EditorSaveToSlot ) -> "Uložiť aktuálny"
         ( UA, EditorSaveToSlot ) -> "Зберегти поточний"
+
+        ( RU, EditorLoadFromSlot ) -> "Загрузить из слота"
+        ( EN, EditorLoadFromSlot ) -> "Load from slot"
+        ( SK, EditorLoadFromSlot ) -> "Načítať zo slotu"
+        ( UA, EditorLoadFromSlot ) -> "Завантажити зі слота"
 
         ( RU, EditorDeleteFromSlot ) -> "Удалить из слота"
         ( EN, EditorDeleteFromSlot ) -> "Delete from slot"
