@@ -551,8 +551,15 @@ normalizeAutomatonIds states transitions =
 
         renumberStates state ( nextId, mapping, acc ) =
             let
+                normalizedName =
+                    if state.name == String.fromInt state.id then
+                        String.fromInt nextId
+
+                    else
+                        state.name
+
                 newState =
-                    { state | id = nextId }
+                    { state | id = nextId, name = normalizedName }
             in
             ( nextId + 1
             , Dict.insert state.id nextId mapping
@@ -1131,22 +1138,6 @@ viewTransition ctx model t =
                     , selectTransitionOnClick
                     ]
                     []
-                , (if isLambdaLabel t.label then
-                    S.rect
-                        [ SA.x (String.fromFloat (labelX - 7))
-                        , SA.y (String.fromFloat (labelY - hitHeight + 3))
-                        , SA.width (String.fromFloat (hitWidth - 8))
-                        , SA.height (String.fromFloat hitHeight)
-                        , SA.rx "4"
-                        , SA.ry "4"
-                        , SA.fill "#b0b7c366"
-                        , SA.stroke "none"
-                        , SA.pointerEvents "none"
-                        ]
-                        []
-                   else
-                    S.text_ [] []
-                  )
                 , S.text_
                     [ SA.x (String.fromFloat labelX)
                     , SA.y (String.fromFloat labelY)
@@ -1288,7 +1279,7 @@ sidePanel ctx model =
                         [ HA.type_ "text"
                         , size 12
                         , maxlength 1
-                        , placeholder (t ctx.lang EditorTransitionLabel)
+                        , placeholder "λ"
                         , value model.transitionLabel
                         , onInput SetTransitionLabel
                         ]
@@ -1369,7 +1360,7 @@ sidePanel ctx model =
                                         [ HA.type_ "text"
                                         , size 12
                                         , maxlength 1
-                                        , placeholder (t ctx.lang EditorTransitionLabel)
+                                        , placeholder "λ"
                                         , value transition.label
                                         , onInput SetSelectedTransitionLabel
                                         ]
