@@ -3,7 +3,7 @@ module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeS
 import Dict
 import Html as H exposing (Html, button, div, h2, input, textarea, text)
 import Html.Attributes as HA exposing (..)
-import Html.Events exposing (onClick, onInput, stopPropagationOn)
+import Html.Events exposing (custom, onClick, onInput, stopPropagationOn)
 import I18n exposing (Key(..), Lang, t)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -40,9 +40,12 @@ type alias Model =
     , simulationQueue : List Char
     , simulationCurrent : Maybe Int
     , simulationResult : SimulationResult
+    , simulationChoice : Maybe PendingChoice
     , stateNameConflict : Bool
     , saveModalOpen : Bool
     , saveSlots : List SaveSlot
+    , viewportWidth : Int
+    , viewportHeight : Int
     }
 
 
@@ -76,6 +79,14 @@ type alias PanState =
     , startY : Float
     , originX : Float
     , originY : Float
+    }
+
+
+type alias PendingChoice =
+    { stateId : Int
+    , inputLabel : String
+    , transitionIds : List Int
+    , consumesInput : Bool
     }
 
 
@@ -121,9 +132,12 @@ initWithSlots slots =
     , simulationQueue = []
     , simulationCurrent = Nothing
     , simulationResult = Idle
+    , simulationChoice = Nothing
     , stateNameConflict = False
     , saveModalOpen = False
     , saveSlots = ensureSlotCount 5 slots
+    , viewportWidth = 1200
+    , viewportHeight = 800
     }
 
 
@@ -154,6 +168,9 @@ type Msg
     | SetSimulationDelay String
     | StartSimulation
     | AdvanceSimulation
+    | ChooseSimulationTransition Int
+    | WheelPan Float Float
+    | SetViewport Int Int
     | StopSimulation
     | OpenSaveModal
     | CloseSaveModal
@@ -169,11 +186,40 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    if model.simulationRunning then
+    if model.simulationRunning || (model.simulationChoice /= Nothing) then
         case msg of
             AdvanceSimulation ->
                 stepSimulation model
 
+            ChooseSimulationTransition tid ->
+                case ( model.simulationChoice, model.simulationCurrent ) of
+                    ( Just choice, Just _ ) ->
+                        case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
+                            Just transition ->
+                                let
+                                    queue = model.simulationQueue
+                                    rest =
+                                        case queue of
+                                            [] ->
+                                                []
+
+                                            _ :: remaining ->
+                                                remaining
+                                in
+                                applySimulationTransition transition choice.consumesInput rest queue model
+
+                            Nothing ->
+                                ( model, Cmd.none )
+
+                    _ ->
+                        ( model, Cmd.none )
+
+            WheelPan dx dy ->
+                ( panWithWheel dx dy model, Cmd.none )
+
+            SetViewport w h ->
+                ( { model | viewportWidth = w, viewportHeight = h }, Cmd.none )
+            
             StopSimulation ->
                 ( stopSimulation Idle model, Cmd.none )
 
@@ -539,6 +585,15 @@ update msg model =
             AdvanceSimulation ->
                 stepSimulation model
 
+            ChooseSimulationTransition _ ->
+                ( model, Cmd.none )
+
+            WheelPan dx dy ->
+                ( panWithWheel dx dy model, Cmd.none )
+
+            SetViewport w h ->
+                ( { model | viewportWidth = w, viewportHeight = h }, Cmd.none )
+
             StopSimulation ->
                 ( stopSimulation Idle model, Cmd.none )
 
@@ -602,6 +657,7 @@ update msg model =
                                             , simulationQueue = []
                                             , simulationCurrent = Nothing
                                             , simulationResult = Idle
+                                            , simulationChoice = Nothing
                                             , stateNameConflict = False
                                           }
                                         , Cmd.none
@@ -791,6 +847,60 @@ isDeterministic transitions =
     (not hasDuplicate) && (not hasLambda)
 
 
+editorLayout : Model -> { editorHeight : Int, canvasWidth : Int, canvasHeight : Int }
+editorLayout model =
+    let
+        editorHeight =
+            Basics.max 420 (model.viewportHeight - 170)
+
+        canvasWidth =
+            Basics.max 460 (model.viewportWidth - 640)
+
+        canvasHeight =
+            editorHeight - 84
+    in
+    { editorHeight = editorHeight, canvasWidth = canvasWidth, canvasHeight = canvasHeight }
+
+
+panWithWheel : Float -> Float -> Model -> Model
+panWithWheel dx dy model =
+    { model
+        | panX = model.panX - dx
+        , panY = model.panY - dy
+        , panning = Nothing
+        , dragging = Nothing
+    }
+
+
+centerChoiceInCanvas : Int -> Model -> Model
+centerChoiceInCanvas sid model =
+    case getStateById sid model.states of
+        Nothing ->
+            model
+
+        Just state ->
+            let
+                layout =
+                    editorLayout model
+
+                popupWidth =
+                    280
+
+                popupGap =
+                    24
+
+                popupHeight =
+                    140
+
+                targetPanX =
+                    toFloat layout.canvasWidth / 2 + toFloat popupWidth / 2 + toFloat popupGap - state.x
+
+                targetPanY =
+                    toFloat layout.canvasHeight / 2 + toFloat popupHeight / 2 - state.y
+            in
+            { model | panX = targetPanX, panY = targetPanY }
+            
+            
 parseDelay : String -> Float
 parseDelay raw =
     case String.toFloat (String.trim raw) of
@@ -808,6 +918,7 @@ stopSimulation result model =
         , simulationQueue = []
         , simulationCurrent = Nothing
         , simulationResult = result
+        , simulationChoice = Nothing
     }
 
 
@@ -844,9 +955,60 @@ startSimulation model =
                 , simulationCurrent = Just startState.id
                 , selected = Just startState.id
                 , simulationResult = initialResult
+                , simulationChoice = Nothing
               }
             , cmd
             )
+
+
+applySimulationTransition : Transition -> Bool -> List Char -> List Char -> Model -> ( Model, Cmd Msg )
+applySimulationTransition transition consumesInput rest queue model =
+    let
+        delay = parseDelay model.simulationDelay
+        nextQueue =
+            if consumesInput then
+                rest
+
+            else
+                queue
+
+        willContinue =
+            (not (List.isEmpty nextQueue)) || hasLambdaFrom transition.to model.transitions
+
+        cmd =
+            if willContinue then
+                Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
+
+            else
+                Cmd.none
+    in
+    ( { model
+        | simulationQueue = nextQueue
+        , simulationCurrent = Just transition.to
+        , selected = Just transition.to
+        , simulationRunning = willContinue
+        , simulationChoice = Nothing
+        , simulationResult =
+            if willContinue then
+                Running
+
+            else
+                case getStateById transition.to model.states of
+                    Just s ->
+                        if s.accepting && List.isEmpty nextQueue then
+                            Success
+
+                        else if List.isEmpty nextQueue then
+                            Rejected
+
+                        else
+                            DeadEnd
+
+                    Nothing ->
+                        DeadEnd
+      }
+    , cmd
+    )
 
 
 stepSimulation : Model -> ( Model, Cmd Msg )
@@ -865,33 +1027,26 @@ stepSimulation model =
                         c :: remaining ->
                             ( Just (String.fromChar c), remaining )
 
-                pickTransition =
-                    let
-                        charMatch =
-                            case maybeChar of
-                                Nothing ->
-                                    Nothing
+                charMatches =
+                    case maybeChar of
+                        Nothing ->
+                            []
 
-                                Just lbl ->
-                                    List.filter (\t -> t.from == sid && t.label == lbl) model.transitions
-                                        |> List.head
+                        Just lbl ->
+                            List.filter (\t -> t.from == sid && t.label == lbl) model.transitions
 
-                        lambdaMatch =
-                            List.filter (\t -> t.from == sid && isLambdaLabel t.label) model.transitions
-                                |> List.head
-                    in
-                    case ( charMatch, lambdaMatch ) of
-                        ( Just t, _ ) ->
-                            Just ( t, True )
+                lambdaMatches =
+                    List.filter (\t -> t.from == sid && isLambdaLabel t.label) model.transitions
 
-                        ( Nothing, Just t ) ->
-                            Just ( t, False )
+                ( candidates, consumesInput, inputLabel ) =
+                    if List.isEmpty charMatches then
+                        ( lambdaMatches, False, "λ" )
 
-                        _ ->
-                            Nothing
+                    else
+                        ( charMatches, True, Maybe.withDefault "" maybeChar )
             in
-            case pickTransition of
-                Nothing ->
+            case candidates of
+                [] ->
                     let
                         result =
                             case queue of
@@ -912,52 +1067,29 @@ stepSimulation model =
                     in
                     ( stopSimulation result model, Cmd.none )
 
-                Just ( t, consumesInput ) ->
+                [ single ] ->
+                    applySimulationTransition single consumesInput rest queue model
+
+                _ ->
                     let
-                        delay = parseDelay model.simulationDelay
-                        nextQueue =
-                            if consumesInput then
-                                rest
-
-                            else
-                                queue
-
-                        willContinue =
-                            (not (List.isEmpty nextQueue)) || hasLambdaFrom t.to model.transitions
-
-                        cmd =
-                            if willContinue then
-                                Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
-
-                            else
-                                Cmd.none
+                        centeredModel =
+                            centerChoiceInCanvas sid model
                     in
-                    ( { model
-                        | simulationQueue = nextQueue
-                        , simulationCurrent = Just t.to
-                        , selected = Just t.to
-                        , simulationRunning = willContinue
-                        , simulationResult =
-                            if willContinue then
-                                Running
-
-                            else
-                                case getStateById t.to model.states of
-                                    Just s ->
-                                        if s.accepting && List.isEmpty nextQueue then
-                                            Success
-
-                                        else if List.isEmpty nextQueue then
-                                            Rejected
-
-                                        else
-                                            DeadEnd
-
-                                    Nothing ->
-                                        DeadEnd
+                    ( { centeredModel
+                        | simulationRunning = False
+                        , simulationChoice =
+                            Just
+                                { stateId = sid
+                                , inputLabel = inputLabel
+                                , transitionIds = List.map .id candidates
+                                , consumesInput = consumesInput
+                                }
+                        , selected = Just sid
+                        , simulationResult = Running
                       }
-                    , cmd
+                    , Cmd.none
                     )
+
 
 
 
@@ -1407,21 +1539,29 @@ simulationStatus lang result =
             Just ( t lang I18n.EditorSimulationMissingStart, "#e74c3c" )
 -- VIEW
 
-
-view : { lang : Lang, theme : Theme } -> Model -> Html Msg
+view : { lang : Lang, theme : Theme, viewportWidth : Int, viewportHeight : Int } -> Model -> Html Msg
 view ctx model =
     let
+        layout =
+            editorLayout model
+
         content =
-            div [ HA.style "display" "flex", HA.style "gap" "12px", HA.style "color" (textColor ctx.theme) ]
-                [ div []
-                    [ H.h2 [] [ H.text (t ctx.lang EditorTitle) ]
-                    , svgView ctx model
+            div
+                [ HA.style "display" "flex"
+                , HA.style "gap" "12px"
+                , HA.style "color" (textColor ctx.theme)
+                , HA.style "height" (String.fromInt layout.editorHeight ++ "px")
+                , HA.style "overflow" "hidden"
+                ]
+                [ div [ HA.style "flex" "1", HA.style "min-width" "0", HA.style "display" "flex", HA.style "flex-direction" "column" ]
+                    [ H.h2 [ HA.style "margin" "0 0 8px 0" ] [ H.text (t ctx.lang EditorTitle) ]
+                    , svgView ctx model layout.canvasWidth layout.canvasHeight
                     ]
                 , sidePanel ctx model
                 , automatonPanel ctx model
                 ]
     in
-    div []
+    div [ HA.style "height" "100%", HA.style "overflow" "hidden" ]
         [ div [ HA.style "margin-bottom" "8px" ]
             [ H.button [ onClick OpenSaveModal ] [ H.text (t ctx.lang EditorSave) ] ]
         , content
@@ -1433,10 +1573,27 @@ view ctx model =
         ]
 
 
-svgView ctx model =
+wheelPanEvent : H.Attribute Msg
+wheelPanEvent =
+    custom "wheel"
+        (Decode.map
+            (\msg ->
+                { message = msg
+                , stopPropagation = False
+                , preventDefault = True
+                }
+            )
+            (Decode.map2 WheelPan
+                (Decode.field "deltaX" Decode.float)
+                (Decode.field "deltaY" Decode.float)
+            )
+        )
+
+
+
+
+svgView ctx model width height =
     let
-        width = 1200
-        height = 800
         cursor =
             case model.mode of
                 AddState -> "crosshair"
@@ -1444,44 +1601,125 @@ svgView ctx model =
                 MoveState -> "move"
                 ConfigureTransition -> "pointer"
     in
-    S.svg
-        [ SA.width (String.fromInt width)
-        , SA.height (String.fromInt height)
-        , SA.style
-            ("border:1px solid "
-                ++ panelBorder ctx.theme
-                ++ "; background:"
-                ++ (if ctx.theme == Theme.Dark then "#0b1320" else "#f8f9fb")
-                ++ "; cursor: "
-                ++ cursor
-                ++ "; user-select: none; -webkit-user-select: none; -moz-user-select: none;"
-            )
-        , SE.on "mousedown"
-            (Decode.map4 (\tag button x y -> CanvasMouseDown (String.toLower tag) button (toFloat x) (toFloat y))
-                (Decode.at [ "target", "tagName" ] Decode.string)
-                (Decode.field "button" Decode.int)
-                (Decode.field "offsetX" Decode.int)
-                (Decode.field "offsetY" Decode.int)
-            )
-        , SE.on "mousemove"
-            (Decode.map2 (\x y -> MovePointer (toFloat x) (toFloat y))
-                (Decode.field "offsetX" Decode.int)
-                (Decode.field "offsetY" Decode.int)
-            )
-        , SE.on "mouseup"
-            (Decode.map CanvasMouseUp (Decode.field "button" Decode.int))
+    div
+        [ HA.style "position" "relative"
+        , HA.style "flex" "1"
+        , HA.style "min-height" "0"
+        , wheelPanEvent
         ]
-        [ S.defs [] [ arrowMarker (textColor ctx.theme), startArrowMarker (textColor ctx.theme) ]
-        , S.g
-            [ SA.transform
-                ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ")")
+        [ S.svg
+            [ SA.width "100%"
+            , SA.height "100%"
+            , SA.viewBox ("0 0 " ++ String.fromInt width ++ " " ++ String.fromInt height)
+            , SA.style
+                ("border:1px solid "
+                    ++ panelBorder ctx.theme
+                    ++ "; background:"
+                    ++ (if ctx.theme == Theme.Dark then "#0b1320" else "#f8f9fb")
+                    ++ "; cursor: "
+                    ++ cursor
+                    ++ "; user-select: none; -webkit-user-select: none; -moz-user-select: none;"
+                )
+            , SE.on "mousedown"
+                (Decode.map4 (\tag button x y -> CanvasMouseDown (String.toLower tag) button (toFloat x) (toFloat y))
+                    (Decode.at [ "target", "tagName" ] Decode.string)
+                    (Decode.field "button" Decode.int)
+                    (Decode.field "offsetX" Decode.int)
+                    (Decode.field "offsetY" Decode.int)
+                )
+            , SE.on "mousemove"
+                (Decode.map2 (\x y -> MovePointer (toFloat x) (toFloat y))
+                    (Decode.field "offsetX" Decode.int)
+                    (Decode.field "offsetY" Decode.int)
+                )
+            , SE.on "mouseup"
+                (Decode.map CanvasMouseUp (Decode.field "button" Decode.int))
             ]
-            (List.concat
-                [ List.map (viewTransition ctx model) model.transitions
-                , List.map (viewState ctx model) model.states
+            [ S.defs [] [ arrowMarker (textColor ctx.theme), startArrowMarker (textColor ctx.theme) ]
+            , S.g
+                [ SA.transform
+                    ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ")")
                 ]
-            )
+                (List.concat
+                    [ List.map (viewTransition ctx model) model.transitions
+                    , List.map (viewState ctx model) model.states
+                    ]
+                )
+            ]
+        , simulationChoiceOverlay ctx model
         ]
+
+
+simulationChoiceOverlay : { a | lang : Lang, theme : Theme } -> Model -> Html Msg
+simulationChoiceOverlay ctx model =
+    case model.simulationChoice of
+        Nothing ->
+            text ""
+
+        Just choice ->
+            case getStateById choice.stateId model.states of
+                Nothing ->
+                    text ""
+
+                Just state ->
+                    let
+                        layout =
+                            editorLayout model
+
+                        popupWidth =
+                            280
+
+                        popupGap =
+                            24
+
+                        topPos =
+                            Basics.max 8 (Basics.min (toFloat layout.canvasHeight - 170) (state.y + model.panY - 92))
+
+                        leftPos =
+                            Basics.max 8 (Basics.min (toFloat layout.canvasWidth - toFloat popupWidth - 8) (state.x + model.panX - toFloat popupWidth - toFloat popupGap))
+
+                        relatedTransitions =
+                            List.filter (\transition -> List.member transition.id choice.transitionIds) model.transitions
+
+                        transitionButton transition =
+                            H.button
+                                [ onClick (ChooseSimulationTransition transition.id)
+                                , HA.style "display" "block"
+                                , HA.style "width" "100%"
+                                , HA.style "margin-top" "6px"
+                                , HA.style "text-align" "left"
+                                ]
+                                [ H.text (stateNameById model.states transition.from ++ " → " ++ stateNameById model.states transition.to ++ " [" ++ transition.label ++ "]") ]
+                    in
+                    div
+                        [ HA.style "position" "absolute"
+                        , HA.style "left" (String.fromFloat leftPos ++ "px")
+                        , HA.style "top" (String.fromFloat topPos ++ "px")
+                        , HA.style "background" (panelBg ctx.theme)
+                        , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                        , HA.style "border-radius" "10px"
+                        , HA.style "padding" "10px"
+                        , HA.style "width" "280px"
+                        , HA.style "box-shadow" "0 10px 24px rgba(0,0,0,0.25)"
+                        , HA.style "z-index" "12"
+                        ]
+                        [ div [ HA.style "font-weight" "bold" ] [ H.text (t ctx.lang I18n.EditorSimulationChoiceTitle) ]
+                        , div [ HA.style "margin-top" "4px" ] [ H.text (t ctx.lang I18n.EditorSimulationChoiceBody ++ " " ++ state.name ++ ", " ++ t ctx.lang I18n.EditorTransitionLabel ++ ": " ++ choice.inputLabel) ]
+                        , div [ HA.style "margin-top" "8px" ] (List.map transitionButton relatedTransitions)
+                        , div
+                            [ HA.style "position" "absolute"
+                            , HA.style "right" "-5px"
+                            , HA.style "top" "38px"
+                            , HA.style "width" "10px"
+                            , HA.style "height" "10px"
+                            , HA.style "background" (panelBg ctx.theme)
+                            , HA.style "border-right" ("1px solid " ++ panelBorder ctx.theme)
+                            , HA.style "border-top" ("1px solid " ++ panelBorder ctx.theme)
+                            , HA.style "transform" "rotate(45deg)"
+                            ]
+                            []
+                        ]
+
 
 
 viewState ctx model s =
@@ -1737,12 +1975,13 @@ automatonPanel ctx model =
                     "#e67e22"
         in
         div
-            [ HA.style "min-width" "220px"
+            [ HA.style "width" "220px"
             , HA.style "background" (panelBg ctx.theme)
             , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
             , HA.style "padding" "12px"
             , HA.style "border-radius" "12px"
             , HA.style "align-self" "flex-start"
+            , HA.style "overflow" "auto"
             ]
             [ H.h2 [] [ H.text (t ctx.lang EditorType) ]
             , H.div [ HA.style "color" color, HA.style "font-weight" "bold" ] [ H.text label ]
@@ -1830,6 +2069,9 @@ saveModal ctx model =
 
 sidePanel ctx model =
     let
+        simulationLocked =
+            model.simulationRunning || (model.simulationChoice /= Nothing)
+
         baseButtonStyles =
             [ HA.style "background" (interactiveBg ctx.theme)
             , HA.style "color" (textColor ctx.theme)
@@ -1841,17 +2083,18 @@ sidePanel ctx model =
                 (baseButtonStyles
                     ++ [ onClick (SetMode target)
                        , HA.style "background" (if model.mode == target then "#2ecc71" else interactiveBg ctx.theme)
-                       , HA.disabled model.simulationRunning
+                       , HA.disabled simulationLocked
                        ]
                 )
                 [ H.text label ]
     in
     div
-        [ HA.style "min-width" "320px"
+        [ HA.style "width" "360px"
         , HA.style "background" (panelBg ctx.theme)
         , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
         , HA.style "padding" "12px"
         , HA.style "border-radius" "12px"
+        , HA.style "overflow" "auto"
         ]
         [ H.h2 [] [ H.text (t ctx.lang EditorTransitionFunction) ]
         , textarea [ rows 18, cols 40, onInput CodeEdited, value model.codeDraft ] []
@@ -1928,12 +2171,12 @@ sidePanel ctx model =
                                     , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
                                         [ H.button
                                             [ onClick (ToggleStart s.id)
-                                            , HA.disabled model.simulationRunning
+                                            , HA.disabled simulationLocked
                                             ]
                                             [ H.text (if s.isStart then t ctx.lang EditorUnsetStart else t ctx.lang EditorMakeStart) ]
                                         , H.button
                                             [ onClick (ToggleAccepting s.id)
-                                            , HA.disabled model.simulationRunning
+                                            , HA.disabled simulationLocked
                                             ]
                                             [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
                                         ]
@@ -1980,7 +2223,7 @@ sidePanel ctx model =
                 , placeholder (t ctx.lang EditorSimulationInput)
                 , value model.simulationInput
                 , onInput SetSimulationInput
-                , HA.disabled model.simulationRunning
+                , HA.disabled simulationLocked
                 ]
                 []
             , textarea
@@ -1989,7 +2232,7 @@ sidePanel ctx model =
                 , placeholder (t ctx.lang EditorSimulationDelay)
                 , value model.simulationDelay
                 , onInput SetSimulationDelay
-                , HA.disabled model.simulationRunning
+                , HA.disabled simulationLocked
                 ]
                 []
             ]
@@ -1997,14 +2240,14 @@ sidePanel ctx model =
             [ H.button
                 (baseButtonStyles
                     ++ [ onClick StartSimulation
-                       , HA.disabled model.simulationRunning
+                       , HA.disabled simulationLocked
                        ]
                 )
                 [ H.text (t ctx.lang EditorSimulationStart) ]
             , H.button
                 (baseButtonStyles
                     ++ [ onClick StopSimulation
-                       , HA.disabled (not model.simulationRunning)
+                       , HA.disabled (not (model.simulationRunning || (model.simulationChoice /= Nothing)))
                        ]
                 )
                 [ H.text (t ctx.lang EditorSimulationStop) ]

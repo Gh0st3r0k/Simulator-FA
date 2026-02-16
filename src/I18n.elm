@@ -102,6 +102,8 @@ type Key
     | EditorSimulationRejected
     | EditorSimulationDeadEnd
     | EditorSimulationMissingStart
+    | EditorSimulationChoiceTitle
+    | EditorSimulationChoiceBody
     | BackHomeIcon
     | BackHomeText
     | BackHomeIconText
@@ -472,6 +474,16 @@ t lang key =
         ( EN, EditorSimulationMissingStart ) -> "Error: no start state selected"
         ( SK, EditorSimulationMissingStart ) -> "Chyba: nie je zvolený počiatočný stav"
         ( UA, EditorSimulationMissingStart ) -> "Помилка: не вибрано початковий стан"
+
+        ( RU, EditorSimulationChoiceTitle ) -> "Есть несколько переходов"
+        ( EN, EditorSimulationChoiceTitle ) -> "Multiple transitions available"
+        ( SK, EditorSimulationChoiceTitle ) -> "K dispozícii je viac prechodov"
+        ( UA, EditorSimulationChoiceTitle ) -> "Доступно кілька переходів"
+
+        ( RU, EditorSimulationChoiceBody ) -> "Выберите, по какому переходу идти из состояния"
+        ( EN, EditorSimulationChoiceBody ) -> "Choose which transition to follow from state"
+        ( SK, EditorSimulationChoiceBody ) -> "Vyberte, ktorý prechod sa má použiť zo stavu"
+        ( UA, EditorSimulationChoiceBody ) -> "Оберіть, яким переходом іти зі стану"
 
         ( RU, BackHomeIcon  ) -> "←"
         ( EN, BackHomeIcon  ) -> "←"

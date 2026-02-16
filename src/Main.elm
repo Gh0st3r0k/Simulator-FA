@@ -180,14 +180,24 @@ update msg model =
             in ( { model | about = subModel }, Cmd.map AboutMsg subCmd )
         
         ViewportChanged w h ->
-            ( { model | vpW = w, vpH = h }, Cmd.none )
+            let
+                ( editorModel, editorCmd ) =
+                    Editor.update (Editor.SetViewport w h) model.editor
+            in
+            ( { model | vpW = w, vpH = h, editor = editorModel }
+            , Cmd.map EditorMsg editorCmd
+            )
 
         GotViewport (Ok vp) ->
             let
                 w = round vp.viewport.width
                 h = round vp.viewport.height
+                ( editorModel, editorCmd ) =
+                    Editor.update (Editor.SetViewport w h) model.editor
             in
-            ( { model | vpW = w, vpH = h }, Cmd.none )
+            ( { model | vpW = w, vpH = h, editor = editorModel }
+            , Cmd.map EditorMsg editorCmd
+            )
 
         GotViewport (Err _) ->
             ( model, Cmd.none )
@@ -235,7 +245,21 @@ view model =
                         [ homeView model ]
 
                 Editor ->
-                    H.map EditorMsg (Editor.view { lang = model.lang, theme = model.theme } model.editor)
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "min-height" "0"
+                        , HA.style "overflow" "hidden"
+                        ]
+                        [ H.map EditorMsg
+                            (Editor.view
+                                { lang = model.lang
+                                , theme = model.theme
+                                , viewportWidth = model.vpW
+                                , viewportHeight = model.vpH
+                                }
+                                model.editor
+                            )
+                        ]
 
                 Instructions ->
                     H.map InstructionsMsg (Instructions.view { lang = model.lang, theme = model.theme } model.instructions)
