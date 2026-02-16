@@ -1673,10 +1673,17 @@ simulationChoiceOverlay ctx model =
                             24
 
                         topPos =
-                            Basics.max 8 (Basics.min (toFloat layout.canvasHeight - 170) (state.y + model.panY - 92))
+                            Basics.max 8 (Basics.min (toFloat layout.canvasHeight - 170) (state.y + model.panY - 30)) --92
 
                         leftPos =
-                            Basics.max 8 (Basics.min (toFloat layout.canvasWidth - toFloat popupWidth - 8) (state.x + model.panX - toFloat popupWidth - toFloat popupGap))
+                            let
+                                desiredLeft =
+                                    state.x + model.panX - toFloat popupWidth - toFloat popupGap - 60
+
+                                maxCanvasLeft =
+                                    toFloat layout.canvasWidth - toFloat popupWidth - 8
+                            in
+                            Basics.min maxCanvasLeft desiredLeft
 
                         relatedTransitions =
                             List.filter (\transition -> List.member transition.id choice.transitionIds) model.transitions

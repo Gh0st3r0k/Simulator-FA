@@ -11308,14 +11308,15 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 				var popupWidth = 280;
 				var popupGap = 24;
 				var layout = $author$project$Pages$Editor$editorLayout(model);
-				var leftPos = A2(
-					$elm$core$Basics$max,
-					8,
-					A2($elm$core$Basics$min, (layout.aO - popupWidth) - 8, ((state.m + model.R) - popupWidth) - popupGap));
+				var leftPos = function () {
+					var maxCanvasLeft = (layout.aO - popupWidth) - 8;
+					var desiredLeft = (((state.m + model.R) - popupWidth) - popupGap) - 60;
+					return A2($elm$core$Basics$min, maxCanvasLeft, desiredLeft);
+				}();
 				var topPos = A2(
 					$elm$core$Basics$max,
 					8,
-					A2($elm$core$Basics$min, layout.aN - 170, (state.n + model.S) - 92));
+					A2($elm$core$Basics$min, layout.aN - 170, (state.n + model.S) - 30));
 				return A2(
 					$elm$html$Html$div,
 					_List_fromArray(
