@@ -67,6 +67,13 @@ type alias Transition =
     }
 
 
+type alias TransitionPayload =
+    { from : Int
+    , to : Int
+    , label : String
+    }
+
+
 type alias TransitionGroup =
     { from : Int
     , to : Int
@@ -409,18 +416,22 @@ update msg model =
 
                             Just fromId ->
                                 let
-                                    label = normalizeTransitionLabel model.transitionLabel
+                                    labels = normalizeTransitionLabels model.transitionLabel
 
-                                    newTransition =
-                                        { id = model.nextTransitionId
-                                        , from = fromId
-                                        , to = sid
-                                        , label = label
-                                        }
+                                    newTransitions =
+                                        List.indexedMap
+                                            (\idx token ->
+                                                { id = model.nextTransitionId + idx
+                                                , from = fromId
+                                                , to = sid
+                                                , label = token
+                                                }
+                                            )
+                                            labels
                                 in
                                 ( { model
-                                    | transitions = model.transitions ++ [ newTransition ]
-                                    , nextTransitionId = model.nextTransitionId + 1
+                                    | transitions = model.transitions ++ newTransitions
+                                    , nextTransitionId = model.nextTransitionId + List.length newTransitions
                                     , transitionFrom = Nothing
                                     , selected = Nothing
                                     , selectedTransition = Nothing
@@ -516,7 +527,7 @@ update msg model =
                 )
 
             SetTransitionLabel label ->
-                ( { model | transitionLabel = normalizeTransitionLabel label }, Cmd.none )
+                ( { model | transitionLabel = label }, Cmd.none )
 
             SetSelectedTransitionLabel label ->
                 case model.selectedTransition of
@@ -524,17 +535,46 @@ update msg model =
                         ( model, Cmd.none )
 
                     Just tid ->
-                        let
-                            normalizedLabel = normalizeTransitionLabel label
+                        case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
+                            Nothing ->
+                                ( model, Cmd.none )
 
-                            updateTransition transition =
-                                if transition.id == tid then
-                                    { transition | label = normalizedLabel }
+                            Just target ->
+                                let
+                                    labels = normalizeTransitionLabels label
 
-                                else
-                                    transition
-                        in
-                        ( { model | transitions = List.map updateTransition model.transitions }, Cmd.none )
+                                    pairTransitions =
+                                        List.filter (\transition -> transition.from == target.from && transition.to == target.to) model.transitions
+
+                                    preservedIds =
+                                        pairTransitions
+                                            |> List.map .id
+                                            |> List.sort
+
+                                    remainingTransitions =
+                                        List.filter (\transition -> not (transition.from == target.from && transition.to == target.to)) model.transitions
+
+                                    recreatedTransitions =
+                                        List.indexedMap
+                                            (\index token ->
+                                                { id = List.drop index preservedIds |> List.head |> Maybe.withDefault (model.nextTransitionId + index)
+                                                , from = target.from
+                                                , to = target.to
+                                                , label = token
+                                                }
+                                            )
+                                            labels
+
+                                    additionalCount =
+                                        Basics.max 0 (List.length labels - List.length preservedIds)
+                                in
+                                ( { model
+                                    | transitions = remainingTransitions ++ recreatedTransitions
+                                    , nextTransitionId = model.nextTransitionId + additionalCount
+                                    , selectedTransition = List.head recreatedTransitions |> Maybe.map .id
+                                  }
+                                , Cmd.none
+                                )
 
             SetSelectedStateName name ->
                 case model.selected of
@@ -751,7 +791,71 @@ enforceSingleStartFlag states =
 
 normalizeTransitionLabel : String -> String
 normalizeTransitionLabel raw =
-    String.left 1 raw
+    String.left 1 (String.trim raw)
+
+
+normalizeTransitionLabels : String -> List String
+normalizeTransitionLabels raw =
+    let
+        normalized =
+            raw
+                |> String.split ";"
+                |> List.map normalizeTransitionLabel
+                |> List.filter (\token -> token /= "")
+    in
+    if List.isEmpty normalized then
+        [ "" ]
+
+    else
+        uniqueLabels normalized
+
+
+transitionLabelsForJson : List String -> String
+transitionLabelsForJson labels =
+    labels
+        |> uniqueLabels
+        |> List.map
+            (\token ->
+                if isLambdaLabel token then
+                    "λ"
+
+                else
+                    token
+            )
+        |> String.join ";"
+
+
+decodeJsonLabelToTokens : String -> List String
+decodeJsonLabelToTokens raw =
+    let
+        parts =
+            if String.contains ";" raw then
+                String.split ";" raw
+
+            else
+                [ raw ]
+
+        normalized =
+            parts
+                |> List.map String.trim
+                |> List.map
+                    (\token ->
+                        if token == "λ" then
+                            ""
+
+                        else
+                            normalizeTransitionLabel token
+                    )
+                |> List.filter (\token -> token /= "")
+    in
+    if String.trim raw == "" then
+        [ "" ]
+
+    else if List.isEmpty normalized then
+        [ "" ]
+
+    else
+        uniqueLabels normalized
 
 
 hasDuplicateStateNames : List State -> Bool
@@ -1492,10 +1596,10 @@ encodeState s =
         ]
 
 
-encodeTransition : Transition -> Encode.Value
+encodeTransition : TransitionPayload -> Encode.Value
 encodeTransition t =
     Encode.object
-        [ ( "id", Encode.int t.id )
+        [ ( "id", Encode.int 0 )
         , ( "from", Encode.int t.from )
         , ( "to", Encode.int t.to )
         , ( "label", Encode.string t.label )
@@ -1504,15 +1608,46 @@ encodeTransition t =
 
 encodeAutomaton : List State -> List Transition -> Encode.Value
 encodeAutomaton states transitions =
+    let
+        groupedTransitions =
+            groupTransitionsForRender transitions
+                |> List.map
+                    (\group ->
+                        { from = group.from
+                        , to = group.to
+                        , label = transitionLabelsForJson group.labels
+                        }
+                    )
+    in
     Encode.object
         [ ( "states", Encode.list encodeState states )
-        , ( "transitions", Encode.list encodeTransition transitions )
+        , ( "transitions", Encode.list encodeTransition groupedTransitions  )
         ]
 
 
 decodeAutomaton : Decode.Decoder ( List State, List Transition )
 decodeAutomaton =
-    Decode.map2 Tuple.pair
+    Decode.map2
+        (\states payloadTransitions ->
+            let
+                expanded =
+                    payloadTransitions
+                        |> List.concatMap
+                            (\payload ->
+                                decodeJsonLabelToTokens payload.label
+                                    |> List.map
+                                        (\token ->
+                                            { id = 0
+                                            , from = payload.from
+                                            , to = payload.to
+                                            , label = token
+                                            }
+                                        )
+                            )
+                        |> List.indexedMap (\idx transition -> { transition | id = idx + 1 })
+            in
+            ( states, expanded )
+        )
         (Decode.field "states" (Decode.list decodeState))
         (Decode.field "transitions" (Decode.list decodeTransition))
 
@@ -1540,11 +1675,15 @@ decodeState =
             )
 
 
-decodeTransition : Decode.Decoder Transition
+decodeTransition : Decode.Decoder TransitionPayload
 decodeTransition =
-    -- Decode a serialized transition record into our Transition type
-    Decode.map4 Transition
-        (Decode.field "id" Decode.int)
+    Decode.map3
+        (\from to label ->
+            { from = from
+            , to = to
+            , label = label
+            }
+        )
         (Decode.field "from" Decode.int)
         (Decode.field "to" Decode.int)
         (Decode.field "label" Decode.string)
@@ -1901,21 +2040,6 @@ viewTransition ctx model transitionGroup =
                     transitionGroup.from /= transitionGroup.to
                         && List.any (\t -> t.from == transitionGroup.to && t.to == transitionGroup.from) model.transitions
 
-                directionSign =
-                    case compare a.name b.name of
-                        LT ->
-                            1
-
-                        GT ->
-                            -1
-
-                        EQ ->
-                            if transitionGroup.from < transitionGroup.to then
-                                1
-
-                            else
-                                -1
-
                 startX =
                     if selfLoop then
                         a.x + 18
@@ -1945,15 +2069,15 @@ viewTransition ctx model transitionGroup =
                         b.y - uy * (toFloat r + 6)
 
                 curveOffset = 42
-                perpX = -uy
-                perpY = ux
+                rightX = -uy
+                rightY = ux
                 controlX =
                     ((startX + endX) / 2)
-                        + perpX * curveOffset * toFloat directionSign
+                        + rightX * curveOffset
 
                 controlY =
                     ((startY + endY) / 2)
-                        + perpY * curveOffset * toFloat directionSign
+                        + rightY * curveOffset
 
                 pathD =
                     if selfLoop then
@@ -2003,7 +2127,7 @@ viewTransition ctx model transitionGroup =
                         a.x + 2
 
                     else if oppositeTransitionExists then
-                        0.25 * startX + 0.5 * controlX + 0.25 * endX + perpX * 14 * toFloat directionSign
+                        0.25 * startX + 0.5 * controlX + 0.25 * endX + rightX * 14
 
                     else
                         ((startX + endX) / 2) + 6
@@ -2013,7 +2137,7 @@ viewTransition ctx model transitionGroup =
                         a.y - 72
 
                     else if oppositeTransitionExists then
-                        0.25 * startY + 0.5 * controlY + 0.25 * endY + perpY * 14 * toFloat directionSign
+                        0.25 * startY + 0.5 * controlY + 0.25 * endY + rightY * 14
 
                     else
                         ((startY + endY) / 2) - 6
@@ -2128,6 +2252,30 @@ groupTransitionsForRender transitions =
         |> List.filterMap (\key -> Dict.get key groupedByPair)
 
 
+
+
+
+transitionLabelsForPair : List Transition -> Int -> Int -> List String
+transitionLabelsForPair transitions fromState toState =
+    transitions
+        |> List.filter (\transition -> transition.from == fromState && transition.to == toState)
+        |> List.map .label
+        |> uniqueLabels
+
+
+transitionLabelsToEditorText : List String -> String
+transitionLabelsToEditorText labels =
+    labels
+        |> List.map
+            (\label ->
+                if isLambdaLabel label then
+                    "λ"
+
+                else
+                    label
+            )
+        |> String.join ";"
+        
 transitionLabelsToText : List String -> String
 transitionLabelsToText labels =
     labels
@@ -2344,7 +2492,6 @@ sidePanel ctx model =
                     [ input
                         [ HA.type_ "text"
                         , size 12
-                        , maxlength 1
                         , placeholder "λ"
                         , value model.transitionLabel
                         , onInput SetTransitionLabel
@@ -2413,15 +2560,19 @@ sidePanel ctx model =
                                 div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
 
                             Just transition ->
+                                let
+                                    editorLabel =
+                                        transitionLabelsForPair model.transitions transition.from transition.to
+                                            |> transitionLabelsToEditorText
+                                in
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ String.fromInt transition.id) ]
                                     , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ stateNameById model.states transition.from ++ " → " ++ stateNameById model.states transition.to) ]
                                     , input
                                         [ HA.type_ "text"
                                         , size 12
-                                        , maxlength 1
                                         , placeholder "λ"
-                                        , value transition.label
+                                        , value editorLabel
                                         , onInput SetSelectedTransitionLabel
                                         ]
                                         []
