@@ -188,6 +188,43 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     if model.simulationRunning || (model.simulationChoice /= Nothing) then
         case msg of
+            CanvasMouseDown _ button cx cy ->
+                if button == 1 then
+                    ( { model
+                        | panning =
+                            Just
+                                { startX = cx
+                                , startY = cy
+                                , originX = model.panX
+                                , originY = model.panY
+                                }
+                      }
+                    , Cmd.none
+                    )
+
+                else
+                    ( model, Cmd.none )
+
+            MovePointer mx my ->
+                case model.panning of
+                    Nothing ->
+                        ( model, Cmd.none )
+
+                    Just pan ->
+                        ( { model
+                            | panX = pan.originX + (mx - pan.startX)
+                            , panY = pan.originY + (my - pan.startY)
+                          }
+                        , Cmd.none
+                        )
+
+            CanvasMouseUp button ->
+                if button == 1 then
+                    ( { model | panning = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+                    
             AdvanceSimulation ->
                 stepSimulation model
 
