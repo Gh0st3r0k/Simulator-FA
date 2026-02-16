@@ -310,10 +310,10 @@ t lang key =
         ( SK, EditorModeAddTransition ) -> "Vytvoriť prechody"
         ( UA, EditorModeAddTransition ) -> "Створити переходи"
 
-        ( RU, EditorModeMoveState ) -> "Перемещать состояния"
-        ( EN, EditorModeMoveState ) -> "Move states"
-        ( SK, EditorModeMoveState ) -> "Presúvať stavy"
-        ( UA, EditorModeMoveState ) -> "Переміщувати стани"
+        ( RU, EditorModeMoveState ) -> "Выбрать"
+        ( EN, EditorModeMoveState ) -> "Select"
+        ( SK, EditorModeMoveState ) -> "Vybrať"
+        ( UA, EditorModeMoveState ) -> "Вибрати"
 
         ( RU, EditorModeConfigureTransition ) -> "Настройка переходов"
         ( EN, EditorModeConfigureTransition ) -> "Configure transitions"

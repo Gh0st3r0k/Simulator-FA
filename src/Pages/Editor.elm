@@ -94,7 +94,6 @@ type Mode
     = AddState
     | AddTransition
     | MoveState
-    | ConfigureTransition
 
 
 type SimulationResult
@@ -316,10 +315,7 @@ update msg model =
                                 if targetTag == "svg" then
                                     case model.mode of
                                         MoveState ->
-                                            ( { model | selected = Nothing }, Cmd.none )
-
-                                        ConfigureTransition ->
-                                            ( { model | selectedTransition = Nothing }, Cmd.none )
+                                            ( { model | selected = Nothing, selectedTransition = Nothing }, Cmd.none )
 
                                         _ ->
                                             ( model, Cmd.none )
@@ -428,14 +424,14 @@ update msg model =
                                     )
 
                     MoveState ->
-                        ( { model | selected = Just sid }, Cmd.none )
+                        ( { model | selected = Just sid, selectedTransition = Nothing }, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
 
             SelectTransition tid ->
                 case model.mode of
-                    ConfigureTransition ->
+                    MoveState ->
                         ( { model | selectedTransition = Just tid, selected = Nothing }, Cmd.none )
 
                     _ ->
@@ -1636,7 +1632,6 @@ svgView ctx model width height =
                 AddState -> "crosshair"
                 AddTransition -> "pointer"
                 MoveState -> "move"
-                ConfigureTransition -> "pointer"
     in
     div
         [ HA.style "position" "relative"
@@ -2151,7 +2146,6 @@ sidePanel ctx model =
             [ modeButton AddState (t ctx.lang EditorModeAddState)
             , modeButton AddTransition (t ctx.lang EditorModeAddTransition)
             , modeButton MoveState (t ctx.lang EditorModeMoveState)
-            , modeButton ConfigureTransition (t ctx.lang EditorModeConfigureTransition)
             ]
         , if model.mode == AddTransition then
             div []
@@ -2181,11 +2175,8 @@ sidePanel ctx model =
         , if model.mode == MoveState then
             div []
                 [ H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
-                , case model.selected of
-                    Nothing ->
-                        div [] [ H.text (t ctx.lang EditorSelectedNone) ]
-
-                    Just sid ->
+                , case ( model.selected, model.selectedTransition ) of
+                    ( Just sid, _ ) ->
                         case getStateById sid model.states of
                             Nothing ->
                                 div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
@@ -2225,16 +2216,8 @@ sidePanel ctx model =
                                             [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
                                         ]
                                     ]
-                ]
 
-          else if model.mode == ConfigureTransition then
-            div []
-                [ H.h2 [] [ H.text (t ctx.lang EditorSelected) ]
-                , case model.selectedTransition of
-                    Nothing ->
-                        div [] [ H.text (t ctx.lang EditorTransitionSelectForEdit) ]
-
-                    Just tid ->
+                    ( Nothing, Just tid ) ->
                         case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
                             Nothing ->
                                 div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
@@ -2255,6 +2238,9 @@ sidePanel ctx model =
                                     , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
                                         [ H.button [ onClick (DeleteTransition transition.id) ] [ H.text (t ctx.lang EditorDeleteTransition) ] ]
                                     ]
+                                    
+                    _ ->
+                        div [] [ H.text (t ctx.lang EditorSelectedNone) ]
                 ]
 
           else
