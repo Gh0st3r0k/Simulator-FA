@@ -67,6 +67,15 @@ type alias Transition =
     }
 
 
+type alias TransitionGroup =
+    { from : Int
+    , to : Int
+    , transitionIds : List Int
+    , labels : List String
+    , primaryId : Int
+    }
+
+
 type alias SaveSlot =
     { id : Int
     , name : String
@@ -399,29 +408,25 @@ update msg model =
                                 ( { model | transitionFrom = Just sid, selected = Just sid }, Cmd.none )
 
                             Just fromId ->
-                                if fromId == sid then
-                                    ( { model | transitionFrom = Nothing, selected = Just sid }, Cmd.none )
+                                let
+                                    label = normalizeTransitionLabel model.transitionLabel
 
-                                else
-                                    let
-                                        label = normalizeTransitionLabel model.transitionLabel
-
-                                        newTransition =
-                                            { id = model.nextTransitionId
-                                            , from = fromId
-                                            , to = sid
-                                            , label = label
-                                            }
-                                    in
-                                    ( { model
-                                        | transitions = model.transitions ++ [ newTransition ]
-                                        , nextTransitionId = model.nextTransitionId + 1
-                                        , transitionFrom = Nothing
-                                        , selected = Nothing
-                                        , selectedTransition = Nothing
-                                      }
-                                    , Cmd.none
-                                    )
+                                    newTransition =
+                                        { id = model.nextTransitionId
+                                        , from = fromId
+                                        , to = sid
+                                        , label = label
+                                        }
+                                in
+                                ( { model
+                                    | transitions = model.transitions ++ [ newTransition ]
+                                    , nextTransitionId = model.nextTransitionId + 1
+                                    , transitionFrom = Nothing
+                                    , selected = Nothing
+                                    , selectedTransition = Nothing
+                                  }
+                                , Cmd.none
+                                )
 
                     MoveState ->
                         ( { model | selected = Just sid, selectedTransition = Nothing }, Cmd.none )
@@ -1673,7 +1678,7 @@ svgView ctx model width height =
                     ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ")")
                 ]
                 (List.concat
-                    [ List.map (viewTransition ctx model) model.transitions
+                    [ List.map (viewTransition ctx model) (groupTransitionsForRender model.transitions)
                     , List.map (viewState ctx model) model.states
                     ]
                 )
@@ -1881,8 +1886,8 @@ viewState ctx model s =
         )
 
 
-viewTransition ctx model t =
-    case ( getStateById t.from model.states, getStateById t.to model.states ) of
+viewTransition ctx model transitionGroup =
+    case ( getStateById transitionGroup.from model.states, getStateById transitionGroup.to model.states ) of
         ( Just a, Just b ) ->
             let
                 r = 22
@@ -1891,31 +1896,147 @@ viewTransition ctx model t =
                 safe = if dist < 0.001 then 0.001 else dist
                 ux = dx / safe
                 uy = dy / safe
-                startX = a.x + ux * (toFloat r)
-                startY = a.y + uy * (toFloat r)
-                endX = b.x - ux * (toFloat r + 6)
-                endY = b.y - uy * (toFloat r + 6)
-                midX = (startX + endX) / 2
-                midY = (startY + endY) / 2
-                labelX = midX + 6
-                labelY = midY - 6
-                shownLabel =
-                    if isLambdaLabel t.label then
-                        "λ"
+                selfLoop = transitionGroup.from == transitionGroup.to
+                oppositeTransitionExists =
+                    transitionGroup.from /= transitionGroup.to
+                        && List.any (\t -> t.from == transitionGroup.to && t.to == transitionGroup.from) model.transitions
+
+                directionSign =
+                    case compare a.name b.name of
+                        LT ->
+                            1
+
+                        GT ->
+                            -1
+
+                        EQ ->
+                            if transitionGroup.from < transitionGroup.to then
+                                1
+
+                            else
+                                -1
+
+                startX =
+                    if selfLoop then
+                        a.x + 18
 
                     else
-                        t.label
+                        a.x + ux * (toFloat r)
+
+                startY =
+                    if selfLoop then
+                        a.y - 22
+
+                    else
+                        a.y + uy * (toFloat r)
+
+                endX =
+                    if selfLoop then
+                        b.x - 18
+
+                    else
+                        b.x - ux * (toFloat r + 6)
+
+                endY =
+                    if selfLoop then
+                        b.y - 22
+
+                    else
+                        b.y - uy * (toFloat r + 6)
+
+                curveOffset = 42
+                perpX = -uy
+                perpY = ux
+                controlX =
+                    ((startX + endX) / 2)
+                        + perpX * curveOffset * toFloat directionSign
+
+                controlY =
+                    ((startY + endY) / 2)
+                        + perpY * curveOffset * toFloat directionSign
+
+                pathD =
+                    if selfLoop then
+                        "M "
+                            ++ String.fromFloat startX
+                            ++ " "
+                            ++ String.fromFloat startY
+                            ++ " C "
+                            ++ String.fromFloat (a.x + 40)
+                            ++ " "
+                            ++ String.fromFloat (a.y - 64)
+                            ++ ", "
+                            ++ String.fromFloat (a.x - 40)
+                            ++ " "
+                            ++ String.fromFloat (a.y - 64)
+                            ++ ", "
+                            ++ String.fromFloat endX
+                            ++ " "
+                            ++ String.fromFloat endY
+
+                    else if oppositeTransitionExists then
+                        "M "
+                            ++ String.fromFloat startX
+                            ++ " "
+                            ++ String.fromFloat startY
+                            ++ " Q "
+                            ++ String.fromFloat controlX
+                            ++ " "
+                            ++ String.fromFloat controlY
+                            ++ " "
+                            ++ String.fromFloat endX
+                            ++ " "
+                            ++ String.fromFloat endY
+
+                    else
+                        "M "
+                            ++ String.fromFloat startX
+                            ++ " "
+                            ++ String.fromFloat startY
+                            ++ " L "
+                            ++ String.fromFloat endX
+                            ++ " "
+                            ++ String.fromFloat endY
+
+                labelX =
+                    if selfLoop then
+                        a.x + 2
+
+                    else if oppositeTransitionExists then
+                        0.25 * startX + 0.5 * controlX + 0.25 * endX + perpX * 14 * toFloat directionSign
+
+                    else
+                        ((startX + endX) / 2) + 6
+
+                labelY =
+                    if selfLoop then
+                        a.y - 72
+
+                    else if oppositeTransitionExists then
+                        0.25 * startY + 0.5 * controlY + 0.25 * endY + perpY * 14 * toFloat directionSign
+
+                    else
+                        ((startY + endY) / 2) - 6
+
+                shownLabel = transitionLabelsToText transitionGroup.labels
 
                 hitWidth = Basics.max 24 (toFloat (String.length shownLabel) * 9)
                 hitHeight = 18
-                isSelected = model.selectedTransition == Just t.id
+                isSelected =
+                    case model.selectedTransition of
+                        Nothing ->
+                            False
+
+                        Just selectedId ->
+                            List.member selectedId transitionGroup.transitionIds
+
                 strokeWidth = if isSelected then "4" else "2"
                 selectTransitionOnClick =
                     stopPropagationOn "click"
                         (Decode.map
                             (\button ->
                                 if button == 0 then
-                                    ( SelectTransition t.id, True )
+                                    ( SelectTransition transitionGroup.primaryId, True )
 
                                 else
                                     ( NoOp, True )
@@ -1924,20 +2045,20 @@ viewTransition ctx model t =
                         )
             in
             S.g []
-                [ S.line
-                    [ SA.x1 (String.fromFloat startX), SA.y1 (String.fromFloat startY)
-                    , SA.x2 (String.fromFloat endX), SA.y2 (String.fromFloat endY)
+                [ S.path
+                    [ SA.d pathD
                     , SA.stroke "transparent"
                     , SA.strokeWidth "10"
+                    , SA.fill "none"
                     , selectTransitionOnClick
                     ]
                     []
-                , S.line
-                    [ SA.x1 (String.fromFloat startX), SA.y1 (String.fromFloat startY)
-                    , SA.x2 (String.fromFloat endX), SA.y2 (String.fromFloat endY)
+                , S.path
+                    [ SA.d pathD
                     , SA.stroke (textColor ctx.theme)
                     , SA.strokeWidth strokeWidth
                     , SA.markerEnd "url(#arrowhead)"
+                    , SA.fill "none"
                     , SA.pointerEvents "none"
                     ]
                     []
@@ -1965,6 +2086,75 @@ viewTransition ctx model t =
         _ ->
             S.text_ [] []
 
+
+groupTransitionsForRender : List Transition -> List TransitionGroup
+groupTransitionsForRender transitions =
+    let
+        sortedTransitions =
+            List.sortBy .id transitions
+
+        step transition ( grouped, order ) =
+            let
+                key =
+                    ( transition.from, transition.to )
+            in
+            case Dict.get key grouped of
+                Just existing ->
+                    ( Dict.insert key
+                        { existing
+                            | transitionIds = existing.transitionIds ++ [ transition.id ]
+                            , labels = existing.labels ++ [ transition.label ]
+                        }
+                        grouped
+                    , order
+                    )
+
+                Nothing ->
+                    ( Dict.insert key
+                        { from = transition.from
+                        , to = transition.to
+                        , transitionIds = [ transition.id ]
+                        , labels = [ transition.label ]
+                        , primaryId = transition.id
+                        }
+                        grouped
+                    , key :: order
+                    )
+
+        ( groupedByPair, orderedKeysReversed ) =
+            List.foldl step ( Dict.empty, [] ) sortedTransitions
+    in
+    List.reverse orderedKeysReversed
+        |> List.filterMap (\key -> Dict.get key groupedByPair)
+
+
+transitionLabelsToText : List String -> String
+transitionLabelsToText labels =
+    labels
+        |> uniqueLabels
+        |> List.map
+            (\label ->
+                if isLambdaLabel label then
+                    "λ"
+
+                else
+                    label
+            )
+        |> String.join ", "
+
+
+uniqueLabels : List String -> List String
+uniqueLabels labels =
+    let
+        step label acc =
+            if List.member label acc then
+                acc
+
+            else
+                acc ++ [ label ]
+    in
+    List.foldl step [] labels
+    
 
 getStateById : Int -> List State -> Maybe State
 getStateById id states =
@@ -2238,7 +2428,7 @@ sidePanel ctx model =
                                     , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
                                         [ H.button [ onClick (DeleteTransition transition.id) ] [ H.text (t ctx.lang EditorDeleteTransition) ] ]
                                     ]
-                                    
+
                     _ ->
                         div [] [ H.text (t ctx.lang EditorSelectedNone) ]
                 ]
