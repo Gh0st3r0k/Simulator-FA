@@ -30,6 +30,7 @@ type alias Model =
     , panY : Float
     , selected : Maybe Int
     , selectedTransition : Maybe Int
+    , selectedTransitionLabelDraft : String
     , mode : Mode
     , transitionFrom : Maybe Int
     , transitionLabel : String
@@ -137,6 +138,7 @@ initWithSlots slots =
     , panY = 0
     , selected = Nothing
     , selectedTransition = Nothing
+    , selectedTransitionLabelDraft = ""
     , mode = AddState
     , transitionFrom = Nothing
     , transitionLabel = ""
@@ -440,7 +442,7 @@ update msg model =
                                 )
 
                     MoveState ->
-                        ( { model | selected = Just sid, selectedTransition = Nothing }, Cmd.none )
+                        ( { model | selected = Just sid, selectedTransition = Nothing, selectedTransitionLabelDraft = "" }, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
@@ -448,7 +450,17 @@ update msg model =
             SelectTransition tid ->
                 case model.mode of
                     MoveState ->
-                        ( { model | selectedTransition = Just tid, selected = Nothing }, Cmd.none )
+                        let
+                            draftLabel =
+                                case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
+                                    Nothing ->
+                                        ""
+
+                                    Just transition ->
+                                        transitionLabelsForPair model.transitions transition.from transition.to
+                                            |> transitionLabelsToEditorText
+                        in
+                        ( { model | selectedTransition = Just tid, selected = Nothing, selectedTransitionLabelDraft = draftLabel }, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
@@ -466,6 +478,7 @@ update msg model =
                     , nextTransitionId = normalized.nextTransitionId
                     , selected = Nothing
                     , selectedTransition = Nothing
+                    , selectedTransitionLabelDraft = ""
                   }
                 , Cmd.none
                 )
@@ -479,6 +492,7 @@ update msg model =
                     | transitions = normalized.transitions
                     , nextTransitionId = normalized.nextTransitionId
                     , selectedTransition = Nothing
+                    , selectedTransitionLabelDraft = ""
                   }
                 , Cmd.none
                 )
@@ -522,6 +536,7 @@ update msg model =
                     , dragging = Nothing
                     , selected = Nothing
                     , selectedTransition = Nothing
+                    , selectedTransitionLabelDraft = ""
                   }
                 , Cmd.none
                 )
@@ -532,7 +547,7 @@ update msg model =
             SetSelectedTransitionLabel label ->
                 case model.selectedTransition of
                     Nothing ->
-                        ( model, Cmd.none )
+                        ( { model | selectedTransitionLabelDraft = label }, Cmd.none )
 
                     Just tid ->
                         case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
@@ -572,6 +587,7 @@ update msg model =
                                     | transitions = remainingTransitions ++ recreatedTransitions
                                     , nextTransitionId = model.nextTransitionId + additionalCount
                                     , selectedTransition = List.head recreatedTransitions |> Maybe.map .id
+                                    , selectedTransitionLabelDraft = label
                                   }
                                 , Cmd.none
                                 )
@@ -800,10 +816,17 @@ normalizeTransitionLabels raw =
         normalized =
             raw
                 |> String.split ";"
-                |> List.map normalizeTransitionLabel
-                |> List.filter (\token -> token /= "")
+                |> List.map String.trim
+                |> List.map
+                    (\token ->
+                        if token == "λ" then
+                            ""
+
+                        else
+                            normalizeTransitionLabel token
+                    )
     in
-    if List.isEmpty normalized then
+    if String.trim raw == "" then
         [ "" ]
 
     else
@@ -2560,11 +2583,6 @@ sidePanel ctx model =
                                 div [] [ H.text (t ctx.lang EditorSelectedNotFound) ]
 
                             Just transition ->
-                                let
-                                    editorLabel =
-                                        transitionLabelsForPair model.transitions transition.from transition.to
-                                            |> transitionLabelsToEditorText
-                                in
                                 div []
                                     [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ String.fromInt transition.id) ]
                                     , div [] [ H.text (t ctx.lang EditorTransitionFrom ++ ": " ++ stateNameById model.states transition.from ++ " → " ++ stateNameById model.states transition.to) ]
@@ -2572,7 +2590,7 @@ sidePanel ctx model =
                                         [ HA.type_ "text"
                                         , size 12
                                         , placeholder "λ"
-                                        , value editorLabel
+                                        , value model.selectedTransitionLabelDraft
                                         , onInput SetSelectedTransitionLabel
                                         ]
                                         []
