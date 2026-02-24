@@ -55,6 +55,8 @@ type alias Model =
     , viewportWidth : Int
     , viewportHeight : Int
     , automatonTypeExpanded : Bool
+    , automatonTypeAnimationActive : Bool
+    , automatonTypeAnimationNonce : Int
     }
 
 
@@ -171,6 +173,8 @@ initWithSlots slots =
     , viewportWidth = 1200
     , viewportHeight = 800
     , automatonTypeExpanded = False
+    , automatonTypeAnimationActive = False
+    , automatonTypeAnimationNonce = 0
     }
 
 
@@ -222,6 +226,7 @@ type Msg
     | ImportSlotFailed
     | ClearSlotImportError
     | ToggleAutomatonTypeDetails
+    | AutomatonTypeAnimationFinished Int
     | NoOp
 
 
@@ -322,6 +327,13 @@ update msg model =
 
             SetSimulationDelay s ->
                 ( { model | simulationDelay = s }, Cmd.none )
+
+            AutomatonTypeAnimationFinished nonce ->
+                if nonce == model.automatonTypeAnimationNonce then
+                    ( { model | automatonTypeAnimationActive = False }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
 
             _ ->
                 ( model, Cmd.none )
@@ -916,7 +928,25 @@ update msg model =
                 ( { model | slotImportError = False }, Cmd.none )
             
             ToggleAutomatonTypeDetails ->
-                ( { model | automatonTypeExpanded = not model.automatonTypeExpanded }, Cmd.none )
+                let
+                    nextNonce =
+                        model.automatonTypeAnimationNonce + 1
+                in
+                ( { model
+                    | automatonTypeExpanded = not model.automatonTypeExpanded
+                    , automatonTypeAnimationActive = True
+                    , automatonTypeAnimationNonce = nextNonce
+                  }
+                , Process.sleep 260
+                    |> Task.perform (\_ -> AutomatonTypeAnimationFinished nextNonce)
+                )
+
+            AutomatonTypeAnimationFinished nonce ->
+                if nonce == model.automatonTypeAnimationNonce then
+                    ( { model | automatonTypeAnimationActive = False }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
                 
             NoOp ->
                 ( model, Cmd.none )
@@ -2751,6 +2781,12 @@ editorControlsPanel ctx model =
         automatonDetailsExpanded =
             (not deterministic) && model.automatonTypeExpanded
 
+        automatonCardClosing =
+            (not deterministic) && model.automatonTypeAnimationActive && (not automatonDetailsExpanded)
+
+        automatonCardExpandedVisual =
+            automatonDetailsExpanded || automatonCardClosing
+
         automatonLabel =
             if deterministic then
                 t ctx.lang EditorAutomatonDeterministic
@@ -2786,6 +2822,14 @@ editorControlsPanel ctx model =
             , HA.style "border-radius" "10px"
             , HA.style "overflow" "hidden"
             ]
+    
+        automatonCardMaxHeight =
+            if automatonDetailsExpanded then
+                "45%"
+
+            else
+                "48px"
+
     in
     div
         [ HA.style "width" "300px"
@@ -2800,7 +2844,7 @@ editorControlsPanel ctx model =
                 ++ [ HA.style "display" "flex"
                    , HA.style "flex-direction" "column"
                    , HA.style "gap" "8px"
-                   , HA.style "flex" (if automatonDetailsExpanded then "55 1 0" else "1 1 auto")
+                   , HA.style "flex" (if automatonCardExpandedVisual then "55 1 0" else "1 1 auto")
                    , HA.style "min-height" "0"
                    ]
             )
@@ -2917,8 +2961,10 @@ editorControlsPanel ctx model =
                 ++ [ HA.style "display" "flex"
                    , HA.style "flex-direction" "column"
                    , HA.style "gap" "8px"
-                   , HA.style "flex" (if automatonDetailsExpanded then "45 1 0" else "0 0 auto")
+                   , HA.style "flex" (if automatonCardExpandedVisual then "45 1 0" else "0 0 auto")
+                   , HA.style "max-height" automatonCardMaxHeight
                    , HA.style "min-height" (if automatonDetailsExpanded then "0" else "auto")
+                   , HA.style "transition" "max-height 240ms ease"
                    ]
             )
             [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
@@ -2937,18 +2983,26 @@ editorControlsPanel ctx model =
                         [ H.text (if automatonDetailsExpanded then "▾" else "▴") ]
                 , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor ] [ H.text automatonLabel ]
                 ]
-            , if automatonDetailsExpanded then
-                div [ HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "min-height" "0", HA.style "overflow" "hidden" ]
-                    [ H.div [ HA.style "font-size" "14px", HA.style "font-weight" "600" ]
-                        [ H.text
-                            (t ctx.lang EditorAutomatonNonDetReasonsTitle)
-                        ]
-                    , div [ HA.style "margin-top" "6px", HA.style "overflow" "auto", HA.style "padding-right" "4px" ]
-                        [ H.ul [ HA.style "margin" "0", HA.style "padding-left" "18px", HA.style "font-size" "14px" ] (List.map (\reason -> H.li [ HA.style "margin-bottom" "4px" ] [ H.text reason ]) reasons) ]
+            , div
+                [ HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "min-height" "0"
+                , HA.style "overflow" "hidden"
+                , HA.style "max-height" (if automatonDetailsExpanded then "100%" else "0")
+                , HA.style "opacity" (if automatonDetailsExpanded then "1" else "0")
+                , HA.style "transition" "max-height 240ms ease, opacity 180ms ease"
+                ]
+                [ H.div [ HA.style "font-size" "14px", HA.style "font-weight" "600" ]
+                    [ H.text
+                        (t ctx.lang EditorAutomatonNonDetReasonsTitle)
                     ]
+                , if model.automatonTypeAnimationActive then
+                    text ""
 
-              else
-                text ""
+                  else
+                    div [ HA.style "margin-top" "6px", HA.style "overflow" "auto", HA.style "padding-right" "4px" ]
+                        [ H.ul [ HA.style "margin" "0", HA.style "padding-left" "18px", HA.style "font-size" "14px" ] (List.map (\reason -> H.li [ HA.style "margin-bottom" "4px" ] [ H.text reason ]) reasons) ]
+                ]
             ]
         ]
 
