@@ -7180,6 +7180,13 @@ var $author$project$Pages$Editor$parseCodeDraftToAutomaton = F2(
 			}
 		}
 	});
+var $author$project$Pages$Editor$transitionLabelsToEditorText = function (labels) {
+	return A2($elm$core$String$join, ';', labels);
+};
+var $author$project$Pages$Editor$sanitizeTransitionEditorInput = function (raw) {
+	return ($elm$core$String$trim(raw) === '') ? '' : $author$project$Pages$Editor$transitionLabelsToEditorText(
+		$author$project$Pages$Editor$normalizeTransitionLabels(raw));
+};
 var $author$project$Pages$Editor$screenToWorld = F3(
 	function (model, x, y) {
 		return _Utils_Tuple2(x - model.J, y - model.K);
@@ -7400,17 +7407,6 @@ var $author$project$Pages$Editor$transitionLabelsForPair = F3(
 					},
 					transitions)));
 	});
-var $author$project$Pages$Editor$transitionLabelsToEditorText = function (labels) {
-	return A2(
-		$elm$core$String$join,
-		';',
-		A2(
-			$elm$core$List$map,
-			function (label) {
-				return $author$project$Pages$Editor$isLambdaLabel(label) ? 'λ' : label;
-			},
-			labels));
-};
 var $author$project$I18n$EditorCodeValidationArrowLine = 25;
 var $author$project$I18n$EditorCodeValidationConditionSingle = 23;
 var $author$project$I18n$EditorCodeValidationFormat = 20;
@@ -7476,6 +7472,7 @@ var $author$project$Pages$Editor$validateTransitionCode = function (raw) {
 			$author$project$Pages$Editor$validateTransitionLine,
 			$elm$core$String$lines(raw)));
 };
+var $elm$core$String$words = _String_words;
 var $author$project$Pages$Editor$update = F2(
 	function (msg, model) {
 		if (model.P || (!_Utils_eq(model.E, $elm$core$Maybe$Nothing))) {
@@ -7948,7 +7945,9 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{a1: label}),
+							{
+								a1: $author$project$Pages$Editor$sanitizeTransitionEditorInput(label)
+							}),
 						$elm$core$Platform$Cmd$none);
 				case 13:
 					var label = msg.a;
@@ -7957,7 +7956,9 @@ var $author$project$Pages$Editor$update = F2(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{O: label}),
+								{
+									O: $author$project$Pages$Editor$sanitizeTransitionEditorInput(label)
+								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
 						var tid = _v22.a;
@@ -7972,6 +7973,7 @@ var $author$project$Pages$Editor$update = F2(
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 						} else {
 							var target = _v23.a;
+							var sanitizedLabel = $author$project$Pages$Editor$sanitizeTransitionEditorInput(label);
 							var remainingTransitions = A2(
 								$elm$core$List$filter,
 								function (transition) {
@@ -7991,7 +7993,7 @@ var $author$project$Pages$Editor$update = F2(
 										return $.bP;
 									},
 									pairTransitions));
-							var labels = $author$project$Pages$Editor$normalizeTransitionLabels(label);
+							var labels = $author$project$Pages$Editor$normalizeTransitionLabels(sanitizedLabel);
 							var recreatedTransitions = A2(
 								$elm$core$List$indexedMap,
 								F2(
@@ -8023,7 +8025,7 @@ var $author$project$Pages$Editor$update = F2(
 												return $.bP;
 											},
 											$elm$core$List$head(recreatedTransitions)),
-										O: label,
+										O: sanitizedLabel,
 										b: _Utils_ap(remainingTransitions, recreatedTransitions)
 									}),
 								$elm$core$Platform$Cmd$none);
@@ -8036,8 +8038,12 @@ var $author$project$Pages$Editor$update = F2(
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
 						var sid = _v24.a;
+						var sanitizedName = A2(
+							$elm$core$String$join,
+							'',
+							$elm$core$String$words(name));
 						var normalizedName = $elm$core$String$isEmpty(
-							$elm$core$String$trim(name)) ? $elm$core$String$fromInt(sid) : name;
+							$elm$core$String$trim(sanitizedName)) ? $elm$core$String$fromInt(sid) : sanitizedName;
 						var updateState = function (s) {
 							return _Utils_eq(s.bP, sid) ? _Utils_update(
 								s,
@@ -11857,6 +11863,8 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 																_List_fromArray(
 																	[
 																		$elm$html$Html$Attributes$type_('text'),
+																		$elm$html$Html$Attributes$placeholder(
+																		$elm$core$String$fromInt(s.bP)),
 																		$elm$html$Html$Attributes$value(s.bR),
 																		$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSelectedStateName)
 																	]),
@@ -12016,6 +12024,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 																	_List_fromArray(
 																		[
 																			$elm$html$Html$Attributes$type_('text'),
+																			$elm$html$Html$Attributes$placeholder('λ'),
 																			$elm$html$Html$Attributes$value(model.O),
 																			$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSelectedTransitionLabel)
 																		]),

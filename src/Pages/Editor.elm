@@ -619,12 +619,12 @@ update msg model =
                 )
 
             SetTransitionLabel label ->
-                ( { model | transitionLabel = label }, Cmd.none )
+                ( { model | transitionLabel = sanitizeTransitionEditorInput label }, Cmd.none )
 
             SetSelectedTransitionLabel label ->
                 case model.selectedTransition of
                     Nothing ->
-                        ( { model | selectedTransitionLabelDraft = label }, Cmd.none )
+                        ( { model | selectedTransitionLabelDraft = sanitizeTransitionEditorInput label }, Cmd.none )
 
                     Just tid ->
                         case List.head (List.filter (\transition -> transition.id == tid) model.transitions) of
@@ -633,7 +633,10 @@ update msg model =
 
                             Just target ->
                                 let
-                                    labels = normalizeTransitionLabels label
+                                    sanitizedLabel =
+                                        sanitizeTransitionEditorInput label
+
+                                    labels = normalizeTransitionLabels sanitizedLabel
 
                                     pairTransitions =
                                         List.filter (\transition -> transition.from == target.from && transition.to == target.to) model.transitions
@@ -664,7 +667,7 @@ update msg model =
                                     | transitions = remainingTransitions ++ recreatedTransitions
                                     , nextTransitionId = model.nextTransitionId + additionalCount
                                     , selectedTransition = List.head recreatedTransitions |> Maybe.map .id
-                                    , selectedTransitionLabelDraft = label
+                                    , selectedTransitionLabelDraft = sanitizedLabel
                                   }
                                 , Cmd.none
                                 )
@@ -676,12 +679,17 @@ update msg model =
 
                     Just sid ->
                         let
+                            sanitizedName =
+                                name
+                                    |> String.words
+                                    |> String.join ""
+
                             normalizedName =
-                                if String.isEmpty (String.trim name) then
+                                if String.isEmpty (String.trim sanitizedName) then
                                     String.fromInt sid
 
                                 else
-                                    name
+                                    sanitizedName
 
                             updateState s =
                                 if s.id == sid then
@@ -1101,6 +1109,16 @@ normalizeTransitionLabels raw =
     else
         uniqueLabels normalized
 
+
+sanitizeTransitionEditorInput : String -> String
+sanitizeTransitionEditorInput raw =
+    if String.trim raw == "" then
+        ""
+
+    else
+        normalizeTransitionLabels raw
+            |> transitionLabelsToEditorText
+            
 
 transitionLabelsForJson : List String -> String
 transitionLabelsForJson labels =
@@ -2821,14 +2839,6 @@ transitionLabelsForPair transitions fromState toState =
 transitionLabelsToEditorText : List String -> String
 transitionLabelsToEditorText labels =
     labels
-        |> List.map
-            (\label ->
-                if isLambdaLabel label then
-                    "λ"
-
-                else
-                    label
-            )
         |> String.join ";"
         
 transitionLabelsToText : List String -> String
@@ -3219,6 +3229,7 @@ editorControlsPanel ctx model =
                                             [ H.text (t ctx.lang EditorStateName ++ ": ")
                                             , input
                                                 [ HA.type_ "text"
+                                                , placeholder (String.fromInt s.id)
                                                 , value s.name
                                                 , onInput SetSelectedStateName
                                                 ]
@@ -3264,6 +3275,7 @@ editorControlsPanel ctx model =
                                             [ H.text (t ctx.lang EditorTransitionLabel ++ ": ")
                                             , input
                                                 [ HA.type_ "text"
+                                                , placeholder "λ"
                                                 , value model.selectedTransitionLabelDraft
                                                 , onInput SetSelectedTransitionLabel
                                                 ]
