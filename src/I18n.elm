@@ -518,10 +518,10 @@ t lang key =
         ( SK, EditorSimulationInput ) -> "Vstupný reťazec"
         ( UA, EditorSimulationInput ) -> "Вхідний рядок"
 
-        ( RU, EditorSimulationDelay ) -> "Задержка мс"
-        ( EN, EditorSimulationDelay ) -> "Delay ms"
-        ( SK, EditorSimulationDelay ) -> "Oneskorenie ms"
-        ( UA, EditorSimulationDelay ) -> "Затримка мс"
+        ( RU, EditorSimulationDelay ) -> "Задержка"
+        ( EN, EditorSimulationDelay ) -> "Delay"
+        ( SK, EditorSimulationDelay ) -> "Oneskorenie"
+        ( UA, EditorSimulationDelay ) -> "Затримка"
 
         ( RU, EditorSimulationStart ) -> "Запустить симуляцию"
         ( EN, EditorSimulationStart ) -> "Start simulation"
