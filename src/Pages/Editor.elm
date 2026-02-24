@@ -409,6 +409,16 @@ update msg model =
                             _ ->
                                 if targetTag == "svg" then
                                     case model.mode of
+                                        AddTransition ->
+                                            ( { model
+                                                | transitionFrom = Nothing
+                                                , selected = Nothing
+                                                , selectedTransition = Nothing
+                                                , selectedTransitionLabelDraft = ""
+                                              }
+                                            , Cmd.none
+                                            )
+
                                         MoveState ->
                                             ( { model | selected = Nothing, selectedTransition = Nothing }, Cmd.none )
 
@@ -2257,7 +2267,8 @@ view ctx model =
                 , HA.style "min-height" "320px"
                 , HA.style "overflow" "hidden"
                 ]
-                [ div [ HA.style "flex" "1", HA.style "min-width" "0", HA.style "display" "flex", HA.style "flex-direction" "column" ]
+                [ transitionFunctionPanel ctx model
+                , div [ HA.style "flex" "1", HA.style "min-width" "0", HA.style "display" "flex", HA.style "flex-direction" "column" ]
                     [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "margin-bottom" "8px", HA.style "gap" "8px" ]
                         [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTitle) ]
                         , div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
@@ -2268,7 +2279,6 @@ view ctx model =
                     , svgView ctx model layout.canvasWidth layout.canvasHeight
                     ]
                 , editorControlsPanel ctx model
-                , transitionFunctionPanel ctx model
                 ]
     in
     div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative" ]
