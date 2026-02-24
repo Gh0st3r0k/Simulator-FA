@@ -684,16 +684,9 @@ update msg model =
                                     |> String.words
                                     |> String.join ""
 
-                            normalizedName =
-                                if String.isEmpty (String.trim sanitizedName) then
-                                    String.fromInt sid
-
-                                else
-                                    sanitizedName
-
                             updateState s =
                                 if s.id == sid then
-                                    { s | name = normalizedName }
+                                    { s | name = sanitizedName }
 
                                 else
                                     s
@@ -1172,7 +1165,7 @@ hasDuplicateStateNames : List State -> Bool
 hasDuplicateStateNames states =
     let
         names =
-            states |> List.map (.name >> String.trim)
+            states |> List.map (stateDisplayName >> String.trim)
     in
     List.length names /= List.length (List.foldl unique [] names)
 
@@ -1229,7 +1222,7 @@ normalizeAutomatonIds states transitions =
         renumberStates state ( nextId, mapping, acc ) =
             let
                 normalizedName =
-                    if state.name == String.fromInt state.id then
+                    if String.isEmpty (String.trim state.name) || state.name == String.fromInt state.id then
                         String.fromInt nextId
 
                     else
@@ -1711,11 +1704,20 @@ stateNameById : List State -> Int -> String
 stateNameById states stateId =
     case getStateById stateId states of
         Just state ->
-            state.name
+            stateDisplayName state
 
         Nothing ->
             String.fromInt stateId
 
+
+stateDisplayName : State -> String
+stateDisplayName state =
+    if String.isEmpty (String.trim state.name) then
+        String.fromInt state.id
+
+    else
+        state.name
+        
 
 decodeTransitionLanguage : List State -> String -> Result String ( List State, List Transition )
 decodeTransitionLanguage existingStates raw =
@@ -1887,11 +1889,11 @@ buildAutomatonFromParsedTransitions existingStates parsedTransitions =
 
         existingPositionsByName =
             existingStates
-                |> List.foldl (\state acc -> Dict.insert state.name ( state.x, state.y ) acc) Dict.empty
+                |> List.foldl (\state acc -> Dict.insert (stateDisplayName state) ( state.x, state.y ) acc) Dict.empty
 
         existingStateByName =
             existingStates
-                |> List.foldl (\state acc -> Dict.insert state.name state acc) Dict.empty
+                |> List.foldl (\state acc -> Dict.insert (stateDisplayName state) state acc) Dict.empty
 
         isOccupied occupied ( x, y ) =
             List.any (\( ox, oy ) -> ox == x && oy == y) occupied
@@ -2460,7 +2462,7 @@ simulationChoiceOverlay ctx model =
                         , HA.style "z-index" "12"
                         ]
                         [ div [ HA.style "font-weight" "bold" ] [ H.text (t ctx.lang I18n.EditorSimulationChoiceTitle) ]
-                        , div [ HA.style "margin-top" "4px" ] [ H.text (t ctx.lang I18n.EditorSimulationChoiceBody ++ " " ++ state.name ++ ", " ++ t ctx.lang I18n.EditorTransitionLabel ++ ": " ++ choice.inputLabel) ]
+                        , div [ HA.style "margin-top" "4px" ] [ H.text (t ctx.lang I18n.EditorSimulationChoiceBody ++ " " ++ stateDisplayName state ++ ", " ++ t ctx.lang I18n.EditorTransitionLabel ++ ": " ++ choice.inputLabel) ]
                         , div [ HA.style "margin-top" "8px" ] (List.map transitionButton relatedTransitions)
                         , div
                             [ HA.style "position" "absolute"
@@ -2490,6 +2492,7 @@ viewState ctx model s =
                 ( Theme.Dark, False ) -> "#1d2433"
         isSelected = model.selected == Just s.id
         strokeWidth = if isSelected then "3" else "2"
+        stateLabel = stateDisplayName s
         ( highlightFill, highlightStroke ) =
             case ctx.theme of
                 Theme.Light ->
@@ -2586,14 +2589,14 @@ viewState ctx model s =
                     S.text_ [] []
                  )
                , S.text_
-                    [ SA.x (String.fromFloat (s.x - (toFloat (String.length s.name) * 3.5)))
+                    [ SA.x (String.fromFloat (s.x - (toFloat (String.length stateLabel) * 3.5)))
                     , SA.y (String.fromFloat (s.y + 6))
                     , SA.fontSize "14"
                     , SA.fill (textColor ctx.theme)
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
-                    [ S.text s.name ]
+                    [ S.text stateLabel ]
                ]
         )
 

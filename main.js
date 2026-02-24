@@ -6507,12 +6507,16 @@ var $author$project$Pages$Editor$encodeAutomaton = F2(
 					A2($elm$json$Json$Encode$list, $author$project$Pages$Editor$encodeTransition, groupedTransitions))
 				]));
 	});
+var $author$project$Pages$Editor$stateDisplayName = function (state) {
+	return $elm$core$String$isEmpty(
+		$elm$core$String$trim(state.bR)) ? $elm$core$String$fromInt(state.bP) : state.bR;
+};
 var $author$project$Pages$Editor$stateNameById = F2(
 	function (states, stateId) {
 		var _v0 = A2($author$project$Pages$Editor$getStateById, stateId, states);
 		if (!_v0.$) {
 			var state = _v0.a;
-			return state.bR;
+			return $author$project$Pages$Editor$stateDisplayName(state);
 		} else {
 			return $elm$core$String$fromInt(stateId);
 		}
@@ -6576,12 +6580,7 @@ var $author$project$Pages$Editor$unique = F2(
 var $author$project$Pages$Editor$hasDuplicateStateNames = function (states) {
 	var names = A2(
 		$elm$core$List$map,
-		A2(
-			$elm$core$Basics$composeR,
-			function ($) {
-				return $.bR;
-			},
-			$elm$core$String$trim),
+		A2($elm$core$Basics$composeR, $author$project$Pages$Editor$stateDisplayName, $elm$core$String$trim),
 		states);
 	return !_Utils_eq(
 		$elm$core$List$length(names),
@@ -6633,9 +6632,10 @@ var $author$project$Pages$Editor$normalizeAutomatonIds = F2(
 				var nextId = _v1.a;
 				var mapping = _v1.b;
 				var acc = _v1.c;
-				var normalizedName = _Utils_eq(
+				var normalizedName = ($elm$core$String$isEmpty(
+					$elm$core$String$trim(state.bR)) || _Utils_eq(
 					state.bR,
-					$elm$core$String$fromInt(state.bP)) ? $elm$core$String$fromInt(nextId) : state.bR;
+					$elm$core$String$fromInt(state.bP))) ? $elm$core$String$fromInt(nextId) : state.bR;
 				var newState = _Utils_update(
 					state,
 					{bP: nextId, bR: normalizedName});
@@ -7003,7 +7003,11 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 			$elm$core$List$foldl,
 			F2(
 				function (state, acc) {
-					return A3($elm$core$Dict$insert, state.bR, state, acc);
+					return A3(
+						$elm$core$Dict$insert,
+						$author$project$Pages$Editor$stateDisplayName(state),
+						state,
+						acc);
 				}),
 			$elm$core$Dict$empty,
 			existingStates);
@@ -7013,7 +7017,7 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				function (state, acc) {
 					return A3(
 						$elm$core$Dict$insert,
-						state.bR,
+						$author$project$Pages$Editor$stateDisplayName(state),
 						_Utils_Tuple2(state.h, state.i),
 						acc);
 				}),
@@ -8042,12 +8046,10 @@ var $author$project$Pages$Editor$update = F2(
 							$elm$core$String$join,
 							'',
 							$elm$core$String$words(name));
-						var normalizedName = $elm$core$String$isEmpty(
-							$elm$core$String$trim(sanitizedName)) ? $elm$core$String$fromInt(sid) : sanitizedName;
 						var updateState = function (s) {
 							return _Utils_eq(s.bP, sid) ? _Utils_update(
 								s,
-								{bR: normalizedName}) : s;
+								{bR: sanitizedName}) : s;
 						};
 						var updatedStates = A2($elm$core$List$map, updateState, model.a);
 						return $author$project$Pages$Editor$hasDuplicateStateNames(updatedStates) ? _Utils_Tuple2(
@@ -12985,7 +12987,7 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.j, 82) + (' ' + (state.bR + (', ' + (A2($author$project$I18n$t, ctx.j, 50) + (': ' + choice.bs))))))
+									A2($author$project$I18n$t, ctx.j, 82) + (' ' + ($author$project$Pages$Editor$stateDisplayName(state) + (', ' + (A2($author$project$I18n$t, ctx.j, 50) + (': ' + choice.bs))))))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -13081,6 +13083,7 @@ var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
 var $author$project$Pages$Editor$viewState = F3(
 	function (ctx, model, s) {
 		var strokeColor = s.t ? $author$project$Theme$successColor(ctx.g) : $author$project$Theme$textColor(ctx.g);
+		var stateLabel = $author$project$Pages$Editor$stateDisplayName(s);
 		var r = 22;
 		var startIndicator = s.A ? _List_fromArray(
 			[
@@ -13239,7 +13242,7 @@ var $author$project$Pages$Editor$viewState = F3(
 								[
 									$elm$svg$Svg$Attributes$x(
 									$elm$core$String$fromFloat(
-										s.h - ($elm$core$String$length(s.bR) * 3.5))),
+										s.h - ($elm$core$String$length(stateLabel) * 3.5))),
 									$elm$svg$Svg$Attributes$y(
 									$elm$core$String$fromFloat(s.i + 6)),
 									$elm$svg$Svg$Attributes$fontSize('14'),
@@ -13250,7 +13253,7 @@ var $author$project$Pages$Editor$viewState = F3(
 								]),
 							_List_fromArray(
 								[
-									$elm$svg$Svg$text(s.bR)
+									$elm$svg$Svg$text(stateLabel)
 								]))
 						]))));
 	});
