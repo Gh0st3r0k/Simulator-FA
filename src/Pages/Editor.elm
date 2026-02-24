@@ -48,6 +48,7 @@ type alias Model =
     , renamingSlot : Maybe Int
     , renameDraft : String
     , recentlySavedSlot : Maybe Int
+    , slotImportError : Bool
     , viewportWidth : Int
     , viewportHeight : Int
     }
@@ -159,6 +160,7 @@ initWithSlots slots =
     , renamingSlot = Nothing
     , renameDraft = ""
     , recentlySavedSlot = Nothing
+    , slotImportError = False
     , viewportWidth = 1200
     , viewportHeight = 800
     }
@@ -204,6 +206,10 @@ type Msg
     | UpdateRenameDraft String
     | ConfirmRenameSlot Int
     | ClearRecentlySavedSlot Int
+    | ExportSlot Int
+    | ImportSlot Int
+    | ApplyImportedSlot Int String
+    | ImportSlotFailed
     | NoOp
 
 
@@ -402,7 +408,7 @@ update msg model =
             StartDrag sid ->
                 case model.mode of
                     MoveState ->
-                        ( { model | dragging = Just sid, selected = Just sid }, Cmd.none )
+                        ( { model | dragging = Just sid, selected = Just sid, selectedTransition = Nothing, selectedTransitionLabelDraft = "" }, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
@@ -451,7 +457,7 @@ update msg model =
                                 )
 
                     MoveState ->
-                        ( { model | selected = Just sid, selectedTransition = Nothing, selectedTransitionLabelDraft = "" }, Cmd.none )
+                        ( { model | selected = Just sid, selectedTransition = Nothing, selectedTransitionLabelDraft = "", transitionFrom = Nothing }, Cmd.none )
 
                     _ ->
                         ( model, Cmd.none )
@@ -701,7 +707,7 @@ update msg model =
                 ( stopSimulation Idle model, Cmd.none )
 
             OpenSaveModal ->
-                ( { model | saveModalOpen = True }, Cmd.none )
+                ( { model | saveModalOpen = True, slotImportError = False }, Cmd.none )
 
             CloseSaveModal ->
                 ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "" }, Cmd.none )
@@ -718,7 +724,7 @@ update msg model =
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots, recentlySavedSlot = Just slotId }
+                ( { model | saveSlots = List.map updateSlot model.saveSlots, recentlySavedSlot = Just slotId, slotImportError = False }
                 , Process.sleep 2000
                     |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
                 )
@@ -785,6 +791,7 @@ update msg model =
                     | saveSlots = List.map updateSlot model.saveSlots
                     , renamingSlot = if model.renamingSlot == Just slotId then Nothing else model.renamingSlot
                     , renameDraft = if model.renamingSlot == Just slotId then "" else model.renameDraft
+                    , slotImportError = False
                   }
                 , Cmd.none
                 )
@@ -824,6 +831,38 @@ update msg model =
                 else
                     ( model, Cmd.none )
 
+            ExportSlot _ ->
+                ( { model | slotImportError = False }, Cmd.none )
+
+            ImportSlot _ ->
+                ( { model | slotImportError = False }, Cmd.none )
+
+            ApplyImportedSlot slotId importedJson ->
+                case Decode.decodeString decodeAutomaton importedJson of
+                    Ok _ ->
+                        let
+                            updateSlot slot =
+                                if slot.id == slotId then
+                                    { slot | automatonJson = importedJson }
+
+                                else
+                                    slot
+                        in
+                        ( { model
+                            | saveSlots = List.map updateSlot model.saveSlots
+                            , recentlySavedSlot = Just slotId
+                            , slotImportError = False
+                          }
+                        , Process.sleep 2000
+                            |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                        )
+
+                    Err _ ->
+                        ( { model | slotImportError = True }, Cmd.none )
+
+            ImportSlotFailed ->
+                ( { model | slotImportError = True }, Cmd.none )
+                
             NoOp ->
                 ( model, Cmd.none )
 
@@ -2509,17 +2548,26 @@ saveModal ctx model =
                         text ""
                     ]
                 , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px", HA.style "flex-wrap" "wrap" ]
-                    (([ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ] ]
-                        ++ (if hasAutomaton then
-                                [ H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
-                                , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
-                                ]
+                    [ div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
+                        ([ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ] ]
+                            ++ (if hasAutomaton then
+                                    [ H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
+                                    , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
+                                    ]
 
-                            else
-                                []
-                           )
-                     )
-                    )
+                                else
+                                    []
+                               )
+                        )
+                    , if hasAutomaton then
+                        div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-left" "auto", HA.style "flex-wrap" "wrap" ]
+                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick (ImportSlot slot.id) ]) [ H.text (t ctx.lang EditorImportFas) ]
+                            , H.button (editorButtonStyles ctx.theme ++ [ onClick (ExportSlot slot.id) ]) [ H.text (t ctx.lang EditorExportFas) ]
+                            ]
+
+                      else
+                        text ""
+                    ]
                 ]
     in
     div
@@ -2540,6 +2588,11 @@ saveModal ctx model =
             , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
             ]
             [ H.h2 [] [ H.text (t ctx.lang EditorSaveModalTitle) ]
+            , if model.slotImportError then
+                H.div [ HA.style "color" "#e74c3c", HA.style "margin-bottom" "10px", HA.style "font-weight" "600" ] [ H.text (t ctx.lang EditorImportError) ]
+
+              else
+                text ""
             , div [ HA.style "display" "grid", HA.style "grid-template-columns" "1fr", HA.style "gap" "10px" ] (List.map viewSlot model.saveSlots)
             , div [ HA.style "margin-top" "12px" ] [ H.button (editorButtonStyles ctx.theme ++ [ onClick CloseSaveModal ]) [ H.text (t ctx.lang EditorClose) ] ]
             ]

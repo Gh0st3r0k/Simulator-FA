@@ -60,6 +60,9 @@ type Key
     | EditorSaveToSlot
     | EditorLoadFromSlot
     | EditorDeleteFromSlot
+    | EditorImportFas
+    | EditorExportFas
+    | EditorImportError
     | EditorRenameSlot
     | EditorConfirmRename
     | EditorSaved
@@ -266,6 +269,21 @@ t lang key =
         ( EN, EditorDeleteFromSlot ) -> "Delete from slot"
         ( SK, EditorDeleteFromSlot ) -> "Vymazať zo slotu"
         ( UA, EditorDeleteFromSlot ) -> "Видалити зі слота"
+
+        ( RU, EditorImportFas ) -> "Импорт .fas"
+        ( EN, EditorImportFas ) -> "Import .fas"
+        ( SK, EditorImportFas ) -> "Import .fas"
+        ( UA, EditorImportFas ) -> "Імпорт .fas"
+
+        ( RU, EditorExportFas ) -> "Экспорт .fas"
+        ( EN, EditorExportFas ) -> "Export .fas"
+        ( SK, EditorExportFas ) -> "Export .fas"
+        ( UA, EditorExportFas ) -> "Експорт .fas"
+
+        ( RU, EditorImportError ) -> "Ошибка при импорте"
+        ( EN, EditorImportError ) -> "Import failed"
+        ( SK, EditorImportError ) -> "Chyba pri importe"
+        ( UA, EditorImportError ) -> "Помилка імпорту"
 
         ( RU, EditorRenameSlot ) -> "Переименовать"
         ( EN, EditorRenameSlot ) -> "Rename"

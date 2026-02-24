@@ -519,11 +519,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.bn.a3 === region.bw.a3)
+	if (region.bl.a2 === region.bv.a2)
 	{
-		return 'on line ' + region.bn.a3;
+		return 'on line ' + region.bl.a2;
 	}
-	return 'on lines ' + region.bn.a3 + ' through ' + region.bw.a3;
+	return 'on lines ' + region.bl.a2 + ' through ' + region.bv.a2;
 }
 
 
@@ -1861,9 +1861,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.b8,
-		impl.cn,
-		impl.ck,
+		impl.b9,
+		impl.co,
+		impl.cl,
 		function() { return function() {} }
 	);
 });
@@ -2723,9 +2723,9 @@ var _VirtualDom_mapEventTuple = F2(function(func, tuple)
 var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
-		ca: func(record.ca),
-		cj: record.cj,
-		cf: record.cf
+		cb: func(record.cb),
+		ck: record.ck,
+		cg: record.cg
 	}
 });
 
@@ -2993,11 +2993,11 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 		// 3 = Custom
 
 		var value = result.a;
-		var message = !tag ? value : tag < 3 ? value.a : value.ca;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.cj;
+		var message = !tag ? value : tag < 3 ? value.a : value.cb;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.ck;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.cf) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.cg) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3947,11 +3947,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.b8,
-		impl.cn,
-		impl.ck,
+		impl.b9,
+		impl.co,
+		impl.cl,
 		function(sendToApp, initialModel) {
-			var view = impl.co;
+			var view = impl.cp;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3983,12 +3983,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.b8,
-		impl.cn,
-		impl.ck,
+		impl.b9,
+		impl.co,
+		impl.cl,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.bm && impl.bm(sendToApp)
-			var view = impl.co;
+			var divertHrefToApp = impl.bk && impl.bk(sendToApp)
+			var view = impl.cp;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3996,12 +3996,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.bS);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.bT);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.cm) && (_VirtualDom_doc.title = title = doc.cm);
+				(title !== doc.cn) && (_VirtualDom_doc.title = title = doc.cn);
 			});
 		}
 	);
@@ -4057,12 +4057,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.cc;
-	var onUrlRequest = impl.cd;
+	var onUrlChange = impl.cd;
+	var onUrlRequest = impl.ce;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		bm: function(sendToApp)
+		bk: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4078,9 +4078,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.bI === next.bI
-							&& curr.bz === next.bz
-							&& curr.bF.a === next.bF.a
+							&& curr.bJ === next.bJ
+							&& curr.by === next.by
+							&& curr.bG.a === next.bG.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4088,13 +4088,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		b8: function(flags)
+		b9: function(flags)
 		{
-			return A3(impl.b8, flags, _Browser_getUrl(), key);
+			return A3(impl.b9, flags, _Browser_getUrl(), key);
 		},
+		cp: impl.cp,
 		co: impl.co,
-		cn: impl.cn,
-		ck: impl.ck
+		cl: impl.cl
 	});
 }
 
@@ -4160,17 +4160,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { b6: 'hidden', b$: 'visibilitychange' }
+		? { b7: 'hidden', b0: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { b6: 'mozHidden', b$: 'mozvisibilitychange' }
+		? { b7: 'mozHidden', b0: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { b6: 'msHidden', b$: 'msvisibilitychange' }
+		? { b7: 'msHidden', b0: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { b6: 'webkitHidden', b$: 'webkitvisibilitychange' }
-		: { b6: 'hidden', b$: 'visibilitychange' };
+		? { b7: 'webkitHidden', b0: 'webkitvisibilitychange' }
+		: { b7: 'hidden', b0: 'visibilitychange' };
 }
 
 
@@ -4251,12 +4251,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		bM: _Browser_getScene(),
-		bP: {
-			i: _Browser_window.pageXOffset,
-			j: _Browser_window.pageYOffset,
-			bq: _Browser_doc.documentElement.clientWidth,
-			p: _Browser_doc.documentElement.clientHeight
+		bN: _Browser_getScene(),
+		bQ: {
+			g: _Browser_window.pageXOffset,
+			h: _Browser_window.pageYOffset,
+			bo: _Browser_doc.documentElement.clientWidth,
+			n: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4266,8 +4266,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		bq: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		p: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		bo: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		n: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4290,15 +4290,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			bM: {
-				bq: node.scrollWidth,
-				p: node.scrollHeight
+			bN: {
+				bo: node.scrollWidth,
+				n: node.scrollHeight
 			},
-			bP: {
-				i: node.scrollLeft,
-				j: node.scrollTop,
-				bq: node.clientWidth,
-				p: node.clientHeight
+			bQ: {
+				g: node.scrollLeft,
+				h: node.scrollTop,
+				bo: node.clientWidth,
+				n: node.clientHeight
 			}
 		};
 	});
@@ -4328,18 +4328,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			bM: _Browser_getScene(),
-			bP: {
-				i: x,
-				j: y,
-				bq: _Browser_doc.documentElement.clientWidth,
-				p: _Browser_doc.documentElement.clientHeight
+			bN: _Browser_getScene(),
+			bQ: {
+				g: x,
+				h: y,
+				bo: _Browser_doc.documentElement.clientWidth,
+				n: _Browser_doc.documentElement.clientHeight
 			},
-			b3: {
-				i: x + rect.left,
-				j: y + rect.top,
-				bq: rect.width,
-				p: rect.height
+			b4: {
+				g: x + rect.left,
+				h: y + rect.top,
+				bo: rect.width,
+				n: rect.height
 			}
 		};
 	});
@@ -4786,25 +4786,25 @@ var $elm$core$Array$treeFromBuilder = F2(
 	});
 var $elm$core$Array$builderToArray = F2(
 	function (reverseNodeList, builder) {
-		if (!builder.r) {
+		if (!builder.p) {
 			return A4(
 				$elm$core$Array$Array_elm_builtin,
-				$elm$core$Elm$JsArray$length(builder.u),
+				$elm$core$Elm$JsArray$length(builder.s),
 				$elm$core$Array$shiftStep,
 				$elm$core$Elm$JsArray$empty,
-				builder.u);
+				builder.s);
 		} else {
-			var treeLen = builder.r * $elm$core$Array$branchFactor;
+			var treeLen = builder.p * $elm$core$Array$branchFactor;
 			var depth = $elm$core$Basics$floor(
 				A2($elm$core$Basics$logBase, $elm$core$Array$branchFactor, treeLen - 1));
-			var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.w) : builder.w;
-			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.r);
+			var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.u) : builder.u;
+			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.p);
 			return A4(
 				$elm$core$Array$Array_elm_builtin,
-				$elm$core$Elm$JsArray$length(builder.u) + treeLen,
+				$elm$core$Elm$JsArray$length(builder.s) + treeLen,
 				A2($elm$core$Basics$max, 5, depth * $elm$core$Array$shiftStep),
 				tree,
-				builder.u);
+				builder.s);
 		}
 	});
 var $elm$core$Basics$idiv = _Basics_idiv;
@@ -4817,7 +4817,7 @@ var $elm$core$Array$initializeHelp = F5(
 				return A2(
 					$elm$core$Array$builderToArray,
 					false,
-					{w: nodeList, r: (len / $elm$core$Array$branchFactor) | 0, u: tail});
+					{u: nodeList, p: (len / $elm$core$Array$branchFactor) | 0, s: tail});
 			} else {
 				var leaf = $elm$core$Array$Leaf(
 					A3($elm$core$Elm$JsArray$initialize, $elm$core$Array$branchFactor, fromIndex, fn));
@@ -4885,7 +4885,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {by: fragment, bz: host, bD: path, bF: port_, bI: protocol, bJ: query};
+		return {bx: fragment, by: host, bE: path, bG: port_, bJ: protocol, bK: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -5199,7 +5199,7 @@ var $author$project$Pages$Editor$decodeSaveSlot = A4(
 	$elm$json$Json$Decode$map3,
 	F3(
 		function (id, name, automatonJson) {
-			return {O: automatonJson, a: id, f: name};
+			return {bs: automatonJson, bz: id, bC: name};
 		}),
 	A2($elm$json$Json$Decode$field, 'id', $elm$json$Json$Decode$int),
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string),
@@ -5209,7 +5209,7 @@ var $author$project$Pages$Editor$defaultSaveSlots = function (count) {
 	return A2(
 		$elm$core$List$map,
 		function (slotId) {
-			return {O: '', a: slotId, f: ''};
+			return {bs: '', bz: slotId, bC: ''};
 		},
 		A2($elm$core$List$range, 1, count));
 };
@@ -5247,12 +5247,12 @@ var $author$project$Pages$Editor$ensureSlotCount = F2(
 		var byId = function (sid) {
 			return A2(
 				$elm$core$Maybe$withDefault,
-				{O: '', a: sid, f: ''},
+				{bs: '', bz: sid, bC: ''},
 				$elm$core$List$head(
 					A2(
 						$elm$core$List$filter,
 						function (slot) {
-							return _Utils_eq(slot.a, sid);
+							return _Utils_eq(slot.bz, sid);
 						},
 						slots)));
 		};
@@ -5281,36 +5281,37 @@ var $author$project$Pages$Editor$AddState = 0;
 var $author$project$Pages$Editor$Idle = 0;
 var $author$project$Pages$Editor$initWithSlots = function (slots) {
 	return {
-		ao: '',
-		Z: $elm$core$Maybe$Nothing,
-		z: 0,
+		am: '',
+		Y: $elm$core$Maybe$Nothing,
+		x: 0,
 		C: 1,
-		m: 1,
+		k: 1,
+		H: 0,
 		I: 0,
-		J: 0,
-		ac: $elm$core$Maybe$Nothing,
-		ax: $elm$core$Maybe$Nothing,
-		L: '',
-		M: $elm$core$Maybe$Nothing,
-		aM: false,
-		bl: A2($author$project$Pages$Editor$ensureSlotCount, 5, slots),
-		q: $elm$core$Maybe$Nothing,
-		D: $elm$core$Maybe$Nothing,
-		W: '',
-		F: $elm$core$Maybe$Nothing,
-		aj: $elm$core$Maybe$Nothing,
+		ab: $elm$core$Maybe$Nothing,
+		aq: $elm$core$Maybe$Nothing,
+		K: '',
+		L: $elm$core$Maybe$Nothing,
+		aL: false,
+		ar: A2($author$project$Pages$Editor$ensureSlotCount, 5, slots),
+		o: $elm$core$Maybe$Nothing,
+		y: $elm$core$Maybe$Nothing,
+		M: '',
+		E: $elm$core$Maybe$Nothing,
+		ah: $elm$core$Maybe$Nothing,
 		as: '500',
-		az: '',
-		ak: _List_Nil,
-		ad: 0,
+		ay: '',
+		ai: _List_Nil,
+		ac: 0,
 		N: false,
-		Y: false,
+		O: false,
+		W: false,
+		a: _List_Nil,
+		X: $elm$core$Maybe$Nothing,
+		aQ: '',
 		b: _List_Nil,
-		ae: $elm$core$Maybe$Nothing,
-		aR: '',
-		c: _List_Nil,
-		cp: 800,
-		cq: 1200
+		cq: 800,
+		cr: 1200
 	};
 };
 var $author$project$I18n$EN = 1;
@@ -5375,26 +5376,32 @@ var $author$project$Main$init = F3(
 	function (flags, url, key) {
 		return _Utils_Tuple2(
 			{
-				aE: $author$project$Pages$About$init,
-				Q: $author$project$Pages$Editor$initWithSlots(
-					$author$project$Pages$Editor$decodeSaveSlots(flags.a8)),
-				a1: $elm$core$Maybe$Nothing,
-				aH: $author$project$Pages$Instructions$init,
-				a2: key,
-				l: $author$project$I18n$langFromString(flags.l),
-				aL: $author$project$Route$parseHash(url.by),
-				ay: 2,
-				h: $author$project$Main$themeFromString(flags.h),
-				bp: url,
-				aU: 800,
-				aC: 1200
+				aD: $author$project$Pages$About$init,
+				z: $author$project$Pages$Editor$initWithSlots(
+					$author$project$Pages$Editor$decodeSaveSlots(flags.a7)),
+				a0: $elm$core$Maybe$Nothing,
+				aG: $author$project$Pages$Instructions$init,
+				a1: key,
+				j: $author$project$I18n$langFromString(flags.j),
+				aK: $author$project$Route$parseHash(url.bx),
+				ax: 2,
+				f: $author$project$Main$themeFromString(flags.f),
+				bn: url,
+				aT: 800,
+				aB: 1200
 			},
 			A2($elm$core$Task$attempt, $author$project$Main$GotViewport, $elm$browser$Browser$Dom$getViewport));
 	});
+var $author$project$Main$GotImportAutomatonFile = function (a) {
+	return {$: 11, a: a};
+};
 var $author$project$Main$ViewportChanged = F2(
 	function (a, b) {
 		return {$: 9, a: a, b: b};
 	});
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Main$importAutomatonFileResult = _Platform_incomingPort('importAutomatonFileResult', $elm$json$Json$Decode$value);
 var $elm$browser$Browser$Events$Window = 1;
 var $elm$browser$Browser$Events$MySub = F3(
 	function (a, b, c) {
@@ -5402,7 +5409,7 @@ var $elm$browser$Browser$Events$MySub = F3(
 	});
 var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
-		return {bE: pids, bN: subs};
+		return {bF: pids, bO: subs};
 	});
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
@@ -5634,7 +5641,7 @@ var $elm$core$Dict$merge = F6(
 	});
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
-		return {bx: event, a2: key};
+		return {bw: event, a1: key};
 	});
 var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$browser$Browser$Events$spawn = F3(
@@ -5709,7 +5716,7 @@ var $elm$browser$Browser$Events$onEffects = F3(
 			stepLeft,
 			stepBoth,
 			stepRight,
-			state.bE,
+			state.bF,
 			$elm$core$Dict$fromList(newSubs),
 			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
 		var deadPids = _v0.a;
@@ -5755,8 +5762,8 @@ var $elm$core$List$filterMap = F2(
 	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
-		var key = _v0.a2;
-		var event = _v0.bx;
+		var key = _v0.a1;
+		var event = _v0.bw;
 		var toMessage = function (_v2) {
 			var subKey = _v2.a;
 			var _v3 = _v2.b;
@@ -5765,7 +5772,7 @@ var $elm$browser$Browser$Events$onSelfMsg = F3(
 			var decoder = _v3.c;
 			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
 		};
-		var messages = A2($elm$core$List$filterMap, toMessage, state.bN);
+		var messages = A2($elm$core$List$filterMap, toMessage, state.bO);
 		return A2(
 			$elm$core$Task$andThen,
 			function (_v1) {
@@ -5810,14 +5817,24 @@ var $elm$browser$Browser$Events$onResize = function (func) {
 				A2($elm$json$Json$Decode$field, 'innerHeight', $elm$json$Json$Decode$int))));
 };
 var $author$project$Main$subscriptions = function (_v0) {
-	return $elm$browser$Browser$Events$onResize($author$project$Main$ViewportChanged);
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				$elm$browser$Browser$Events$onResize($author$project$Main$ViewportChanged),
+				$author$project$Main$importAutomatonFileResult($author$project$Main$GotImportAutomatonFile)
+			]));
 };
 var $author$project$Main$AboutMsg = function (a) {
 	return {$: 8, a: a};
 };
+var $author$project$Pages$Editor$ApplyImportedSlot = F2(
+	function (a, b) {
+		return {$: 37, a: a, b: b};
+	});
 var $author$project$Main$EditorMsg = function (a) {
 	return {$: 6, a: a};
 };
+var $author$project$Pages$Editor$ImportSlotFailed = {$: 38};
 var $author$project$Main$InstructionsMsg = function (a) {
 	return {$: 7, a: a};
 };
@@ -5826,6 +5843,16 @@ var $author$project$Pages$Editor$SetViewport = F2(
 		return {$: 24, a: a, b: b};
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $author$project$Main$decodeImportFileResult = A3(
+	$elm$json$Json$Decode$map2,
+	$elm$core$Tuple$pair,
+	A2($elm$json$Json$Decode$field, 'slotId', $elm$json$Json$Decode$int),
+	A2($elm$json$Json$Decode$field, 'content', $elm$json$Json$Decode$string));
+var $elm$json$Json$Decode$decodeValue = _Json_run;
 var $elm$json$Json$Encode$int = _Json_wrap;
 var $elm$json$Json$Encode$list = F2(
 	function (func, entries) {
@@ -5862,21 +5889,34 @@ var $author$project$Pages$Editor$encodeSaveSlots = function (slots) {
 						[
 							_Utils_Tuple2(
 							'id',
-							$elm$json$Json$Encode$int(slot.a)),
+							$elm$json$Json$Encode$int(slot.bz)),
 							_Utils_Tuple2(
 							'name',
-							$elm$json$Json$Encode$string(slot.f)),
+							$elm$json$Json$Encode$string(slot.bC)),
 							_Utils_Tuple2(
 							'automatonJson',
-							$elm$json$Json$Encode$string(slot.O))
+							$elm$json$Json$Encode$string(slot.bs))
 						]));
 			},
 			slots));
 };
+var $author$project$Main$exportAutomatonFile = _Platform_outgoingPort('exportAutomatonFile', $elm$core$Basics$identity);
+var $author$project$Main$importAutomatonFile = _Platform_outgoingPort('importAutomatonFile', $elm$json$Json$Encode$int);
 var $elm$browser$Browser$Navigation$load = _Browser_load;
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (!maybe.$) {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Basics$not = _Basics_not;
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Main$saveAutomatonSlots = _Platform_outgoingPort('saveAutomatonSlots', $elm$json$Json$Encode$string);
@@ -5914,7 +5954,7 @@ var $elm$url$Url$addPrefixed = F3(
 	});
 var $elm$url$Url$toString = function (url) {
 	var http = function () {
-		var _v0 = url.bI;
+		var _v0 = url.bJ;
 		if (!_v0) {
 			return 'http://';
 		} else {
@@ -5924,17 +5964,17 @@ var $elm$url$Url$toString = function (url) {
 	return A3(
 		$elm$url$Url$addPrefixed,
 		'#',
-		url.by,
+		url.bx,
 		A3(
 			$elm$url$Url$addPrefixed,
 			'?',
-			url.bJ,
+			url.bK,
 			_Utils_ap(
 				A2(
 					$elm$url$Url$addPort,
-					url.bF,
-					_Utils_ap(http, url.bz)),
-				url.bD)));
+					url.bG,
+					_Utils_ap(http, url.by)),
+				url.bE)));
 };
 var $author$project$Theme$toggle = function (th) {
 	if (!th) {
@@ -5961,7 +6001,7 @@ var $author$project$Pages$Editor$getStateById = F2(
 			A2(
 				$elm$core$List$filter,
 				function (s) {
-					return _Utils_eq(s.a, id);
+					return _Utils_eq(s.bz, id);
 				},
 				states));
 	});
@@ -5994,7 +6034,7 @@ var $author$project$Pages$Editor$hasLambdaFrom = F2(
 		return A2(
 			$elm$core$List$any,
 			function (t) {
-				return _Utils_eq(t.d, sid) && $author$project$Pages$Editor$isLambdaLabel(t.k);
+				return _Utils_eq(t.c, sid) && $author$project$Pages$Editor$isLambdaLabel(t.i);
 			},
 			transitions);
 	});
@@ -6005,7 +6045,6 @@ var $elm$core$List$isEmpty = function (xs) {
 		return false;
 	}
 };
-var $elm$core$Basics$not = _Basics_not;
 var $elm$core$String$toFloat = _String_toFloat;
 var $elm$core$String$trim = _String_trim;
 var $author$project$Pages$Editor$parseDelay = function (raw) {
@@ -6022,7 +6061,7 @@ var $elm$core$Process$sleep = _Process_sleep;
 var $author$project$Pages$Editor$applySimulationTransition = F5(
 	function (transition, consumesInput, rest, queue, model) {
 		var nextQueue = consumesInput ? rest : queue;
-		var willContinue = (!$elm$core$List$isEmpty(nextQueue)) || A2($author$project$Pages$Editor$hasLambdaFrom, transition.e, model.c);
+		var willContinue = (!$elm$core$List$isEmpty(nextQueue)) || A2($author$project$Pages$Editor$hasLambdaFrom, transition.d, model.b);
 		var delay = $author$project$Pages$Editor$parseDelay(model.as);
 		var cmd = willContinue ? A2(
 			$elm$core$Task$perform,
@@ -6034,18 +6073,18 @@ var $author$project$Pages$Editor$applySimulationTransition = F5(
 			_Utils_update(
 				model,
 				{
-					q: $elm$core$Maybe$Just(transition.e),
-					F: $elm$core$Maybe$Nothing,
-					aj: $elm$core$Maybe$Just(transition.e),
-					ak: nextQueue,
-					ad: function () {
+					o: $elm$core$Maybe$Just(transition.d),
+					E: $elm$core$Maybe$Nothing,
+					ah: $elm$core$Maybe$Just(transition.d),
+					ai: nextQueue,
+					ac: function () {
 						if (willContinue) {
 							return 1;
 						} else {
-							var _v0 = A2($author$project$Pages$Editor$getStateById, transition.e, model.b);
+							var _v0 = A2($author$project$Pages$Editor$getStateById, transition.d, model.a);
 							if (!_v0.$) {
 								var s = _v0.a;
-								return (s.v && $elm$core$List$isEmpty(nextQueue)) ? 2 : ($elm$core$List$isEmpty(nextQueue) ? 3 : 4);
+								return (s.t && $elm$core$List$isEmpty(nextQueue)) ? 2 : ($elm$core$List$isEmpty(nextQueue) ? 3 : 4);
 							} else {
 								return 4;
 							}
@@ -6134,15 +6173,15 @@ var $author$project$Pages$Editor$decodeState = A2(
 			F5(
 				function (x, y, accepting, isStart, maybeName) {
 					return {
-						v: accepting,
-						a: id,
+						t: accepting,
+						bz: id,
 						A: isStart,
-						f: A2(
+						bC: A2(
 							$elm$core$Maybe$withDefault,
 							$elm$core$String$fromInt(id),
 							maybeName),
-						i: x,
-						j: y
+						g: x,
+						h: y
 					};
 				}),
 			A2($elm$json$Json$Decode$field, 'x', $elm$json$Json$Decode$float),
@@ -6157,7 +6196,7 @@ var $author$project$Pages$Editor$decodeTransition = A4(
 	$elm$json$Json$Decode$map3,
 	F3(
 		function (from, to, label) {
-			return {d: from, k: label, e: to};
+			return {c: from, i: label, d: to};
 		}),
 	A2($elm$json$Json$Decode$field, 'from', $elm$json$Json$Decode$int),
 	A2($elm$json$Json$Decode$field, 'to', $elm$json$Json$Decode$int),
@@ -6172,7 +6211,7 @@ var $author$project$Pages$Editor$decodeAutomaton = A3(
 					function (idx, transition) {
 						return _Utils_update(
 							transition,
-							{a: idx + 1});
+							{bz: idx + 1});
 					}),
 				A2(
 					$elm$core$List$concatMap,
@@ -6180,9 +6219,9 @@ var $author$project$Pages$Editor$decodeAutomaton = A3(
 						return A2(
 							$elm$core$List$map,
 							function (token) {
-								return {d: payload.d, a: 0, k: token, e: payload.e};
+								return {c: payload.c, bz: 0, i: token, d: payload.d};
 							},
-							$author$project$Pages$Editor$decodeJsonLabelToTokens(payload.k));
+							$author$project$Pages$Editor$decodeJsonLabelToTokens(payload.i));
 					},
 					payloadTransitions));
 			return _Utils_Tuple2(states, expanded);
@@ -6233,16 +6272,6 @@ var $elm$core$Dict$get = F2(
 						continue get;
 				}
 			}
-		}
-	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (!maybe.$) {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
 		}
 	});
 var $elm$core$Dict$sizeHelp = F2(
@@ -6299,8 +6328,8 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 			function (transition, positions) {
 				placeFromTo:
 				while (true) {
-					var toPosition = A2($elm$core$Dict$get, transition.al, positions);
-					var fromPosition = A2($elm$core$Dict$get, transition.aa, positions);
+					var toPosition = A2($elm$core$Dict$get, transition.aj, positions);
+					var fromPosition = A2($elm$core$Dict$get, transition._, positions);
 					var _v0 = _Utils_Tuple2(fromPosition, toPosition);
 					if (!_v0.a.$) {
 						if (_v0.b.$ === 1) {
@@ -6310,7 +6339,7 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 							var _v2 = _v0.b;
 							return A3(
 								$elm$core$Dict$insert,
-								transition.al,
+								transition.aj,
 								_Utils_Tuple2(fx + spacingX, fy),
 								positions);
 						} else {
@@ -6324,13 +6353,13 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 							var ty = _v4.b;
 							return A3(
 								$elm$core$Dict$insert,
-								transition.aa,
+								transition._,
 								_Utils_Tuple2(tx - spacingX, ty),
 								positions);
 						} else {
 							var _v5 = _v0.a;
 							var _v6 = _v0.b;
-							var seeded = A2(placeState, transition.aa, positions);
+							var seeded = A2(placeState, transition._, positions);
 							var $temp$transition = transition,
 								$temp$positions = seeded;
 							transition = $temp$transition;
@@ -6354,7 +6383,7 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				$elm$core$List$concatMap,
 				function (t) {
 					return _List_fromArray(
-						[t.aa, t.al]);
+						[t._, t.aj]);
 				},
 				parsedTransitions));
 		var isOccupied = F2(
@@ -6403,16 +6432,16 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 			F2(
 				function (idx, tr) {
 					return {
+						c: A2(
+							$elm$core$Maybe$withDefault,
+							1,
+							A2($elm$core$Dict$get, tr._, idByName)),
+						bz: idx + 1,
+						i: tr.i,
 						d: A2(
 							$elm$core$Maybe$withDefault,
 							1,
-							A2($elm$core$Dict$get, tr.aa, idByName)),
-						a: idx + 1,
-						k: tr.k,
-						e: A2(
-							$elm$core$Maybe$withDefault,
-							1,
-							A2($elm$core$Dict$get, tr.al, idByName))
+							A2($elm$core$Dict$get, tr.aj, idByName))
 					};
 				}),
 			parsedTransitions);
@@ -6421,13 +6450,13 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				return A2(
 					$elm$core$Maybe$andThen,
 					function (tr) {
-						return A2($elm$core$Dict$get, tr.al, positions);
+						return A2($elm$core$Dict$get, tr.aj, positions);
 					},
 					$elm$core$List$head(
 						A2(
 							$elm$core$List$filter,
 							function (tr) {
-								return _Utils_eq(tr.aa, name);
+								return _Utils_eq(tr._, name);
 							},
 							parsedTransitions)));
 			});
@@ -6436,13 +6465,13 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				return A2(
 					$elm$core$Maybe$andThen,
 					function (tr) {
-						return A2($elm$core$Dict$get, tr.aa, positions);
+						return A2($elm$core$Dict$get, tr._, positions);
 					},
 					$elm$core$List$head(
 						A2(
 							$elm$core$List$filter,
 							function (tr) {
-								return _Utils_eq(tr.al, name);
+								return _Utils_eq(tr.aj, name);
 							},
 							parsedTransitions)));
 			});
@@ -6543,7 +6572,7 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 			$elm$core$List$foldl,
 			F2(
 				function (state, acc) {
-					return A3($elm$core$Dict$insert, state.f, state, acc);
+					return A3($elm$core$Dict$insert, state.bC, state, acc);
 				}),
 			$elm$core$Dict$empty,
 			existingStates);
@@ -6553,8 +6582,8 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				function (state, acc) {
 					return A3(
 						$elm$core$Dict$insert,
-						state.f,
-						_Utils_Tuple2(state.i, state.j),
+						state.bC,
+						_Utils_Tuple2(state.g, state.h),
 						acc);
 				}),
 			$elm$core$Dict$empty,
@@ -6574,16 +6603,16 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 				var x = _v17.a;
 				var y = _v17.b;
 				return {
-					v: A2(
+					t: A2(
 						$elm$core$Maybe$withDefault,
 						false,
 						A2(
 							$elm$core$Maybe$map,
 							function ($) {
-								return $.v;
+								return $.t;
 							},
 							maybeExistingState)),
-					a: sid,
+					bz: sid,
 					A: A2(
 						$elm$core$Maybe$withDefault,
 						sid === 1,
@@ -6593,9 +6622,9 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 								return $.A;
 							},
 							maybeExistingState)),
-					f: name,
-					i: x,
-					j: y
+					bC: name,
+					g: x,
+					h: y
 				};
 			},
 			indexedNames);
@@ -6633,9 +6662,9 @@ var $author$project$Pages$Editor$parseTransitionLine = function (line) {
 				var condition = _v3.a;
 				return ($elm$core$String$isEmpty(fromName) || $elm$core$String$isEmpty(right)) ? $elm$core$Result$Err(line) : $elm$core$Result$Ok(
 					{
-						aa: fromName,
-						k: (condition === 'λ') ? '' : $author$project$Pages$Editor$normalizeTransitionLabel(condition),
-						al: right
+						_: fromName,
+						i: (condition === 'λ') ? '' : $author$project$Pages$Editor$normalizeTransitionLabel(condition),
+						aj: right
 					});
 			} else {
 				return $elm$core$Result$Err(line);
@@ -6722,19 +6751,19 @@ var $author$project$Pages$Editor$encodeState = function (s) {
 			[
 				_Utils_Tuple2(
 				'id',
-				$elm$json$Json$Encode$int(s.a)),
+				$elm$json$Json$Encode$int(s.bz)),
 				_Utils_Tuple2(
 				'name',
-				$elm$json$Json$Encode$string(s.f)),
+				$elm$json$Json$Encode$string(s.bC)),
 				_Utils_Tuple2(
 				'x',
-				$elm$json$Json$Encode$float(s.i)),
+				$elm$json$Json$Encode$float(s.g)),
 				_Utils_Tuple2(
 				'y',
-				$elm$json$Json$Encode$float(s.j)),
+				$elm$json$Json$Encode$float(s.h)),
 				_Utils_Tuple2(
 				'accepting',
-				$elm$json$Json$Encode$bool(s.v)),
+				$elm$json$Json$Encode$bool(s.t)),
 				_Utils_Tuple2(
 				'isStart',
 				$elm$json$Json$Encode$bool(s.A))
@@ -6749,13 +6778,13 @@ var $author$project$Pages$Editor$encodeTransition = function (t) {
 				$elm$json$Json$Encode$int(0)),
 				_Utils_Tuple2(
 				'from',
-				$elm$json$Json$Encode$int(t.d)),
+				$elm$json$Json$Encode$int(t.c)),
 				_Utils_Tuple2(
 				'to',
-				$elm$json$Json$Encode$int(t.e)),
+				$elm$json$Json$Encode$int(t.d)),
 				_Utils_Tuple2(
 				'label',
-				$elm$json$Json$Encode$string(t.k))
+				$elm$json$Json$Encode$string(t.i))
 			]));
 };
 var $elm$core$List$sortBy = _List_sortBy;
@@ -6764,7 +6793,7 @@ var $author$project$Pages$Editor$groupTransitionsForRender = function (transitio
 		function (transition, _v2) {
 			var grouped = _v2.a;
 			var order = _v2.b;
-			var key = _Utils_Tuple2(transition.d, transition.e);
+			var key = _Utils_Tuple2(transition.c, transition.d);
 			var _v1 = A2($elm$core$Dict$get, key, grouped);
 			if (!_v1.$) {
 				var existing = _v1.a;
@@ -6778,11 +6807,11 @@ var $author$project$Pages$Editor$groupTransitionsForRender = function (transitio
 								aw: _Utils_ap(
 									existing.aw,
 									_List_fromArray(
-										[transition.k])),
-								am: _Utils_ap(
-									existing.am,
+										[transition.i])),
+								ak: _Utils_ap(
+									existing.ak,
 									_List_fromArray(
-										[transition.a]))
+										[transition.bz]))
 							}),
 						grouped),
 					order);
@@ -6792,13 +6821,13 @@ var $author$project$Pages$Editor$groupTransitionsForRender = function (transitio
 						$elm$core$Dict$insert,
 						key,
 						{
-							d: transition.d,
+							c: transition.c,
 							aw: _List_fromArray(
-								[transition.k]),
-							bk: transition.a,
-							e: transition.e,
-							am: _List_fromArray(
-								[transition.a])
+								[transition.i]),
+							bj: transition.bz,
+							d: transition.d,
+							ak: _List_fromArray(
+								[transition.bz])
 						},
 						grouped),
 					A2($elm$core$List$cons, key, order));
@@ -6807,7 +6836,7 @@ var $author$project$Pages$Editor$groupTransitionsForRender = function (transitio
 	var sortedTransitions = A2(
 		$elm$core$List$sortBy,
 		function ($) {
-			return $.a;
+			return $.bz;
 		},
 		transitions);
 	var _v0 = A3(
@@ -6841,9 +6870,9 @@ var $author$project$Pages$Editor$encodeAutomaton = F2(
 			$elm$core$List$map,
 			function (group) {
 				return {
-					d: group.d,
-					k: $author$project$Pages$Editor$transitionLabelsForJson(group.aw),
-					e: group.e
+					c: group.c,
+					i: $author$project$Pages$Editor$transitionLabelsForJson(group.aw),
+					d: group.d
 				};
 			},
 			$author$project$Pages$Editor$groupTransitionsForRender(transitions));
@@ -6863,7 +6892,7 @@ var $author$project$Pages$Editor$stateNameById = F2(
 		var _v0 = A2($author$project$Pages$Editor$getStateById, stateId, states);
 		if (!_v0.$) {
 			var state = _v0.a;
-			return state.f;
+			return state.bC;
 		} else {
 			return $elm$core$String$fromInt(stateId);
 		}
@@ -6876,12 +6905,12 @@ var $author$project$Pages$Editor$encodeTransitionLanguage = F2(
 			A2(
 				$elm$core$List$map,
 				function (tr) {
-					return '(' + (A2($author$project$Pages$Editor$stateNameById, states, tr.d) + (', ' + (($author$project$Pages$Editor$isLambdaLabel(tr.k) ? 'λ' : tr.k) + (') => ' + A2($author$project$Pages$Editor$stateNameById, states, tr.e)))));
+					return '(' + (A2($author$project$Pages$Editor$stateNameById, states, tr.c) + (', ' + (($author$project$Pages$Editor$isLambdaLabel(tr.i) ? 'λ' : tr.i) + (') => ' + A2($author$project$Pages$Editor$stateNameById, states, tr.d)))));
 				},
 				A2(
 					$elm$core$List$sortBy,
 					function ($) {
-						return $.a;
+						return $.bz;
 					},
 					transitions)));
 	});
@@ -6893,7 +6922,7 @@ var $author$project$Pages$Editor$ensureSingleStart = F2(
 				return _Utils_update(
 					s,
 					{
-						A: _Utils_eq(s.a, id)
+						A: _Utils_eq(s.bz, id)
 					});
 			},
 			states);
@@ -6909,7 +6938,7 @@ var $author$project$Pages$Editor$enforceSingleStartFlag = function (states) {
 		return states;
 	} else {
 		var s = _v0.a;
-		return A2($author$project$Pages$Editor$ensureSingleStart, s.a, states);
+		return A2($author$project$Pages$Editor$ensureSingleStart, s.bz, states);
 	}
 };
 var $elm$core$Basics$composeR = F3(
@@ -6927,7 +6956,7 @@ var $author$project$Pages$Editor$hasDuplicateStateNames = function (states) {
 		A2(
 			$elm$core$Basics$composeR,
 			function ($) {
-				return $.f;
+				return $.bC;
 			},
 			$elm$core$String$trim),
 		states);
@@ -6947,13 +6976,13 @@ var $author$project$Pages$Editor$normalizeTransitionIds = function (transitions)
 					$elm$core$List$cons,
 					_Utils_update(
 						transition,
-						{a: nextId}),
+						{bz: nextId}),
 					acc));
 		});
 	var sorted = A2(
 		$elm$core$List$sortBy,
 		function ($) {
-			return $.a;
+			return $.bz;
 		},
 		transitions);
 	var _v0 = A3(
@@ -6964,8 +6993,8 @@ var $author$project$Pages$Editor$normalizeTransitionIds = function (transitions)
 	var nextTransitionId = _v0.a;
 	var reversed = _v0.b;
 	return {
-		m: nextTransitionId,
-		c: $elm$core$List$reverse(reversed)
+		k: nextTransitionId,
+		b: $elm$core$List$reverse(reversed)
 	};
 };
 var $author$project$Pages$Editor$normalizeAutomatonIds = F2(
@@ -6973,7 +7002,7 @@ var $author$project$Pages$Editor$normalizeAutomatonIds = F2(
 		var sortedStates = A2(
 			$elm$core$List$sortBy,
 			function ($) {
-				return $.a;
+				return $.bz;
 			},
 			states);
 		var renumberStates = F2(
@@ -6982,14 +7011,14 @@ var $author$project$Pages$Editor$normalizeAutomatonIds = F2(
 				var mapping = _v1.b;
 				var acc = _v1.c;
 				var normalizedName = _Utils_eq(
-					state.f,
-					$elm$core$String$fromInt(state.a)) ? $elm$core$String$fromInt(nextId) : state.f;
+					state.bC,
+					$elm$core$String$fromInt(state.bz)) ? $elm$core$String$fromInt(nextId) : state.bC;
 				var newState = _Utils_update(
 					state,
-					{a: nextId, f: normalizedName});
+					{bz: nextId, bC: normalizedName});
 				return _Utils_Tuple3(
 					nextId + 1,
-					A3($elm$core$Dict$insert, state.a, nextId, mapping),
+					A3($elm$core$Dict$insert, state.bz, nextId, mapping),
 					A2($elm$core$List$cons, newState, acc));
 			});
 		var _v0 = A3(
@@ -7012,17 +7041,17 @@ var $author$project$Pages$Editor$normalizeAutomatonIds = F2(
 				return _Utils_update(
 					transition,
 					{
-						d: remapStateId(transition.d),
-						e: remapStateId(transition.e)
+						c: remapStateId(transition.c),
+						d: remapStateId(transition.d)
 					});
 			},
 			transitions);
 		var normalizedTransitions = $author$project$Pages$Editor$normalizeTransitionIds(remappedTransitions);
 		return {
 			C: nextStateId,
-			m: normalizedTransitions.m,
-			b: $elm$core$List$reverse(reversedStates),
-			c: normalizedTransitions.c
+			k: normalizedTransitions.k,
+			a: $elm$core$List$reverse(reversedStates),
+			b: normalizedTransitions.b
 		};
 	});
 var $author$project$Pages$Editor$normalizeTransitionLabels = function (raw) {
@@ -7042,11 +7071,11 @@ var $author$project$Pages$Editor$panWithWheel = F3(
 	function (dx, dy, model) {
 		return _Utils_update(
 			model,
-			{Z: $elm$core$Maybe$Nothing, I: model.I - dx, J: model.J - dy, ac: $elm$core$Maybe$Nothing});
+			{Y: $elm$core$Maybe$Nothing, H: model.H - dx, I: model.I - dy, ab: $elm$core$Maybe$Nothing});
 	});
 var $author$project$Pages$Editor$screenToWorld = F3(
 	function (model, x, y) {
-		return _Utils_Tuple2(x - model.I, y - model.J);
+		return _Utils_Tuple2(x - model.H, y - model.I);
 	});
 var $elm$core$List$sort = function (xs) {
 	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
@@ -7066,18 +7095,18 @@ var $elm$core$String$toList = function (string) {
 	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
 };
 var $author$project$Pages$Editor$startSimulation = function (model) {
-	var _v0 = $author$project$Pages$Editor$findStartState(model.b);
+	var _v0 = $author$project$Pages$Editor$findStartState(model.a);
 	if (_v0.$ === 1) {
 		return _Utils_Tuple2(
 			_Utils_update(
 				model,
-				{ad: 5}),
+				{ac: 5}),
 			$elm$core$Platform$Cmd$none);
 	} else {
 		var startState = _v0.a;
-		var queue = $elm$core$String$toList(model.az);
-		var willRun = (!$elm$core$List$isEmpty(queue)) || A2($author$project$Pages$Editor$hasLambdaFrom, startState.a, model.c);
-		var initialResult = willRun ? 1 : (startState.v ? 2 : 3);
+		var queue = $elm$core$String$toList(model.ay);
+		var willRun = (!$elm$core$List$isEmpty(queue)) || A2($author$project$Pages$Editor$hasLambdaFrom, startState.bz, model.b);
+		var initialResult = willRun ? 1 : (startState.t ? 2 : 3);
 		var delay = $author$project$Pages$Editor$parseDelay(model.as);
 		var cmd = willRun ? A2(
 			$elm$core$Task$perform,
@@ -7089,26 +7118,26 @@ var $author$project$Pages$Editor$startSimulation = function (model) {
 			_Utils_update(
 				model,
 				{
-					q: $elm$core$Maybe$Just(startState.a),
-					F: $elm$core$Maybe$Nothing,
-					aj: $elm$core$Maybe$Just(startState.a),
-					ak: queue,
-					ad: initialResult,
+					o: $elm$core$Maybe$Just(startState.bz),
+					E: $elm$core$Maybe$Nothing,
+					ah: $elm$core$Maybe$Just(startState.bz),
+					ai: queue,
+					ac: initialResult,
 					N: willRun
 				}),
 			cmd);
 	}
 };
 var $author$project$Pages$Editor$editorLayout = function (model) {
-	var editorHeight = A2($elm$core$Basics$max, 560, model.cp - 90);
+	var editorHeight = A2($elm$core$Basics$max, 560, model.cq - 90);
 	var mainRowHeight = A2($elm$core$Basics$max, 320, editorHeight - 120);
-	var canvasWidth = A2($elm$core$Basics$max, 360, model.cq - 860);
+	var canvasWidth = A2($elm$core$Basics$max, 360, model.cr - 860);
 	var canvasHeight = mainRowHeight - 56;
-	return {aX: canvasHeight, aY: canvasWidth, b2: editorHeight, bA: mainRowHeight};
+	return {aW: canvasHeight, aX: canvasWidth, b3: editorHeight, bA: mainRowHeight};
 };
 var $author$project$Pages$Editor$centerChoiceInCanvas = F2(
 	function (sid, model) {
-		var _v0 = A2($author$project$Pages$Editor$getStateById, sid, model.b);
+		var _v0 = A2($author$project$Pages$Editor$getStateById, sid, model.a);
 		if (_v0.$ === 1) {
 			return model;
 		} else {
@@ -7117,11 +7146,11 @@ var $author$project$Pages$Editor$centerChoiceInCanvas = F2(
 			var popupHeight = 140;
 			var popupGap = 24;
 			var layout = $author$project$Pages$Editor$editorLayout(model);
-			var targetPanX = (((layout.aY / 2) + (popupWidth / 2)) + popupGap) - state.i;
-			var targetPanY = ((layout.aX / 2) + (popupHeight / 2)) - state.j;
+			var targetPanX = (((layout.aX / 2) + (popupWidth / 2)) + popupGap) - state.g;
+			var targetPanY = ((layout.aW / 2) + (popupHeight / 2)) - state.h;
 			return _Utils_update(
 				model,
-				{I: targetPanX, J: targetPanY});
+				{H: targetPanX, I: targetPanY});
 		}
 	});
 var $elm$core$String$cons = _String_cons;
@@ -7132,10 +7161,10 @@ var $author$project$Pages$Editor$stopSimulation = F2(
 	function (result, model) {
 		return _Utils_update(
 			model,
-			{F: $elm$core$Maybe$Nothing, aj: $elm$core$Maybe$Nothing, ak: _List_Nil, ad: result, N: false});
+			{E: $elm$core$Maybe$Nothing, ah: $elm$core$Maybe$Nothing, ai: _List_Nil, ac: result, N: false});
 	});
 var $author$project$Pages$Editor$stepSimulation = function (model) {
-	var _v0 = _Utils_Tuple2(model.aj, model.ak);
+	var _v0 = _Utils_Tuple2(model.ah, model.ai);
 	if (_v0.a.$ === 1) {
 		var _v1 = _v0.a;
 		return _Utils_Tuple2(
@@ -7147,9 +7176,9 @@ var $author$project$Pages$Editor$stepSimulation = function (model) {
 		var lambdaMatches = A2(
 			$elm$core$List$filter,
 			function (t) {
-				return _Utils_eq(t.d, sid) && $author$project$Pages$Editor$isLambdaLabel(t.k);
+				return _Utils_eq(t.c, sid) && $author$project$Pages$Editor$isLambdaLabel(t.i);
 			},
-			model.c);
+			model.b);
 		var _v2 = function () {
 			if (!queue.b) {
 				return _Utils_Tuple2($elm$core$Maybe$Nothing, _List_Nil);
@@ -7172,9 +7201,9 @@ var $author$project$Pages$Editor$stepSimulation = function (model) {
 				return A2(
 					$elm$core$List$filter,
 					function (t) {
-						return _Utils_eq(t.d, sid) && _Utils_eq(t.k, lbl);
+						return _Utils_eq(t.c, sid) && _Utils_eq(t.i, lbl);
 					},
-					model.c);
+					model.b);
 			}
 		}();
 		var _v4 = $elm$core$List$isEmpty(charMatches) ? _Utils_Tuple3(lambdaMatches, false, 'λ') : _Utils_Tuple3(
@@ -7187,10 +7216,10 @@ var $author$project$Pages$Editor$stepSimulation = function (model) {
 		if (!candidates.b) {
 			var result = function () {
 				if (!queue.b) {
-					var _v7 = A2($author$project$Pages$Editor$getStateById, sid, model.b);
+					var _v7 = A2($author$project$Pages$Editor$getStateById, sid, model.a);
 					if (!_v7.$) {
 						var s = _v7.a;
-						return s.v ? 2 : 3;
+						return s.t ? 2 : 3;
 					} else {
 						return 4;
 					}
@@ -7211,20 +7240,20 @@ var $author$project$Pages$Editor$stepSimulation = function (model) {
 					_Utils_update(
 						centeredModel,
 						{
-							q: $elm$core$Maybe$Just(sid),
-							F: $elm$core$Maybe$Just(
+							o: $elm$core$Maybe$Just(sid),
+							E: $elm$core$Maybe$Just(
 								{
-									a9: consumesInput,
-									be: inputLabel,
-									bo: sid,
-									am: A2(
+									a8: consumesInput,
+									bd: inputLabel,
+									bm: sid,
+									ak: A2(
 										$elm$core$List$map,
 										function ($) {
-											return $.a;
+											return $.bz;
 										},
 										candidates)
 								}),
-							ad: 1,
+							ac: 1,
 							N: false
 						}),
 					$elm$core$Platform$Cmd$none);
@@ -7238,12 +7267,12 @@ var $author$project$Pages$Editor$transitionLabelsForPair = F3(
 			A2(
 				$elm$core$List$map,
 				function ($) {
-					return $.k;
+					return $.i;
 				},
 				A2(
 					$elm$core$List$filter,
 					function (transition) {
-						return _Utils_eq(transition.d, fromState) && _Utils_eq(transition.e, toState);
+						return _Utils_eq(transition.c, fromState) && _Utils_eq(transition.d, toState);
 					},
 					transitions)));
 	});
@@ -7260,7 +7289,7 @@ var $author$project$Pages$Editor$transitionLabelsToEditorText = function (labels
 };
 var $author$project$Pages$Editor$update = F2(
 	function (msg, model) {
-		if (model.N || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing))) {
+		if (model.N || (!_Utils_eq(model.E, $elm$core$Maybe$Nothing))) {
 			switch (msg.$) {
 				case 0:
 					var button = msg.b;
@@ -7270,14 +7299,14 @@ var $author$project$Pages$Editor$update = F2(
 						_Utils_update(
 							model,
 							{
-								ac: $elm$core$Maybe$Just(
-									{aJ: model.I, aK: model.J, aN: cx, aO: cy})
+								ab: $elm$core$Maybe$Just(
+									{aI: model.H, aJ: model.I, aM: cx, aN: cy})
 							}),
 						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				case 1:
 					var mx = msg.a;
 					var my = msg.b;
-					var _v1 = model.ac;
+					var _v1 = model.ab;
 					if (_v1.$ === 1) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
@@ -7285,7 +7314,7 @@ var $author$project$Pages$Editor$update = F2(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{I: pan.aJ + (mx - pan.aN), J: pan.aK + (my - pan.aO)}),
+								{H: pan.aI + (mx - pan.aM), I: pan.aJ + (my - pan.aN)}),
 							$elm$core$Platform$Cmd$none);
 					}
 				case 2:
@@ -7293,25 +7322,25 @@ var $author$project$Pages$Editor$update = F2(
 					return (button === 1) ? _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{ac: $elm$core$Maybe$Nothing}),
+							{ab: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				case 21:
 					return $author$project$Pages$Editor$stepSimulation(model);
 				case 22:
 					var tid = msg.a;
-					var _v2 = _Utils_Tuple2(model.F, model.aj);
+					var _v2 = _Utils_Tuple2(model.E, model.ah);
 					if ((!_v2.a.$) && (!_v2.b.$)) {
 						var choice = _v2.a.a;
 						var _v3 = $elm$core$List$head(
 							A2(
 								$elm$core$List$filter,
 								function (transition) {
-									return _Utils_eq(transition.a, tid);
+									return _Utils_eq(transition.bz, tid);
 								},
-								model.c));
+								model.b));
 						if (!_v3.$) {
 							var transition = _v3.a;
-							var queue = model.ak;
+							var queue = model.ai;
 							var rest = function () {
 								if (!queue.b) {
 									return _List_Nil;
@@ -7320,7 +7349,7 @@ var $author$project$Pages$Editor$update = F2(
 									return remaining;
 								}
 							}();
-							return A5($author$project$Pages$Editor$applySimulationTransition, transition, choice.a9, rest, queue, model);
+							return A5($author$project$Pages$Editor$applySimulationTransition, transition, choice.a8, rest, queue, model);
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 						}
@@ -7339,7 +7368,7 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{cp: h, cq: w}),
+							{cq: h, cr: w}),
 						$elm$core$Platform$Cmd$none);
 				case 25:
 					return _Utils_Tuple2(
@@ -7350,7 +7379,7 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{az: s}),
+							{ay: s}),
 						$elm$core$Platform$Cmd$none);
 				case 19:
 					var s = msg.a;
@@ -7375,12 +7404,12 @@ var $author$project$Pages$Editor$update = F2(
 								_Utils_update(
 									model,
 									{
-										ac: $elm$core$Maybe$Just(
-											{aJ: model.I, aK: model.J, aN: cx, aO: cy})
+										ab: $elm$core$Maybe$Just(
+											{aI: model.H, aJ: model.I, aM: cx, aN: cy})
 									}),
 								$elm$core$Platform$Cmd$none);
 						case 0:
-							var _v7 = model.z;
+							var _v7 = model.x;
 							if (!_v7) {
 								if (targetTag !== 'svg') {
 									return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -7390,37 +7419,37 @@ var $author$project$Pages$Editor$update = F2(
 									var wx = _v8.a;
 									var wy = _v8.b;
 									var newState = {
-										v: false,
-										a: stateId,
+										t: false,
+										bz: stateId,
 										A: false,
-										f: $elm$core$String$fromInt(stateId),
-										i: wx,
-										j: wy
+										bC: $elm$core$String$fromInt(stateId),
+										g: wx,
+										h: wy
 									};
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
 											{
-												Z: $elm$core$Maybe$Nothing,
+												Y: $elm$core$Maybe$Nothing,
 												C: model.C + 1,
-												q: $elm$core$Maybe$Just(newState.a),
-												D: $elm$core$Maybe$Nothing,
-												b: _Utils_ap(
-													model.b,
+												o: $elm$core$Maybe$Just(newState.bz),
+												y: $elm$core$Maybe$Nothing,
+												a: _Utils_ap(
+													model.a,
 													_List_fromArray(
 														[newState])),
-												ae: $elm$core$Maybe$Nothing
+												X: $elm$core$Maybe$Nothing
 											}),
 										$elm$core$Platform$Cmd$none);
 								}
 							} else {
 								if (targetTag === 'svg') {
-									var _v9 = model.z;
+									var _v9 = model.x;
 									if (_v9 === 2) {
 										return _Utils_Tuple2(
 											_Utils_update(
 												model,
-												{q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing}),
+												{o: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing}),
 											$elm$core$Platform$Cmd$none);
 									} else {
 										return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -7436,18 +7465,18 @@ var $author$project$Pages$Editor$update = F2(
 					var mx = msg.a;
 					var my = msg.b;
 					var updatedPan = function () {
-						var _v12 = model.ac;
+						var _v12 = model.ab;
 						if (_v12.$ === 1) {
 							return model;
 						} else {
 							var pan = _v12.a;
 							return _Utils_update(
 								model,
-								{I: pan.aJ + (mx - pan.aN), J: pan.aK + (my - pan.aO)});
+								{H: pan.aI + (mx - pan.aM), I: pan.aJ + (my - pan.aN)});
 						}
 					}();
 					var updatedStates = function () {
-						var _v10 = updatedPan.Z;
+						var _v10 = updatedPan.Y;
 						if (_v10.$ === 1) {
 							return updatedPan;
 						} else {
@@ -7456,14 +7485,14 @@ var $author$project$Pages$Editor$update = F2(
 							var wx = _v11.a;
 							var wy = _v11.b;
 							var move = function (s) {
-								return _Utils_eq(s.a, sid) ? _Utils_update(
+								return _Utils_eq(s.bz, sid) ? _Utils_update(
 									s,
-									{i: wx, j: wy}) : s;
+									{g: wx, h: wy}) : s;
 							};
 							return _Utils_update(
 								updatedPan,
 								{
-									b: A2($elm$core$List$map, move, updatedPan.b)
+									a: A2($elm$core$List$map, move, updatedPan.a)
 								});
 						}
 					}();
@@ -7472,21 +7501,23 @@ var $author$project$Pages$Editor$update = F2(
 					var button = msg.a;
 					var clearedPan = (button === 1) ? _Utils_update(
 						model,
-						{ac: $elm$core$Maybe$Nothing}) : model;
+						{ab: $elm$core$Maybe$Nothing}) : model;
 					var clearedDrag = (!button) ? _Utils_update(
 						clearedPan,
-						{Z: $elm$core$Maybe$Nothing}) : clearedPan;
+						{Y: $elm$core$Maybe$Nothing}) : clearedPan;
 					return _Utils_Tuple2(clearedDrag, $elm$core$Platform$Cmd$none);
 				case 3:
 					var sid = msg.a;
-					var _v13 = model.z;
+					var _v13 = model.x;
 					if (_v13 === 2) {
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									Z: $elm$core$Maybe$Just(sid),
-									q: $elm$core$Maybe$Just(sid)
+									Y: $elm$core$Maybe$Just(sid),
+									o: $elm$core$Maybe$Just(sid),
+									y: $elm$core$Maybe$Nothing,
+									M: ''
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -7494,18 +7525,18 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 4:
 					var sid = msg.a;
-					var _v14 = model.z;
+					var _v14 = model.x;
 					if (_v14 === 2) {
 						var toggle = function (s) {
-							return _Utils_eq(s.a, sid) ? _Utils_update(
+							return _Utils_eq(s.bz, sid) ? _Utils_update(
 								s,
-								{v: !s.v}) : s;
+								{t: !s.t}) : s;
 						};
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									b: A2($elm$core$List$map, toggle, model.b)
+									a: A2($elm$core$List$map, toggle, model.a)
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -7513,38 +7544,38 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 5:
 					var sid = msg.a;
-					var _v15 = model.z;
+					var _v15 = model.x;
 					switch (_v15) {
 						case 1:
-							var _v16 = model.ae;
+							var _v16 = model.X;
 							if (_v16.$ === 1) {
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
 										{
-											q: $elm$core$Maybe$Just(sid),
-											ae: $elm$core$Maybe$Just(sid)
+											o: $elm$core$Maybe$Just(sid),
+											X: $elm$core$Maybe$Just(sid)
 										}),
 									$elm$core$Platform$Cmd$none);
 							} else {
 								var fromId = _v16.a;
-								var labels = $author$project$Pages$Editor$normalizeTransitionLabels(model.aR);
+								var labels = $author$project$Pages$Editor$normalizeTransitionLabels(model.aQ);
 								var newTransitions = A2(
 									$elm$core$List$indexedMap,
 									F2(
 										function (idx, token) {
-											return {d: fromId, a: model.m + idx, k: token, e: sid};
+											return {c: fromId, bz: model.k + idx, i: token, d: sid};
 										}),
 									labels);
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
 										{
-											m: model.m + $elm$core$List$length(newTransitions),
-											q: $elm$core$Maybe$Nothing,
-											D: $elm$core$Maybe$Nothing,
-											ae: $elm$core$Maybe$Nothing,
-											c: _Utils_ap(model.c, newTransitions)
+											k: model.k + $elm$core$List$length(newTransitions),
+											o: $elm$core$Maybe$Nothing,
+											y: $elm$core$Maybe$Nothing,
+											X: $elm$core$Maybe$Nothing,
+											b: _Utils_ap(model.b, newTransitions)
 										}),
 									$elm$core$Platform$Cmd$none);
 							}
@@ -7553,9 +7584,10 @@ var $author$project$Pages$Editor$update = F2(
 								_Utils_update(
 									model,
 									{
-										q: $elm$core$Maybe$Just(sid),
-										D: $elm$core$Maybe$Nothing,
-										W: ''
+										o: $elm$core$Maybe$Just(sid),
+										y: $elm$core$Maybe$Nothing,
+										M: '',
+										X: $elm$core$Maybe$Nothing
 									}),
 								$elm$core$Platform$Cmd$none);
 						default:
@@ -7563,31 +7595,31 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 6:
 					var tid = msg.a;
-					var _v17 = model.z;
+					var _v17 = model.x;
 					if (_v17 === 2) {
 						var draftLabel = function () {
 							var _v18 = $elm$core$List$head(
 								A2(
 									$elm$core$List$filter,
 									function (transition) {
-										return _Utils_eq(transition.a, tid);
+										return _Utils_eq(transition.bz, tid);
 									},
-									model.c));
+									model.b));
 							if (_v18.$ === 1) {
 								return '';
 							} else {
 								var transition = _v18.a;
 								return $author$project$Pages$Editor$transitionLabelsToEditorText(
-									A3($author$project$Pages$Editor$transitionLabelsForPair, model.c, transition.d, transition.e));
+									A3($author$project$Pages$Editor$transitionLabelsForPair, model.b, transition.c, transition.d));
 							}
 						}();
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									q: $elm$core$Maybe$Nothing,
-									D: $elm$core$Maybe$Just(tid),
-									W: draftLabel
+									o: $elm$core$Maybe$Nothing,
+									y: $elm$core$Maybe$Just(tid),
+									M: draftLabel
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -7598,61 +7630,61 @@ var $author$project$Pages$Editor$update = F2(
 					var transFiltered = A2(
 						$elm$core$List$filter,
 						function (t) {
-							return (!_Utils_eq(t.d, sid)) && (!_Utils_eq(t.e, sid));
+							return (!_Utils_eq(t.c, sid)) && (!_Utils_eq(t.d, sid));
 						},
-						model.c);
+						model.b);
 					var statesFiltered = A2(
 						$elm$core$List$filter,
 						function (s) {
-							return !_Utils_eq(s.a, sid);
+							return !_Utils_eq(s.bz, sid);
 						},
-						model.b);
+						model.a);
 					var normalized = A2($author$project$Pages$Editor$normalizeAutomatonIds, statesFiltered, transFiltered);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{C: normalized.C, m: normalized.m, q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing, W: '', b: normalized.b, c: normalized.c}),
+							{C: normalized.C, k: normalized.k, o: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing, M: '', a: normalized.a, b: normalized.b}),
 						$elm$core$Platform$Cmd$none);
 				case 8:
 					var tid = msg.a;
 					var transFiltered = A2(
 						$elm$core$List$filter,
 						function (t) {
-							return !_Utils_eq(t.a, tid);
+							return !_Utils_eq(t.bz, tid);
 						},
-						model.c);
+						model.b);
 					var normalized = $author$project$Pages$Editor$normalizeTransitionIds(transFiltered);
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{m: normalized.m, D: $elm$core$Maybe$Nothing, W: '', c: normalized.c}),
+							{k: normalized.k, y: $elm$core$Maybe$Nothing, M: '', b: normalized.b}),
 						$elm$core$Platform$Cmd$none);
 				case 9:
 					var sid = msg.a;
-					var _v19 = model.z;
+					var _v19 = model.x;
 					if (_v19 === 2) {
 						var updatedStates = function () {
-							var _v20 = A2($author$project$Pages$Editor$getStateById, sid, model.b);
+							var _v20 = A2($author$project$Pages$Editor$getStateById, sid, model.a);
 							if (_v20.$ === 1) {
-								return model.b;
+								return model.a;
 							} else {
 								var s = _v20.a;
 								return s.A ? A2(
 									$elm$core$List$map,
 									function (t) {
-										return _Utils_eq(t.a, sid) ? _Utils_update(
+										return _Utils_eq(t.bz, sid) ? _Utils_update(
 											t,
 											{A: false}) : t;
 									},
-									model.b) : A2($author$project$Pages$Editor$ensureSingleStart, sid, model.b);
+									model.a) : A2($author$project$Pages$Editor$ensureSingleStart, sid, model.a);
 							}
 						}();
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									q: $elm$core$Maybe$Just(sid),
-									b: updatedStates
+									o: $elm$core$Maybe$Just(sid),
+									a: updatedStates
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -7660,19 +7692,19 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 10:
 					var sid = msg.a;
-					var _v21 = model.z;
+					var _v21 = model.x;
 					if (_v21 === 2) {
 						var toggle = function (s) {
-							return _Utils_eq(s.a, sid) ? _Utils_update(
+							return _Utils_eq(s.bz, sid) ? _Utils_update(
 								s,
-								{v: !s.v}) : s;
+								{t: !s.t}) : s;
 						};
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
 								{
-									q: $elm$core$Maybe$Just(sid),
-									b: A2($elm$core$List$map, toggle, model.b)
+									o: $elm$core$Maybe$Just(sid),
+									a: A2($elm$core$List$map, toggle, model.a)
 								}),
 							$elm$core$Platform$Cmd$none);
 					} else {
@@ -7683,23 +7715,23 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{Z: $elm$core$Maybe$Nothing, z: newMode, q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing, W: '', ae: $elm$core$Maybe$Nothing}),
+							{Y: $elm$core$Maybe$Nothing, x: newMode, o: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing, M: '', X: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				case 12:
 					var label = msg.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{aR: label}),
+							{aQ: label}),
 						$elm$core$Platform$Cmd$none);
 				case 13:
 					var label = msg.a;
-					var _v22 = model.D;
+					var _v22 = model.y;
 					if (_v22.$ === 1) {
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{W: label}),
+								{M: label}),
 							$elm$core$Platform$Cmd$none);
 					} else {
 						var tid = _v22.a;
@@ -7707,9 +7739,9 @@ var $author$project$Pages$Editor$update = F2(
 							A2(
 								$elm$core$List$filter,
 								function (transition) {
-									return _Utils_eq(transition.a, tid);
+									return _Utils_eq(transition.bz, tid);
 								},
-								model.c));
+								model.b));
 						if (_v23.$ === 1) {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 						} else {
@@ -7717,20 +7749,20 @@ var $author$project$Pages$Editor$update = F2(
 							var remainingTransitions = A2(
 								$elm$core$List$filter,
 								function (transition) {
-									return !(_Utils_eq(transition.d, target.d) && _Utils_eq(transition.e, target.e));
+									return !(_Utils_eq(transition.c, target.c) && _Utils_eq(transition.d, target.d));
 								},
-								model.c);
+								model.b);
 							var pairTransitions = A2(
 								$elm$core$List$filter,
 								function (transition) {
-									return _Utils_eq(transition.d, target.d) && _Utils_eq(transition.e, target.e);
+									return _Utils_eq(transition.c, target.c) && _Utils_eq(transition.d, target.d);
 								},
-								model.c);
+								model.b);
 							var preservedIds = $elm$core$List$sort(
 								A2(
 									$elm$core$List$map,
 									function ($) {
-										return $.a;
+										return $.bz;
 									},
 									pairTransitions));
 							var labels = $author$project$Pages$Editor$normalizeTransitionLabels(label);
@@ -7739,14 +7771,14 @@ var $author$project$Pages$Editor$update = F2(
 								F2(
 									function (index, token) {
 										return {
-											d: target.d,
-											a: A2(
+											c: target.c,
+											bz: A2(
 												$elm$core$Maybe$withDefault,
-												model.m + index,
+												model.k + index,
 												$elm$core$List$head(
 													A2($elm$core$List$drop, index, preservedIds))),
-											k: token,
-											e: target.e
+											i: token,
+											d: target.d
 										};
 									}),
 								labels);
@@ -7758,22 +7790,22 @@ var $author$project$Pages$Editor$update = F2(
 								_Utils_update(
 									model,
 									{
-										m: model.m + additionalCount,
-										D: A2(
+										k: model.k + additionalCount,
+										y: A2(
 											$elm$core$Maybe$map,
 											function ($) {
-												return $.a;
+												return $.bz;
 											},
 											$elm$core$List$head(recreatedTransitions)),
-										W: label,
-										c: _Utils_ap(remainingTransitions, recreatedTransitions)
+										M: label,
+										b: _Utils_ap(remainingTransitions, recreatedTransitions)
 									}),
 								$elm$core$Platform$Cmd$none);
 						}
 					}
 				case 14:
 					var name = msg.a;
-					var _v24 = model.q;
+					var _v24 = model.o;
 					if (_v24.$ === 1) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
@@ -7781,23 +7813,23 @@ var $author$project$Pages$Editor$update = F2(
 						var normalizedName = $elm$core$String$isEmpty(
 							$elm$core$String$trim(name)) ? $elm$core$String$fromInt(sid) : name;
 						var updateState = function (s) {
-							return _Utils_eq(s.a, sid) ? _Utils_update(
+							return _Utils_eq(s.bz, sid) ? _Utils_update(
 								s,
-								{f: normalizedName}) : s;
+								{bC: normalizedName}) : s;
 						};
-						var updatedStates = A2($elm$core$List$map, updateState, model.b);
+						var updatedStates = A2($elm$core$List$map, updateState, model.a);
 						return $author$project$Pages$Editor$hasDuplicateStateNames(updatedStates) ? _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{Y: true}),
+								{W: true}),
 							$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{Y: false, b: updatedStates}),
+								{W: false, a: updatedStates}),
 							$elm$core$Platform$Cmd$none);
 					}
 				case 15:
-					var _v25 = A2($elm$json$Json$Decode$decodeString, $author$project$Pages$Editor$decodeAutomaton, model.ao);
+					var _v25 = A2($elm$json$Json$Decode$decodeString, $author$project$Pages$Editor$decodeAutomaton, model.am);
 					if (!_v25.$) {
 						var _v26 = _v25.a;
 						var ss = _v26.a;
@@ -7806,7 +7838,7 @@ var $author$project$Pages$Editor$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{Y: true}),
+									{W: true}),
 								$elm$core$Platform$Cmd$none);
 						} else {
 							var normalizedStates = $author$project$Pages$Editor$enforceSingleStartFlag(ss);
@@ -7814,11 +7846,11 @@ var $author$project$Pages$Editor$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{C: normalizedAutomaton.C, m: normalizedAutomaton.m, Y: false, b: normalizedAutomaton.b, c: normalizedAutomaton.c}),
+									{C: normalizedAutomaton.C, k: normalizedAutomaton.k, W: false, a: normalizedAutomaton.a, b: normalizedAutomaton.b}),
 								$elm$core$Platform$Cmd$none);
 						}
 					} else {
-						var _v27 = A2($author$project$Pages$Editor$decodeTransitionLanguage, model.b, model.ao);
+						var _v27 = A2($author$project$Pages$Editor$decodeTransitionLanguage, model.a, model.am);
 						if (!_v27.$) {
 							var _v28 = _v27.a;
 							var ss = _v28.a;
@@ -7827,7 +7859,7 @@ var $author$project$Pages$Editor$update = F2(
 							return _Utils_Tuple2(
 								_Utils_update(
 									model,
-									{C: normalizedAutomaton.C, m: normalizedAutomaton.m, Y: false, b: normalizedAutomaton.b, c: normalizedAutomaton.c}),
+									{C: normalizedAutomaton.C, k: normalizedAutomaton.k, W: false, a: normalizedAutomaton.a, b: normalizedAutomaton.b}),
 								$elm$core$Platform$Cmd$none);
 						} else {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -7838,7 +7870,7 @@ var $author$project$Pages$Editor$update = F2(
 						_Utils_update(
 							model,
 							{
-								ao: A2($author$project$Pages$Editor$encodeTransitionLanguage, model.b, model.c)
+								am: A2($author$project$Pages$Editor$encodeTransitionLanguage, model.a, model.b)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 17:
@@ -7846,14 +7878,14 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{ao: s}),
+							{am: s}),
 						$elm$core$Platform$Cmd$none);
 				case 18:
 					var s = msg.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{az: s}),
+							{ay: s}),
 						$elm$core$Platform$Cmd$none);
 				case 19:
 					var s = msg.a;
@@ -7880,7 +7912,7 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{cp: h, cq: w}),
+							{cq: h, cr: w}),
 						$elm$core$Platform$Cmd$none);
 				case 25:
 					return _Utils_Tuple2(
@@ -7890,31 +7922,32 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{aM: true}),
+							{aL: true, O: false}),
 						$elm$core$Platform$Cmd$none);
 				case 27:
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{L: '', M: $elm$core$Maybe$Nothing, aM: false}),
+							{K: '', L: $elm$core$Maybe$Nothing, aL: false}),
 						$elm$core$Platform$Cmd$none);
 				case 28:
 					var slotId = msg.a;
 					var automatonJson = A2(
 						$elm$json$Json$Encode$encode,
 						2,
-						A2($author$project$Pages$Editor$encodeAutomaton, model.b, model.c));
+						A2($author$project$Pages$Editor$encodeAutomaton, model.a, model.b));
 					var updateSlot = function (slot) {
-						return _Utils_eq(slot.a, slotId) ? _Utils_update(
+						return _Utils_eq(slot.bz, slotId) ? _Utils_update(
 							slot,
-							{O: automatonJson}) : slot;
+							{bs: automatonJson}) : slot;
 					};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								ax: $elm$core$Maybe$Just(slotId),
-								bl: A2($elm$core$List$map, updateSlot, model.bl)
+								aq: $elm$core$Maybe$Just(slotId),
+								ar: A2($elm$core$List$map, updateSlot, model.ar),
+								O: false
 							}),
 						A2(
 							$elm$core$Task$perform,
@@ -7928,17 +7961,17 @@ var $author$project$Pages$Editor$update = F2(
 						A2(
 							$elm$core$List$filter,
 							function (slot) {
-								return _Utils_eq(slot.a, slotId);
+								return _Utils_eq(slot.bz, slotId);
 							},
-							model.bl));
+							model.ar));
 					if (maybeSlot.$ === 1) {
 						return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 					} else {
 						var slot = maybeSlot.a;
-						if ($elm$core$String$isEmpty(slot.O)) {
+						if ($elm$core$String$isEmpty(slot.bs)) {
 							return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 						} else {
-							var _v31 = A2($elm$json$Json$Decode$decodeString, $author$project$Pages$Editor$decodeAutomaton, slot.O);
+							var _v31 = A2($elm$json$Json$Decode$decodeString, $author$project$Pages$Editor$decodeAutomaton, slot.bs);
 							if (!_v31.$) {
 								var _v32 = _v31.a;
 								var ss = _v32.a;
@@ -7947,7 +7980,7 @@ var $author$project$Pages$Editor$update = F2(
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
-											{Y: true}),
+											{W: true}),
 										$elm$core$Platform$Cmd$none);
 								} else {
 									var normalizedStates = $author$project$Pages$Editor$enforceSingleStartFlag(ss);
@@ -7955,7 +7988,7 @@ var $author$project$Pages$Editor$update = F2(
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
-											{Z: $elm$core$Maybe$Nothing, C: normalizedAutomaton.C, m: normalizedAutomaton.m, q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing, F: $elm$core$Maybe$Nothing, aj: $elm$core$Maybe$Nothing, ak: _List_Nil, ad: 0, N: false, Y: false, b: normalizedAutomaton.b, ae: $elm$core$Maybe$Nothing, c: normalizedAutomaton.c}),
+											{Y: $elm$core$Maybe$Nothing, C: normalizedAutomaton.C, k: normalizedAutomaton.k, o: $elm$core$Maybe$Nothing, y: $elm$core$Maybe$Nothing, E: $elm$core$Maybe$Nothing, ah: $elm$core$Maybe$Nothing, ai: _List_Nil, ac: 0, N: false, W: false, a: normalizedAutomaton.a, X: $elm$core$Maybe$Nothing, b: normalizedAutomaton.b}),
 										$elm$core$Platform$Cmd$none);
 								}
 							} else {
@@ -7966,21 +7999,22 @@ var $author$project$Pages$Editor$update = F2(
 				case 30:
 					var slotId = msg.a;
 					var updateSlot = function (slot) {
-						return _Utils_eq(slot.a, slotId) ? _Utils_update(
+						return _Utils_eq(slot.bz, slotId) ? _Utils_update(
 							slot,
-							{O: '', f: ''}) : slot;
+							{bs: '', bC: ''}) : slot;
 					};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
+								K: _Utils_eq(
+									model.L,
+									$elm$core$Maybe$Just(slotId)) ? '' : model.K,
 								L: _Utils_eq(
-									model.M,
-									$elm$core$Maybe$Just(slotId)) ? '' : model.L,
-								M: _Utils_eq(
-									model.M,
-									$elm$core$Maybe$Just(slotId)) ? $elm$core$Maybe$Nothing : model.M,
-								bl: A2($elm$core$List$map, updateSlot, model.bl)
+									model.L,
+									$elm$core$Maybe$Just(slotId)) ? $elm$core$Maybe$Nothing : model.L,
+								ar: A2($elm$core$List$map, updateSlot, model.ar),
+								O: false
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 31:
@@ -7991,21 +8025,21 @@ var $author$project$Pages$Editor$update = F2(
 						A2(
 							$elm$core$Maybe$map,
 							function ($) {
-								return $.f;
+								return $.bC;
 							},
 							$elm$core$List$head(
 								A2(
 									$elm$core$List$filter,
 									function (slot) {
-										return _Utils_eq(slot.a, slotId);
+										return _Utils_eq(slot.bz, slotId);
 									},
-									model.bl))));
+									model.ar))));
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								L: currentName,
-								M: $elm$core$Maybe$Just(slotId)
+								K: currentName,
+								L: $elm$core$Maybe$Just(slotId)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 32:
@@ -8013,34 +8047,83 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{L: slotName}),
+							{K: slotName}),
 						$elm$core$Platform$Cmd$none);
 				case 33:
 					var slotId = msg.a;
-					var trimmedName = $elm$core$String$trim(model.L);
+					var trimmedName = $elm$core$String$trim(model.K);
 					var updateSlot = function (slot) {
-						return _Utils_eq(slot.a, slotId) ? _Utils_update(
+						return _Utils_eq(slot.bz, slotId) ? _Utils_update(
 							slot,
-							{f: trimmedName}) : slot;
+							{bC: trimmedName}) : slot;
 					};
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
 							{
-								L: '',
-								M: $elm$core$Maybe$Nothing,
-								bl: A2($elm$core$List$map, updateSlot, model.bl)
+								K: '',
+								L: $elm$core$Maybe$Nothing,
+								ar: A2($elm$core$List$map, updateSlot, model.ar)
 							}),
 						$elm$core$Platform$Cmd$none);
 				case 34:
 					var slotId = msg.a;
 					return _Utils_eq(
-						model.ax,
+						model.aq,
 						$elm$core$Maybe$Just(slotId)) ? _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{ax: $elm$core$Maybe$Nothing}),
+							{aq: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				case 35:
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{O: false}),
+						$elm$core$Platform$Cmd$none);
+				case 36:
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{O: false}),
+						$elm$core$Platform$Cmd$none);
+				case 37:
+					var slotId = msg.a;
+					var importedJson = msg.b;
+					var _v33 = A2($elm$json$Json$Decode$decodeString, $author$project$Pages$Editor$decodeAutomaton, importedJson);
+					if (!_v33.$) {
+						var updateSlot = function (slot) {
+							return _Utils_eq(slot.bz, slotId) ? _Utils_update(
+								slot,
+								{bs: importedJson}) : slot;
+						};
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{
+									aq: $elm$core$Maybe$Just(slotId),
+									ar: A2($elm$core$List$map, updateSlot, model.ar),
+									O: false
+								}),
+							A2(
+								$elm$core$Task$perform,
+								function (_v34) {
+									return $author$project$Pages$Editor$ClearRecentlySavedSlot(slotId);
+								},
+								$elm$core$Process$sleep(2000)));
+					} else {
+						return _Utils_Tuple2(
+							_Utils_update(
+								model,
+								{O: true}),
+							$elm$core$Platform$Cmd$none);
+					}
+				case 38:
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{O: true}),
+						$elm$core$Platform$Cmd$none);
 				default:
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			}
@@ -8061,7 +8144,7 @@ var $author$project$Main$update = F2(
 						model,
 						A2(
 							$elm$browser$Browser$Navigation$pushUrl,
-							model.a2,
+							model.a1,
 							$elm$url$Url$toString(url)));
 				} else {
 					var href = req.a;
@@ -8075,8 +8158,8 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							aL: $author$project$Route$parseHash(url.by),
-							bp: url
+							aK: $author$project$Route$parseHash(url.bx),
+							bn: url
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
@@ -8085,7 +8168,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							l: $author$project$I18n$langFromString(s)
+							j: $author$project$I18n$langFromString(s)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 3:
@@ -8093,7 +8176,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							h: $author$project$Theme$toggle(model.h)
+							f: $author$project$Theme$toggle(model.f)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 4:
@@ -8102,81 +8185,154 @@ var $author$project$Main$update = F2(
 					model,
 					A2(
 						$elm$browser$Browser$Navigation$pushUrl,
-						model.a2,
+						model.a1,
 						$author$project$Route$toHash(r)));
 			case 5:
 				var maybeR = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{a1: maybeR}),
+						{a0: maybeR}),
 					$elm$core$Platform$Cmd$none);
 			case 6:
 				var sub = msg.a;
-				var _v2 = A2($author$project$Pages$Editor$update, sub, model.Q);
+				var _v2 = A2($author$project$Pages$Editor$update, sub, model.z);
 				var subModel = _v2.a;
 				var subCmd = _v2.b;
-				var persistCmd = (!_Utils_eq(model.Q.bl, subModel.bl)) ? $author$project$Main$saveAutomatonSlots(
-					$author$project$Pages$Editor$encodeSaveSlots(subModel.bl)) : $elm$core$Platform$Cmd$none;
+				var maybeExportCmd = function () {
+					switch (sub.$) {
+						case 35:
+							var slotId = sub.a;
+							return A2(
+								$elm$core$Maybe$withDefault,
+								$elm$core$Platform$Cmd$none,
+								A2(
+									$elm$core$Maybe$map,
+									function (slot) {
+										return $author$project$Main$exportAutomatonFile(
+											$elm$json$Json$Encode$object(
+												_List_fromArray(
+													[
+														_Utils_Tuple2(
+														'fileName',
+														$elm$json$Json$Encode$string(
+															$elm$core$String$isEmpty(slot.bC) ? ('slot-' + $elm$core$String$fromInt(slot.bz)) : slot.bC)),
+														_Utils_Tuple2(
+														'content',
+														$elm$json$Json$Encode$string(slot.bs))
+													])));
+									},
+									$elm$core$List$head(
+										A2(
+											$elm$core$List$filter,
+											function (slot) {
+												return _Utils_eq(slot.bz, slotId) && (!$elm$core$String$isEmpty(slot.bs));
+											},
+											subModel.ar))));
+						case 36:
+							var slotId = sub.a;
+							return $author$project$Main$importAutomatonFile(slotId);
+						default:
+							return $elm$core$Platform$Cmd$none;
+					}
+				}();
+				var persistCmd = (!_Utils_eq(model.z.ar, subModel.ar)) ? $author$project$Main$saveAutomatonSlots(
+					$author$project$Pages$Editor$encodeSaveSlots(subModel.ar)) : $elm$core$Platform$Cmd$none;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{Q: subModel}),
+						{z: subModel}),
 					$elm$core$Platform$Cmd$batch(
 						_List_fromArray(
 							[
 								A2($elm$core$Platform$Cmd$map, $author$project$Main$EditorMsg, subCmd),
-								persistCmd
+								persistCmd,
+								maybeExportCmd
 							])));
+			case 11:
+				var value = msg.a;
+				var _v4 = A2($elm$json$Json$Decode$decodeValue, $author$project$Main$decodeImportFileResult, value);
+				if (!_v4.$) {
+					var _v5 = _v4.a;
+					var slotId = _v5.a;
+					var content = _v5.b;
+					var _v6 = A2(
+						$author$project$Pages$Editor$update,
+						A2($author$project$Pages$Editor$ApplyImportedSlot, slotId, content),
+						model.z);
+					var editorModel = _v6.a;
+					var editorCmd = _v6.b;
+					var persistCmd = (!_Utils_eq(model.z.ar, editorModel.ar)) ? $author$project$Main$saveAutomatonSlots(
+						$author$project$Pages$Editor$encodeSaveSlots(editorModel.ar)) : $elm$core$Platform$Cmd$none;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{z: editorModel}),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									A2($elm$core$Platform$Cmd$map, $author$project$Main$EditorMsg, editorCmd),
+									persistCmd
+								])));
+				} else {
+					var _v7 = A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$ImportSlotFailed, model.z);
+					var editorModel = _v7.a;
+					var editorCmd = _v7.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{z: editorModel}),
+						A2($elm$core$Platform$Cmd$map, $author$project$Main$EditorMsg, editorCmd));
+				}
 			case 7:
 				var sub = msg.a;
-				var _v3 = A2($author$project$Pages$Instructions$update, sub, model.aH);
-				var subModel = _v3.a;
-				var subCmd = _v3.b;
+				var _v8 = A2($author$project$Pages$Instructions$update, sub, model.aG);
+				var subModel = _v8.a;
+				var subCmd = _v8.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{aH: subModel}),
+						{aG: subModel}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$InstructionsMsg, subCmd));
 			case 8:
 				var sub = msg.a;
-				var _v4 = A2($author$project$Pages$About$update, sub, model.aE);
-				var subModel = _v4.a;
-				var subCmd = _v4.b;
+				var _v9 = A2($author$project$Pages$About$update, sub, model.aD);
+				var subModel = _v9.a;
+				var subCmd = _v9.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{aE: subModel}),
+						{aD: subModel}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$AboutMsg, subCmd));
 			case 9:
 				var w = msg.a;
 				var h = msg.b;
-				var _v5 = A2(
+				var _v10 = A2(
 					$author$project$Pages$Editor$update,
 					A2($author$project$Pages$Editor$SetViewport, w, h),
-					model.Q);
-				var editorModel = _v5.a;
-				var editorCmd = _v5.b;
+					model.z);
+				var editorModel = _v10.a;
+				var editorCmd = _v10.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{Q: editorModel, aU: h, aC: w}),
+						{z: editorModel, aT: h, aB: w}),
 					A2($elm$core$Platform$Cmd$map, $author$project$Main$EditorMsg, editorCmd));
 			default:
 				if (!msg.a.$) {
 					var vp = msg.a.a;
-					var w = $elm$core$Basics$round(vp.bP.bq);
-					var h = $elm$core$Basics$round(vp.bP.p);
-					var _v6 = A2(
+					var w = $elm$core$Basics$round(vp.bQ.bo);
+					var h = $elm$core$Basics$round(vp.bQ.n);
+					var _v11 = A2(
 						$author$project$Pages$Editor$update,
 						A2($author$project$Pages$Editor$SetViewport, w, h),
-						model.Q);
-					var editorModel = _v6.a;
-					var editorCmd = _v6.b;
+						model.z);
+					var editorModel = _v11.a;
+					var editorCmd = _v11.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{Q: editorModel, aU: h, aC: w}),
+							{z: editorModel, aT: h, aB: w}),
 						A2($elm$core$Platform$Cmd$map, $author$project$Main$EditorMsg, editorCmd));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -8215,22 +8371,22 @@ var $author$project$Design$borderFor = F2(
 	function (kind, tk) {
 		switch (kind) {
 			case 0:
-				return tk.P.a7;
-			case 1:
-				return tk.P.aI;
-			default:
 				return tk.P.a6;
+			case 1:
+				return tk.P.aH;
+			default:
+				return tk.P.a5;
 		}
 	});
 var $author$project$Design$card = F2(
 	function (sz, tk) {
 		switch (sz) {
 			case 0:
-				return tk.x.g;
+				return tk.v.e;
 			case 1:
-				return tk.x.o;
+				return tk.v.m;
 			default:
-				return tk.x.n;
+				return tk.v.l;
 		}
 	});
 var $author$project$Theme$focusOutline = function (th) {
@@ -8321,30 +8477,30 @@ var $author$project$Design$BorderMid = 1;
 var $author$project$Design$M = 1;
 var $author$project$Design$S = 0;
 var $author$project$Design$baseTokens = {
-	P: {ba: 1, aI: 1, a6: 2, a7: 1},
-	aW: {bT: 1024, bU: 1280, bV: 320, bW: 360, bX: 375, bY: 390, bZ: 412, b_: 768},
-	x: {
-		n: {p: 56, V: 16, t: 12},
-		o: {p: 52, V: 14, t: 10},
-		g: {p: 48, V: 12, t: 10}
+	P: {a9: 1, aH: 1, a5: 2, a6: 1},
+	aV: {bU: 1024, bV: 1280, bW: 320, bX: 360, bY: 375, bZ: 390, b_: 412, b$: 768},
+	v: {
+		l: {n: 56, U: 16, r: 12},
+		m: {n: 52, U: 14, r: 10},
+		e: {n: 48, U: 12, r: 10}
 	},
-	aZ: {bg: 24},
-	aG: {bf: 960, bi: 420},
-	y: {
-		n: {p: 40, T: 14, U: 8},
-		o: {p: 36, T: 12, U: 6},
-		g: {p: 32, T: 10, U: 5}
+	aY: {bf: 24},
+	aF: {be: 960, bh: 420},
+	w: {
+		l: {n: 40, S: 14, T: 8},
+		m: {n: 36, S: 12, T: 6},
+		e: {n: 32, S: 10, T: 5}
 	},
-	a_: 6,
-	a$: {x: 0, y: 1},
-	a0: {n: '0 10px 28px rgba(0,0,0,0.18)', o: '0 6px 18px rgba(0,0,0,0.14)', cb: 'none', g: '0 4px 12px rgba(0,0,0,0.10)'},
-	_: {aV: 14, bb: 22, bc: 18, bd: 16, g: 13, ag: 12},
-	av: {n: 22, o: 18, g: 14},
-	a3: {aV: '1.2', b9: '1.4', cl: '1.1'},
-	a4: {b1: 'ease', b5: '120ms', aI: '180ms', cg: '120ms', ci: '240ms'},
-	a5: {bq: 2},
-	t: {n: 12, o: 10, g: 8, aD: 16, ag: 6},
-	X: {n: 16, o: 12, g: 8, aD: 20, ag: 6, br: 28, bs: 4}
+	aZ: 6,
+	a_: {v: 0, w: 1},
+	a$: {l: '0 10px 28px rgba(0,0,0,0.18)', m: '0 6px 18px rgba(0,0,0,0.14)', cc: 'none', e: '0 4px 12px rgba(0,0,0,0.10)'},
+	Z: {aU: 14, ba: 22, bb: 18, bc: 16, e: 13, ae: 12},
+	av: {l: 22, m: 18, e: 14},
+	a2: {aU: '1.2', ca: '1.4', cm: '1.1'},
+	a3: {b2: 'ease', b6: '120ms', aH: '180ms', ch: '120ms', cj: '240ms'},
+	a4: {bo: 2},
+	r: {l: 12, m: 10, e: 8, aC: 16, ae: 6},
+	V: {l: 16, m: 12, e: 8, aC: 20, ae: 6, bp: 28, bq: 4}
 };
 var $author$project$Design$scaleFactor = function (sc) {
 	switch (sc) {
@@ -8367,135 +8523,135 @@ var $author$project$Design$tokens = function (sc) {
 	var b = $author$project$Design$baseTokens;
 	return {
 		P: {
-			ba: b.P.ba,
-			aI: A2(
+			a9: b.P.a9,
+			aH: A2(
 				$elm$core$Basics$max,
 				1,
-				A2($author$project$Design$scaleI, k, b.P.aI)),
+				A2($author$project$Design$scaleI, k, b.P.aH)),
+			a5: A2(
+				$elm$core$Basics$max,
+				2,
+				A2($author$project$Design$scaleI, k, b.P.a5)),
 			a6: A2(
 				$elm$core$Basics$max,
-				2,
-				A2($author$project$Design$scaleI, k, b.P.a6)),
-			a7: A2(
-				$elm$core$Basics$max,
 				1,
-				A2($author$project$Design$scaleI, k, b.P.a7))
+				A2($author$project$Design$scaleI, k, b.P.a6))
 		},
-		aW: b.aW,
-		x: {
-			n: {
-				p: A2($author$project$Design$scaleI, k, b.x.n.p),
-				V: A2($author$project$Design$scaleI, k, b.x.n.V),
-				t: A2($author$project$Design$scaleI, k, b.x.n.t)
+		aV: b.aV,
+		v: {
+			l: {
+				n: A2($author$project$Design$scaleI, k, b.v.l.n),
+				U: A2($author$project$Design$scaleI, k, b.v.l.U),
+				r: A2($author$project$Design$scaleI, k, b.v.l.r)
 			},
-			o: {
-				p: A2($author$project$Design$scaleI, k, b.x.o.p),
-				V: A2($author$project$Design$scaleI, k, b.x.o.V),
-				t: A2($author$project$Design$scaleI, k, b.x.o.t)
+			m: {
+				n: A2($author$project$Design$scaleI, k, b.v.m.n),
+				U: A2($author$project$Design$scaleI, k, b.v.m.U),
+				r: A2($author$project$Design$scaleI, k, b.v.m.r)
 			},
-			g: {
-				p: A2($author$project$Design$scaleI, k, b.x.g.p),
-				V: A2($author$project$Design$scaleI, k, b.x.g.V),
-				t: A2($author$project$Design$scaleI, k, b.x.g.t)
+			e: {
+				n: A2($author$project$Design$scaleI, k, b.v.e.n),
+				U: A2($author$project$Design$scaleI, k, b.v.e.U),
+				r: A2($author$project$Design$scaleI, k, b.v.e.r)
 			}
 		},
-		aZ: {
-			bg: A2($author$project$Design$scaleI, k, b.aZ.bg)
+		aY: {
+			bf: A2($author$project$Design$scaleI, k, b.aY.bf)
 		},
-		aG: {
-			bf: A2($author$project$Design$scaleI, k, b.aG.bf),
-			bi: A2($author$project$Design$scaleI, k, b.aG.bi)
+		aF: {
+			be: A2($author$project$Design$scaleI, k, b.aF.be),
+			bh: A2($author$project$Design$scaleI, k, b.aF.bh)
 		},
-		y: {
-			n: {
-				p: A2($author$project$Design$scaleI, k, b.y.n.p),
-				T: A2($author$project$Design$scaleI, k, b.y.n.T),
-				U: A2($author$project$Design$scaleI, k, b.y.n.U)
+		w: {
+			l: {
+				n: A2($author$project$Design$scaleI, k, b.w.l.n),
+				S: A2($author$project$Design$scaleI, k, b.w.l.S),
+				T: A2($author$project$Design$scaleI, k, b.w.l.T)
 			},
-			o: {
-				p: A2($author$project$Design$scaleI, k, b.y.o.p),
-				T: A2($author$project$Design$scaleI, k, b.y.o.T),
-				U: A2($author$project$Design$scaleI, k, b.y.o.U)
+			m: {
+				n: A2($author$project$Design$scaleI, k, b.w.m.n),
+				S: A2($author$project$Design$scaleI, k, b.w.m.S),
+				T: A2($author$project$Design$scaleI, k, b.w.m.T)
 			},
-			g: {
-				p: A2($author$project$Design$scaleI, k, b.y.g.p),
-				T: A2($author$project$Design$scaleI, k, b.y.g.T),
-				U: A2($author$project$Design$scaleI, k, b.y.g.U)
+			e: {
+				n: A2($author$project$Design$scaleI, k, b.w.e.n),
+				S: A2($author$project$Design$scaleI, k, b.w.e.S),
+				T: A2($author$project$Design$scaleI, k, b.w.e.T)
 			}
 		},
+		aZ: b.aZ,
 		a_: b.a_,
 		a$: b.a$,
-		a0: b.a0,
-		_: {
-			aV: A2($author$project$Design$scaleI, k, b._.aV),
-			bb: A2($author$project$Design$scaleI, k, b._.bb),
-			bc: A2($author$project$Design$scaleI, k, b._.bc),
-			bd: A2($author$project$Design$scaleI, k, b._.bd),
-			g: A2($author$project$Design$scaleI, k, b._.g),
-			ag: A2($author$project$Design$scaleI, k, b._.ag)
+		Z: {
+			aU: A2($author$project$Design$scaleI, k, b.Z.aU),
+			ba: A2($author$project$Design$scaleI, k, b.Z.ba),
+			bb: A2($author$project$Design$scaleI, k, b.Z.bb),
+			bc: A2($author$project$Design$scaleI, k, b.Z.bc),
+			e: A2($author$project$Design$scaleI, k, b.Z.e),
+			ae: A2($author$project$Design$scaleI, k, b.Z.ae)
 		},
 		av: {
-			n: A2($author$project$Design$scaleI, k, b.av.n),
-			o: A2($author$project$Design$scaleI, k, b.av.o),
-			g: A2($author$project$Design$scaleI, k, b.av.g)
+			l: A2($author$project$Design$scaleI, k, b.av.l),
+			m: A2($author$project$Design$scaleI, k, b.av.m),
+			e: A2($author$project$Design$scaleI, k, b.av.e)
 		},
+		a2: b.a2,
 		a3: b.a3,
-		a4: b.a4,
-		a5: {
-			bq: A2(
+		a4: {
+			bo: A2(
 				$elm$core$Basics$max,
 				2,
-				A2($author$project$Design$scaleI, k, b.a5.bq))
+				A2($author$project$Design$scaleI, k, b.a4.bo))
 		},
-		t: {
-			n: A2($author$project$Design$scaleI, k, b.t.n),
-			o: A2($author$project$Design$scaleI, k, b.t.o),
-			g: A2($author$project$Design$scaleI, k, b.t.g),
-			aD: A2($author$project$Design$scaleI, k, b.t.aD),
-			ag: A2($author$project$Design$scaleI, k, b.t.ag)
+		r: {
+			l: A2($author$project$Design$scaleI, k, b.r.l),
+			m: A2($author$project$Design$scaleI, k, b.r.m),
+			e: A2($author$project$Design$scaleI, k, b.r.e),
+			aC: A2($author$project$Design$scaleI, k, b.r.aC),
+			ae: A2($author$project$Design$scaleI, k, b.r.ae)
 		},
-		X: {
-			n: A2($author$project$Design$scaleI, k, b.X.n),
-			o: A2($author$project$Design$scaleI, k, b.X.o),
-			g: A2($author$project$Design$scaleI, k, b.X.g),
-			aD: A2($author$project$Design$scaleI, k, b.X.aD),
-			ag: A2($author$project$Design$scaleI, k, b.X.ag),
-			br: A2($author$project$Design$scaleI, k, b.X.br),
-			bs: A2($author$project$Design$scaleI, k, b.X.bs)
+		V: {
+			l: A2($author$project$Design$scaleI, k, b.V.l),
+			m: A2($author$project$Design$scaleI, k, b.V.m),
+			e: A2($author$project$Design$scaleI, k, b.V.e),
+			aC: A2($author$project$Design$scaleI, k, b.V.aC),
+			ae: A2($author$project$Design$scaleI, k, b.V.ae),
+			bp: A2($author$project$Design$scaleI, k, b.V.bp),
+			bq: A2($author$project$Design$scaleI, k, b.V.bq)
 		}
 	};
 };
 var $author$project$Main$menuCard = F3(
 	function (model, label, routeTarget) {
-		var tk = $author$project$Design$tokens(model.ay);
-		var k = A2($author$project$Design$card, tk.a$.x, tk);
+		var tk = $author$project$Design$tokens(model.ax);
+		var k = A2($author$project$Design$card, tk.a_.v, tk);
 		var isHovered = _Utils_eq(
-			model.a1,
+			model.a0,
 			$elm$core$Maybe$Just(routeTarget));
 		var outlineStyle = isHovered ? _List_fromArray(
 			[
 				A2(
 				$elm$html$Html$Attributes$style,
 				'outline',
-				$author$project$Design$px(tk.a5.bq) + (' solid ' + $author$project$Theme$focusOutline(model.h))),
+				$author$project$Design$px(tk.a4.bo) + (' solid ' + $author$project$Theme$focusOutline(model.f))),
 				A2(
 				$elm$html$Html$Attributes$style,
 				'outline-offset',
-				$author$project$Design$px(tk.X.ag))
+				$author$project$Design$px(tk.V.ae))
 			]) : _List_fromArray(
 			[
 				A2(
 				$elm$html$Html$Attributes$style,
 				'outline',
-				$author$project$Design$px(tk.a5.bq) + ' solid transparent'),
+				$author$project$Design$px(tk.a4.bo) + ' solid transparent'),
 				A2(
 				$elm$html$Html$Attributes$style,
 				'outline-offset',
-				$author$project$Design$px(tk.X.ag))
+				$author$project$Design$px(tk.V.ae))
 			]);
-		var shadow = isHovered ? $author$project$Theme$hoverShadow(model.h) : 'none';
-		var borderC = isHovered ? $author$project$Theme$hoverBorder(model.h) : $author$project$Theme$panelBorder(model.h);
-		var bg = isHovered ? $author$project$Theme$hoverBg(model.h) : $author$project$Theme$panelBg(model.h);
+		var shadow = isHovered ? $author$project$Theme$hoverShadow(model.f) : 'none';
+		var borderC = isHovered ? $author$project$Theme$hoverBorder(model.f) : $author$project$Theme$panelBorder(model.f);
+		var bg = isHovered ? $author$project$Theme$hoverBg(model.f) : $author$project$Theme$panelBg(model.f);
 		return A2(
 			$elm$html$Html$div,
 			_Utils_ap(
@@ -8513,15 +8669,15 @@ var $author$project$Main$menuCard = F3(
 						$elm$html$Html$Attributes$style,
 						'border',
 						$author$project$Design$px(
-							A2($author$project$Design$borderFor, tk.P.ba, tk)) + (' solid ' + borderC)),
+							A2($author$project$Design$borderFor, tk.P.a9, tk)) + (' solid ' + borderC)),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'padding',
-						$author$project$Design$px(k.V)),
+						$author$project$Design$px(k.U)),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'border-radius',
-						$author$project$Design$px(k.t)),
+						$author$project$Design$px(k.r)),
 						A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
 						A2($elm$html$Html$Attributes$style, 'user-select', 'none'),
 						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
@@ -8530,9 +8686,9 @@ var $author$project$Main$menuCard = F3(
 						A2(
 						$elm$html$Html$Attributes$style,
 						'height',
-						$author$project$Design$px(k.p)),
+						$author$project$Design$px(k.n)),
 						A2($elm$html$Html$Attributes$style, 'box-shadow', shadow),
-						A2($elm$html$Html$Attributes$style, 'transition', 'background ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', box-shadow ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', border-color ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', outline-color ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', outline ' + (tk.a4.cg + (' ' + tk.a4.b1))))))))))))))))))),
+						A2($elm$html$Html$Attributes$style, 'transition', 'background ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', box-shadow ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', border-color ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', outline-color ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', outline ' + (tk.a3.ch + (' ' + tk.a3.b2))))))))))))))))))),
 						A2($elm$html$Html$Attributes$attribute, 'role', 'button'),
 						$elm$html$Html$Attributes$tabindex(0)
 					]),
@@ -8547,7 +8703,7 @@ var $author$project$Main$menuCard = F3(
 							A2(
 							$elm$html$Html$Attributes$style,
 							'font-size',
-							$author$project$Design$px(tk.aZ.bg))
+							$author$project$Design$px(tk.aY.bf))
 						]),
 					_List_fromArray(
 						[
@@ -8668,198 +8824,210 @@ var $author$project$I18n$t = F2(
 					case 25:
 						var _v201 = _v0.a;
 						var _v202 = _v0.b;
-						return 'Переименовать';
+						return 'Импорт .fas';
 					case 26:
 						var _v209 = _v0.a;
 						var _v210 = _v0.b;
-						return 'Подтвердить';
+						return 'Экспорт .fas';
 					case 27:
 						var _v217 = _v0.a;
 						var _v218 = _v0.b;
-						return 'Сохранено';
+						return 'Ошибка при импорте';
 					case 28:
 						var _v225 = _v0.a;
 						var _v226 = _v0.b;
-						return 'Ячейка';
+						return 'Переименовать';
 					case 29:
 						var _v233 = _v0.a;
 						var _v234 = _v0.b;
-						return 'пусто';
+						return 'Подтвердить';
 					case 30:
 						var _v241 = _v0.a;
 						var _v242 = _v0.b;
-						return 'Закрыть';
+						return 'Сохранено';
 					case 31:
 						var _v249 = _v0.a;
 						var _v250 = _v0.b;
-						return 'Название';
+						return 'Ячейка';
 					case 32:
 						var _v257 = _v0.a;
 						var _v258 = _v0.b;
-						return 'Ошибка: названия состояний должны быть уникальными';
+						return 'пусто';
 					case 33:
 						var _v265 = _v0.a;
 						var _v266 = _v0.b;
-						return 'Режим';
+						return 'Закрыть';
 					case 34:
 						var _v273 = _v0.a;
 						var _v274 = _v0.b;
-						return 'Создать состояния';
+						return 'Название';
 					case 35:
 						var _v281 = _v0.a;
 						var _v282 = _v0.b;
-						return 'Создать переходы';
+						return 'Ошибка: названия состояний должны быть уникальными';
 					case 36:
 						var _v289 = _v0.a;
 						var _v290 = _v0.b;
-						return 'Выбрать';
+						return 'Режим';
 					case 37:
 						var _v297 = _v0.a;
 						var _v298 = _v0.b;
-						return 'Настройка переходов';
+						return 'Создать состояния';
 					case 38:
 						var _v305 = _v0.a;
 						var _v306 = _v0.b;
-						return 'Переходы';
+						return 'Создать переходы';
 					case 39:
 						var _v313 = _v0.a;
 						var _v314 = _v0.b;
-						return 'Метка';
+						return 'Выбрать';
 					case 40:
 						var _v321 = _v0.a;
 						var _v322 = _v0.b;
-						return 'Выберите состояние как начальный узел';
+						return 'Настройка переходов';
 					case 41:
 						var _v329 = _v0.a;
 						var _v330 = _v0.b;
-						return 'Выберите переход для редактирования';
+						return 'Переходы';
 					case 42:
 						var _v337 = _v0.a;
 						var _v338 = _v0.b;
-						return 'Из';
+						return 'Метка';
 					case 43:
 						var _v345 = _v0.a;
 						var _v346 = _v0.b;
-						return 'Выбрано';
+						return 'Выберите состояние как начальный узел';
 					case 44:
 						var _v353 = _v0.a;
 						var _v354 = _v0.b;
-						return 'Ничего';
+						return 'Выберите переход для редактирования';
 					case 45:
 						var _v361 = _v0.a;
 						var _v362 = _v0.b;
-						return 'Не найдено';
+						return 'Из';
 					case 46:
 						var _v369 = _v0.a;
 						var _v370 = _v0.b;
-						return 'Состояние';
+						return 'Выбрано';
 					case 47:
 						var _v377 = _v0.a;
 						var _v378 = _v0.b;
-						return 'Позиция';
+						return 'Ничего';
 					case 48:
 						var _v385 = _v0.a;
 						var _v386 = _v0.b;
-						return 'Принимающее';
+						return 'Не найдено';
 					case 49:
 						var _v393 = _v0.a;
 						var _v394 = _v0.b;
-						return 'Стартовое';
+						return 'Состояние';
 					case 50:
 						var _v401 = _v0.a;
 						var _v402 = _v0.b;
-						return 'Да';
+						return 'Позиция';
 					case 51:
 						var _v409 = _v0.a;
 						var _v410 = _v0.b;
-						return 'Нет';
+						return 'Принимающее';
 					case 52:
 						var _v417 = _v0.a;
 						var _v418 = _v0.b;
-						return 'Удалить состояние';
+						return 'Стартовое';
 					case 53:
 						var _v425 = _v0.a;
 						var _v426 = _v0.b;
-						return 'Переход';
+						return 'Да';
 					case 54:
 						var _v433 = _v0.a;
 						var _v434 = _v0.b;
-						return 'Удалить переход';
+						return 'Нет';
 					case 55:
 						var _v441 = _v0.a;
 						var _v442 = _v0.b;
-						return 'Снять старт';
+						return 'Удалить состояние';
 					case 56:
 						var _v449 = _v0.a;
 						var _v450 = _v0.b;
-						return 'Сделать стартом';
+						return 'Переход';
 					case 57:
 						var _v457 = _v0.a;
 						var _v458 = _v0.b;
-						return 'Снять конечный';
+						return 'Удалить переход';
 					case 58:
 						var _v465 = _v0.a;
 						var _v466 = _v0.b;
-						return 'Сделать конечным';
+						return 'Снять старт';
 					case 59:
 						var _v473 = _v0.a;
 						var _v474 = _v0.b;
-						return 'Симуляция';
+						return 'Сделать стартом';
 					case 60:
 						var _v481 = _v0.a;
 						var _v482 = _v0.b;
-						return 'Входная строка';
+						return 'Снять конечный';
 					case 61:
 						var _v489 = _v0.a;
 						var _v490 = _v0.b;
-						return 'Задержка мс';
+						return 'Сделать конечным';
 					case 62:
 						var _v497 = _v0.a;
 						var _v498 = _v0.b;
-						return 'Запустить симуляцию';
+						return 'Симуляция';
 					case 63:
 						var _v505 = _v0.a;
 						var _v506 = _v0.b;
-						return 'Стоп';
+						return 'Входная строка';
 					case 64:
 						var _v513 = _v0.a;
 						var _v514 = _v0.b;
-						return 'Симуляция выполняется...';
+						return 'Задержка мс';
 					case 65:
 						var _v521 = _v0.a;
 						var _v522 = _v0.b;
-						return 'Успех';
+						return 'Запустить симуляцию';
 					case 66:
 						var _v529 = _v0.a;
 						var _v530 = _v0.b;
-						return 'Строка не соответствует автомату';
+						return 'Стоп';
 					case 67:
 						var _v537 = _v0.a;
 						var _v538 = _v0.b;
-						return 'Ошибка: нет подходящего перехода для входа';
+						return 'Симуляция выполняется...';
 					case 68:
 						var _v545 = _v0.a;
 						var _v546 = _v0.b;
-						return 'Ошибка: не выбрано стартовое состояние';
+						return 'Успех';
 					case 69:
 						var _v553 = _v0.a;
 						var _v554 = _v0.b;
-						return 'Есть несколько переходов';
+						return 'Строка не соответствует автомату';
 					case 70:
 						var _v561 = _v0.a;
 						var _v562 = _v0.b;
-						return 'Выберите, по какому переходу идти из состояния';
+						return 'Ошибка: нет подходящего перехода для входа';
 					case 71:
 						var _v569 = _v0.a;
 						var _v570 = _v0.b;
-						return '←';
+						return 'Ошибка: не выбрано стартовое состояние';
 					case 72:
 						var _v577 = _v0.a;
 						var _v578 = _v0.b;
-						return 'На главную';
-					default:
+						return 'Есть несколько переходов';
+					case 73:
 						var _v585 = _v0.a;
 						var _v586 = _v0.b;
+						return 'Выберите, по какому переходу идти из состояния';
+					case 74:
+						var _v593 = _v0.a;
+						var _v594 = _v0.b;
+						return '←';
+					case 75:
+						var _v601 = _v0.a;
+						var _v602 = _v0.b;
+						return 'На главную';
+					default:
+						var _v609 = _v0.a;
+						var _v610 = _v0.b;
 						return '← На главную';
 				}
 			case 1:
@@ -8971,198 +9139,210 @@ var $author$project$I18n$t = F2(
 					case 25:
 						var _v203 = _v0.a;
 						var _v204 = _v0.b;
-						return 'Rename';
+						return 'Import .fas';
 					case 26:
 						var _v211 = _v0.a;
 						var _v212 = _v0.b;
-						return 'Confirm';
+						return 'Export .fas';
 					case 27:
 						var _v219 = _v0.a;
 						var _v220 = _v0.b;
-						return 'Saved';
+						return 'Import failed';
 					case 28:
 						var _v227 = _v0.a;
 						var _v228 = _v0.b;
-						return 'Slot';
+						return 'Rename';
 					case 29:
 						var _v235 = _v0.a;
 						var _v236 = _v0.b;
-						return 'empty';
+						return 'Confirm';
 					case 30:
 						var _v243 = _v0.a;
 						var _v244 = _v0.b;
-						return 'Close';
+						return 'Saved';
 					case 31:
 						var _v251 = _v0.a;
 						var _v252 = _v0.b;
-						return 'Name';
+						return 'Slot';
 					case 32:
 						var _v259 = _v0.a;
 						var _v260 = _v0.b;
-						return 'Error: state names must be unique';
+						return 'empty';
 					case 33:
 						var _v267 = _v0.a;
 						var _v268 = _v0.b;
-						return 'Mode';
+						return 'Close';
 					case 34:
 						var _v275 = _v0.a;
 						var _v276 = _v0.b;
-						return 'Create states';
+						return 'Name';
 					case 35:
 						var _v283 = _v0.a;
 						var _v284 = _v0.b;
-						return 'Create transitions';
+						return 'Error: state names must be unique';
 					case 36:
 						var _v291 = _v0.a;
 						var _v292 = _v0.b;
-						return 'Select';
+						return 'Mode';
 					case 37:
 						var _v299 = _v0.a;
 						var _v300 = _v0.b;
-						return 'Configure transitions';
+						return 'Create states';
 					case 38:
 						var _v307 = _v0.a;
 						var _v308 = _v0.b;
-						return 'Transitions';
+						return 'Create transitions';
 					case 39:
 						var _v315 = _v0.a;
 						var _v316 = _v0.b;
-						return 'Label';
+						return 'Select';
 					case 40:
 						var _v323 = _v0.a;
 						var _v324 = _v0.b;
-						return 'Select a state as the start node';
+						return 'Configure transitions';
 					case 41:
 						var _v331 = _v0.a;
 						var _v332 = _v0.b;
-						return 'Select a transition to edit';
+						return 'Transitions';
 					case 42:
 						var _v339 = _v0.a;
 						var _v340 = _v0.b;
-						return 'From';
+						return 'Label';
 					case 43:
 						var _v347 = _v0.a;
 						var _v348 = _v0.b;
-						return 'Selected';
+						return 'Select a state as the start node';
 					case 44:
 						var _v355 = _v0.a;
 						var _v356 = _v0.b;
-						return 'None';
+						return 'Select a transition to edit';
 					case 45:
 						var _v363 = _v0.a;
 						var _v364 = _v0.b;
-						return 'Not found';
+						return 'From';
 					case 46:
 						var _v371 = _v0.a;
 						var _v372 = _v0.b;
-						return 'State';
+						return 'Selected';
 					case 47:
 						var _v379 = _v0.a;
 						var _v380 = _v0.b;
-						return 'Pos';
+						return 'None';
 					case 48:
 						var _v387 = _v0.a;
 						var _v388 = _v0.b;
-						return 'Accepting';
+						return 'Not found';
 					case 49:
 						var _v395 = _v0.a;
 						var _v396 = _v0.b;
-						return 'Start';
+						return 'State';
 					case 50:
 						var _v403 = _v0.a;
 						var _v404 = _v0.b;
-						return 'Yes';
+						return 'Pos';
 					case 51:
 						var _v411 = _v0.a;
 						var _v412 = _v0.b;
-						return 'No';
+						return 'Accepting';
 					case 52:
 						var _v419 = _v0.a;
 						var _v420 = _v0.b;
-						return 'Delete state';
+						return 'Start';
 					case 53:
 						var _v427 = _v0.a;
 						var _v428 = _v0.b;
-						return 'Transition';
+						return 'Yes';
 					case 54:
 						var _v435 = _v0.a;
 						var _v436 = _v0.b;
-						return 'Delete transition';
+						return 'No';
 					case 55:
 						var _v443 = _v0.a;
 						var _v444 = _v0.b;
-						return 'Unset start';
+						return 'Delete state';
 					case 56:
 						var _v451 = _v0.a;
 						var _v452 = _v0.b;
-						return 'Make start';
+						return 'Transition';
 					case 57:
 						var _v459 = _v0.a;
 						var _v460 = _v0.b;
-						return 'Unset accepting';
+						return 'Delete transition';
 					case 58:
 						var _v467 = _v0.a;
 						var _v468 = _v0.b;
-						return 'Make accepting';
+						return 'Unset start';
 					case 59:
 						var _v475 = _v0.a;
 						var _v476 = _v0.b;
-						return 'Simulation';
+						return 'Make start';
 					case 60:
 						var _v483 = _v0.a;
 						var _v484 = _v0.b;
-						return 'Input string';
+						return 'Unset accepting';
 					case 61:
 						var _v491 = _v0.a;
 						var _v492 = _v0.b;
-						return 'Delay ms';
+						return 'Make accepting';
 					case 62:
 						var _v499 = _v0.a;
 						var _v500 = _v0.b;
-						return 'Start simulation';
+						return 'Simulation';
 					case 63:
 						var _v507 = _v0.a;
 						var _v508 = _v0.b;
-						return 'Stop';
+						return 'Input string';
 					case 64:
 						var _v515 = _v0.a;
 						var _v516 = _v0.b;
-						return 'Simulation running...';
+						return 'Delay ms';
 					case 65:
 						var _v523 = _v0.a;
 						var _v524 = _v0.b;
-						return 'Success';
+						return 'Start simulation';
 					case 66:
 						var _v531 = _v0.a;
 						var _v532 = _v0.b;
-						return 'Word does not match the automaton';
+						return 'Stop';
 					case 67:
 						var _v539 = _v0.a;
 						var _v540 = _v0.b;
-						return 'Error: no suitable transition for input';
+						return 'Simulation running...';
 					case 68:
 						var _v547 = _v0.a;
 						var _v548 = _v0.b;
-						return 'Error: no start state selected';
+						return 'Success';
 					case 69:
 						var _v555 = _v0.a;
 						var _v556 = _v0.b;
-						return 'Multiple transitions available';
+						return 'Word does not match the automaton';
 					case 70:
 						var _v563 = _v0.a;
 						var _v564 = _v0.b;
-						return 'Choose which transition to follow from state';
+						return 'Error: no suitable transition for input';
 					case 71:
 						var _v571 = _v0.a;
 						var _v572 = _v0.b;
-						return '←';
+						return 'Error: no start state selected';
 					case 72:
 						var _v579 = _v0.a;
 						var _v580 = _v0.b;
-						return 'Home';
-					default:
+						return 'Multiple transitions available';
+					case 73:
 						var _v587 = _v0.a;
 						var _v588 = _v0.b;
+						return 'Choose which transition to follow from state';
+					case 74:
+						var _v595 = _v0.a;
+						var _v596 = _v0.b;
+						return '←';
+					case 75:
+						var _v603 = _v0.a;
+						var _v604 = _v0.b;
+						return 'Home';
+					default:
+						var _v611 = _v0.a;
+						var _v612 = _v0.b;
 						return '← Home';
 				}
 			case 2:
@@ -9274,198 +9454,210 @@ var $author$project$I18n$t = F2(
 					case 25:
 						var _v205 = _v0.a;
 						var _v206 = _v0.b;
-						return 'Premenovať';
+						return 'Import .fas';
 					case 26:
 						var _v213 = _v0.a;
 						var _v214 = _v0.b;
-						return 'Potvrdiť';
+						return 'Export .fas';
 					case 27:
 						var _v221 = _v0.a;
 						var _v222 = _v0.b;
-						return 'Uložené';
+						return 'Chyba pri importe';
 					case 28:
 						var _v229 = _v0.a;
 						var _v230 = _v0.b;
-						return 'Slot';
+						return 'Premenovať';
 					case 29:
 						var _v237 = _v0.a;
 						var _v238 = _v0.b;
-						return 'prázdne';
+						return 'Potvrdiť';
 					case 30:
 						var _v245 = _v0.a;
 						var _v246 = _v0.b;
-						return 'Zavrieť';
+						return 'Uložené';
 					case 31:
 						var _v253 = _v0.a;
 						var _v254 = _v0.b;
-						return 'Názov';
+						return 'Slot';
 					case 32:
 						var _v261 = _v0.a;
 						var _v262 = _v0.b;
-						return 'Chyba: názvy stavov musia byť jedinečné';
+						return 'prázdne';
 					case 33:
 						var _v269 = _v0.a;
 						var _v270 = _v0.b;
-						return 'Režim';
+						return 'Zavrieť';
 					case 34:
 						var _v277 = _v0.a;
 						var _v278 = _v0.b;
-						return 'Vytvoriť stavy';
+						return 'Názov';
 					case 35:
 						var _v285 = _v0.a;
 						var _v286 = _v0.b;
-						return 'Vytvoriť prechody';
+						return 'Chyba: názvy stavov musia byť jedinečné';
 					case 36:
 						var _v293 = _v0.a;
 						var _v294 = _v0.b;
-						return 'Vybrať';
+						return 'Režim';
 					case 37:
 						var _v301 = _v0.a;
 						var _v302 = _v0.b;
-						return 'Nastaviť prechody';
+						return 'Vytvoriť stavy';
 					case 38:
 						var _v309 = _v0.a;
 						var _v310 = _v0.b;
-						return 'Prechody';
+						return 'Vytvoriť prechody';
 					case 39:
 						var _v317 = _v0.a;
 						var _v318 = _v0.b;
-						return 'Označenie';
+						return 'Vybrať';
 					case 40:
 						var _v325 = _v0.a;
 						var _v326 = _v0.b;
-						return 'Vyberte stav ako počiatočný uzol';
+						return 'Nastaviť prechody';
 					case 41:
 						var _v333 = _v0.a;
 						var _v334 = _v0.b;
-						return 'Vyberte prechod na úpravu';
+						return 'Prechody';
 					case 42:
 						var _v341 = _v0.a;
 						var _v342 = _v0.b;
-						return 'Zo stavu';
+						return 'Označenie';
 					case 43:
 						var _v349 = _v0.a;
 						var _v350 = _v0.b;
-						return 'Vybrané';
+						return 'Vyberte stav ako počiatočný uzol';
 					case 44:
 						var _v357 = _v0.a;
 						var _v358 = _v0.b;
-						return 'Nič';
+						return 'Vyberte prechod na úpravu';
 					case 45:
 						var _v365 = _v0.a;
 						var _v366 = _v0.b;
-						return 'Nenájdené';
+						return 'Zo stavu';
 					case 46:
 						var _v373 = _v0.a;
 						var _v374 = _v0.b;
-						return 'Stav';
+						return 'Vybrané';
 					case 47:
 						var _v381 = _v0.a;
 						var _v382 = _v0.b;
-						return 'Pozícia';
+						return 'Nič';
 					case 48:
 						var _v389 = _v0.a;
 						var _v390 = _v0.b;
-						return 'Akceptujúci';
+						return 'Nenájdené';
 					case 49:
 						var _v397 = _v0.a;
 						var _v398 = _v0.b;
-						return 'Počiatočný';
+						return 'Stav';
 					case 50:
 						var _v405 = _v0.a;
 						var _v406 = _v0.b;
-						return 'Áno';
+						return 'Pozícia';
 					case 51:
 						var _v413 = _v0.a;
 						var _v414 = _v0.b;
-						return 'Nie';
+						return 'Akceptujúci';
 					case 52:
 						var _v421 = _v0.a;
 						var _v422 = _v0.b;
-						return 'Zmazať stav';
+						return 'Počiatočný';
 					case 53:
 						var _v429 = _v0.a;
 						var _v430 = _v0.b;
-						return 'Prechod';
+						return 'Áno';
 					case 54:
 						var _v437 = _v0.a;
 						var _v438 = _v0.b;
-						return 'Zmazať prechod';
+						return 'Nie';
 					case 55:
 						var _v445 = _v0.a;
 						var _v446 = _v0.b;
-						return 'Zrušiť počiatočný';
+						return 'Zmazať stav';
 					case 56:
 						var _v453 = _v0.a;
 						var _v454 = _v0.b;
-						return 'Nastaviť počiatočný';
+						return 'Prechod';
 					case 57:
 						var _v461 = _v0.a;
 						var _v462 = _v0.b;
-						return 'Zrušiť akceptujúci';
+						return 'Zmazať prechod';
 					case 58:
 						var _v469 = _v0.a;
 						var _v470 = _v0.b;
-						return 'Nastaviť akceptujúci';
+						return 'Zrušiť počiatočný';
 					case 59:
 						var _v477 = _v0.a;
 						var _v478 = _v0.b;
-						return 'Simulácia';
+						return 'Nastaviť počiatočný';
 					case 60:
 						var _v485 = _v0.a;
 						var _v486 = _v0.b;
-						return 'Vstupný reťazec';
+						return 'Zrušiť akceptujúci';
 					case 61:
 						var _v493 = _v0.a;
 						var _v494 = _v0.b;
-						return 'Oneskorenie ms';
+						return 'Nastaviť akceptujúci';
 					case 62:
 						var _v501 = _v0.a;
 						var _v502 = _v0.b;
-						return 'Spustiť simuláciu';
+						return 'Simulácia';
 					case 63:
 						var _v509 = _v0.a;
 						var _v510 = _v0.b;
-						return 'Stop';
+						return 'Vstupný reťazec';
 					case 64:
 						var _v517 = _v0.a;
 						var _v518 = _v0.b;
-						return 'Simulácia beží...';
+						return 'Oneskorenie ms';
 					case 65:
 						var _v525 = _v0.a;
 						var _v526 = _v0.b;
-						return 'Úspech';
+						return 'Spustiť simuláciu';
 					case 66:
 						var _v533 = _v0.a;
 						var _v534 = _v0.b;
-						return 'Reťazec nezodpovedá automatu';
+						return 'Stop';
 					case 67:
 						var _v541 = _v0.a;
 						var _v542 = _v0.b;
-						return 'Chyba: žiadny vhodný prechod pre vstup';
+						return 'Simulácia beží...';
 					case 68:
 						var _v549 = _v0.a;
 						var _v550 = _v0.b;
-						return 'Chyba: nie je zvolený počiatočný stav';
+						return 'Úspech';
 					case 69:
 						var _v557 = _v0.a;
 						var _v558 = _v0.b;
-						return 'K dispozícii je viac prechodov';
+						return 'Reťazec nezodpovedá automatu';
 					case 70:
 						var _v565 = _v0.a;
 						var _v566 = _v0.b;
-						return 'Vyberte, ktorý prechod sa má použiť zo stavu';
+						return 'Chyba: žiadny vhodný prechod pre vstup';
 					case 71:
 						var _v573 = _v0.a;
 						var _v574 = _v0.b;
-						return '←';
+						return 'Chyba: nie je zvolený počiatočný stav';
 					case 72:
 						var _v581 = _v0.a;
 						var _v582 = _v0.b;
-						return 'Domov';
-					default:
+						return 'K dispozícii je viac prechodov';
+					case 73:
 						var _v589 = _v0.a;
 						var _v590 = _v0.b;
+						return 'Vyberte, ktorý prechod sa má použiť zo stavu';
+					case 74:
+						var _v597 = _v0.a;
+						var _v598 = _v0.b;
+						return '←';
+					case 75:
+						var _v605 = _v0.a;
+						var _v606 = _v0.b;
+						return 'Domov';
+					default:
+						var _v613 = _v0.a;
+						var _v614 = _v0.b;
 						return '← Domov';
 				}
 			default:
@@ -9577,204 +9769,216 @@ var $author$project$I18n$t = F2(
 					case 25:
 						var _v207 = _v0.a;
 						var _v208 = _v0.b;
-						return 'Перейменувати';
+						return 'Імпорт .fas';
 					case 26:
 						var _v215 = _v0.a;
 						var _v216 = _v0.b;
-						return 'Підтвердити';
+						return 'Експорт .fas';
 					case 27:
 						var _v223 = _v0.a;
 						var _v224 = _v0.b;
-						return 'Збережено';
+						return 'Помилка імпорту';
 					case 28:
 						var _v231 = _v0.a;
 						var _v232 = _v0.b;
-						return 'Комірка';
+						return 'Перейменувати';
 					case 29:
 						var _v239 = _v0.a;
 						var _v240 = _v0.b;
-						return 'порожньо';
+						return 'Підтвердити';
 					case 30:
 						var _v247 = _v0.a;
 						var _v248 = _v0.b;
-						return 'Закрити';
+						return 'Збережено';
 					case 31:
 						var _v255 = _v0.a;
 						var _v256 = _v0.b;
-						return 'Назва';
+						return 'Комірка';
 					case 32:
 						var _v263 = _v0.a;
 						var _v264 = _v0.b;
-						return 'Помилка: назви станів мають бути унікальними';
+						return 'порожньо';
 					case 33:
 						var _v271 = _v0.a;
 						var _v272 = _v0.b;
-						return 'Режим';
+						return 'Закрити';
 					case 34:
 						var _v279 = _v0.a;
 						var _v280 = _v0.b;
-						return 'Створити стани';
+						return 'Назва';
 					case 35:
 						var _v287 = _v0.a;
 						var _v288 = _v0.b;
-						return 'Створити переходи';
+						return 'Помилка: назви станів мають бути унікальними';
 					case 36:
 						var _v295 = _v0.a;
 						var _v296 = _v0.b;
-						return 'Вибрати';
+						return 'Режим';
 					case 37:
 						var _v303 = _v0.a;
 						var _v304 = _v0.b;
-						return 'Налаштування переходів';
+						return 'Створити стани';
 					case 38:
 						var _v311 = _v0.a;
 						var _v312 = _v0.b;
-						return 'Переходи';
+						return 'Створити переходи';
 					case 39:
 						var _v319 = _v0.a;
 						var _v320 = _v0.b;
-						return 'Мітка';
+						return 'Вибрати';
 					case 40:
 						var _v327 = _v0.a;
 						var _v328 = _v0.b;
-						return 'Оберіть стан як початковий вузол';
+						return 'Налаштування переходів';
 					case 41:
 						var _v335 = _v0.a;
 						var _v336 = _v0.b;
-						return 'Оберіть перехід для редагування';
+						return 'Переходи';
 					case 42:
 						var _v343 = _v0.a;
 						var _v344 = _v0.b;
-						return 'Зі стану';
+						return 'Мітка';
 					case 43:
 						var _v351 = _v0.a;
 						var _v352 = _v0.b;
-						return 'Вибрано';
+						return 'Оберіть стан як початковий вузол';
 					case 44:
 						var _v359 = _v0.a;
 						var _v360 = _v0.b;
-						return 'Нічого';
+						return 'Оберіть перехід для редагування';
 					case 45:
 						var _v367 = _v0.a;
 						var _v368 = _v0.b;
-						return 'Не знайдено';
+						return 'Зі стану';
 					case 46:
 						var _v375 = _v0.a;
 						var _v376 = _v0.b;
-						return 'Стан';
+						return 'Вибрано';
 					case 47:
 						var _v383 = _v0.a;
 						var _v384 = _v0.b;
-						return 'Позиція';
+						return 'Нічого';
 					case 48:
 						var _v391 = _v0.a;
 						var _v392 = _v0.b;
-						return 'Приймаючий';
+						return 'Не знайдено';
 					case 49:
 						var _v399 = _v0.a;
 						var _v400 = _v0.b;
-						return 'Початковий';
+						return 'Стан';
 					case 50:
 						var _v407 = _v0.a;
 						var _v408 = _v0.b;
-						return 'Так';
+						return 'Позиція';
 					case 51:
 						var _v415 = _v0.a;
 						var _v416 = _v0.b;
-						return 'Ні';
+						return 'Приймаючий';
 					case 52:
 						var _v423 = _v0.a;
 						var _v424 = _v0.b;
-						return 'Видалити стан';
+						return 'Початковий';
 					case 53:
 						var _v431 = _v0.a;
 						var _v432 = _v0.b;
-						return 'Перехід';
+						return 'Так';
 					case 54:
 						var _v439 = _v0.a;
 						var _v440 = _v0.b;
-						return 'Видалити перехід';
+						return 'Ні';
 					case 55:
 						var _v447 = _v0.a;
 						var _v448 = _v0.b;
-						return 'Зняти початковий';
+						return 'Видалити стан';
 					case 56:
 						var _v455 = _v0.a;
 						var _v456 = _v0.b;
-						return 'Зробити початковим';
+						return 'Перехід';
 					case 57:
 						var _v463 = _v0.a;
 						var _v464 = _v0.b;
-						return 'Зняти кінцевий';
+						return 'Видалити перехід';
 					case 58:
 						var _v471 = _v0.a;
 						var _v472 = _v0.b;
-						return 'Зробити кінцевим';
+						return 'Зняти початковий';
 					case 59:
 						var _v479 = _v0.a;
 						var _v480 = _v0.b;
-						return 'Симуляція';
+						return 'Зробити початковим';
 					case 60:
 						var _v487 = _v0.a;
 						var _v488 = _v0.b;
-						return 'Вхідний рядок';
+						return 'Зняти кінцевий';
 					case 61:
 						var _v495 = _v0.a;
 						var _v496 = _v0.b;
-						return 'Затримка мс';
+						return 'Зробити кінцевим';
 					case 62:
 						var _v503 = _v0.a;
 						var _v504 = _v0.b;
-						return 'Запустити симуляцію';
+						return 'Симуляція';
 					case 63:
 						var _v511 = _v0.a;
 						var _v512 = _v0.b;
-						return 'Стоп';
+						return 'Вхідний рядок';
 					case 64:
 						var _v519 = _v0.a;
 						var _v520 = _v0.b;
-						return 'Симуляція виконується...';
+						return 'Затримка мс';
 					case 65:
 						var _v527 = _v0.a;
 						var _v528 = _v0.b;
-						return 'Успіх';
+						return 'Запустити симуляцію';
 					case 66:
 						var _v535 = _v0.a;
 						var _v536 = _v0.b;
-						return 'Рядок не відповідає автомату';
+						return 'Стоп';
 					case 67:
 						var _v543 = _v0.a;
 						var _v544 = _v0.b;
-						return 'Помилка: немає відповідного переходу для входу';
+						return 'Симуляція виконується...';
 					case 68:
 						var _v551 = _v0.a;
 						var _v552 = _v0.b;
-						return 'Помилка: не вибрано початковий стан';
+						return 'Успіх';
 					case 69:
 						var _v559 = _v0.a;
 						var _v560 = _v0.b;
-						return 'Доступно кілька переходів';
+						return 'Рядок не відповідає автомату';
 					case 70:
 						var _v567 = _v0.a;
 						var _v568 = _v0.b;
-						return 'Оберіть, яким переходом іти зі стану';
+						return 'Помилка: немає відповідного переходу для входу';
 					case 71:
 						var _v575 = _v0.a;
 						var _v576 = _v0.b;
-						return '←';
+						return 'Помилка: не вибрано початковий стан';
 					case 72:
 						var _v583 = _v0.a;
 						var _v584 = _v0.b;
-						return 'На головну';
-					default:
+						return 'Доступно кілька переходів';
+					case 73:
 						var _v591 = _v0.a;
 						var _v592 = _v0.b;
+						return 'Оберіть, яким переходом іти зі стану';
+					case 74:
+						var _v599 = _v0.a;
+						var _v600 = _v0.b;
+						return '←';
+					case 75:
+						var _v607 = _v0.a;
+						var _v608 = _v0.b;
+						return 'На головну';
+					default:
+						var _v615 = _v0.a;
+						var _v616 = _v0.b;
 						return '← На головну';
 				}
 		}
 	});
 var $author$project$Main$homeView = function (model) {
-	var tk = $author$project$Design$tokens(model.ay);
+	var tk = $author$project$Design$tokens(model.ax);
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -9785,7 +9989,7 @@ var $author$project$Main$homeView = function (model) {
 				A2(
 				$elm$html$Html$Attributes$style,
 				'gap',
-				$author$project$Design$px(tk.X.o))
+				$author$project$Design$px(tk.V.m))
 			]),
 		_List_fromArray(
 			[
@@ -9797,12 +10001,12 @@ var $author$project$Main$homeView = function (model) {
 						A2(
 						$elm$html$Html$Attributes$style,
 						'font-size',
-						$author$project$Design$px(tk._.bc))
+						$author$project$Design$px(tk.Z.bb))
 					]),
 				_List_fromArray(
 					[
 						$elm$html$Html$text(
-						A2($author$project$I18n$t, model.l, 4))
+						A2($author$project$I18n$t, model.j, 4))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -9813,32 +10017,32 @@ var $author$project$Main$homeView = function (model) {
 						A2(
 						$elm$html$Html$Attributes$style,
 						'gap',
-						$author$project$Design$px(tk.X.o)),
+						$author$project$Design$px(tk.V.m)),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'width',
-						'min(' + ($author$project$Design$px(tk.aG.bi) + ', 100%)')),
+						'min(' + ($author$project$Design$px(tk.aF.bh) + ', 100%)')),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'padding',
-						'0 ' + $author$project$Design$px(tk.X.g))
+						'0 ' + $author$project$Design$px(tk.V.e))
 					]),
 				_List_fromArray(
 					[
 						A3(
 						$author$project$Main$menuCard,
 						model,
-						A2($author$project$I18n$t, model.l, 1),
+						A2($author$project$I18n$t, model.j, 1),
 						1),
 						A3(
 						$author$project$Main$menuCard,
 						model,
-						A2($author$project$I18n$t, model.l, 2),
+						A2($author$project$I18n$t, model.j, 2),
 						2),
 						A3(
 						$author$project$Main$menuCard,
 						model,
-						A2($author$project$I18n$t, model.l, 3),
+						A2($author$project$I18n$t, model.j, 3),
 						3)
 					]))
 			]));
@@ -9852,8 +10056,8 @@ var $author$project$Theme$textColor = function (th) {
 		return '#e6e6e6';
 	}
 };
-var $author$project$I18n$BackHomeIcon = 71;
-var $author$project$I18n$BackHomeIconText = 73;
+var $author$project$I18n$BackHomeIcon = 74;
+var $author$project$I18n$BackHomeIconText = 76;
 var $author$project$Main$SetLang = function (a) {
 	return {$: 2, a: a};
 };
@@ -9865,11 +10069,11 @@ var $author$project$Design$control = F2(
 	function (sz, tk) {
 		switch (sz) {
 			case 0:
-				return tk.y.g;
+				return tk.w.e;
 			case 1:
-				return tk.y.o;
+				return tk.w.m;
 			default:
-				return tk.y.n;
+				return tk.w.l;
 		}
 	});
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
@@ -9929,8 +10133,8 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $author$project$Main$topBar = function (model) {
-	var w = model.aC;
-	var tk = $author$project$Design$tokens(model.ay);
+	var w = model.aB;
+	var tk = $author$project$Design$tokens(model.ax);
 	var rightContainerAttrs = _List_fromArray(
 		[
 			A2($elm$html$Html$Attributes$style, 'display', 'flex'),
@@ -9941,20 +10145,20 @@ var $author$project$Main$topBar = function (model) {
 			A2(
 			$elm$html$Html$Attributes$style,
 			'gap',
-			$author$project$Design$px(tk.X.g)),
+			$author$project$Design$px(tk.V.e)),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'align-items',
 			(w < 500) ? 'flex-end' : 'center'),
 			A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 		]);
-	var onHome = !model.aL;
-	var homeLabel = (w < 500) ? A2($author$project$I18n$t, model.l, 73) : ((w < 760) ? A2($author$project$I18n$t, model.l, 71) : A2($author$project$I18n$t, model.l, 73));
-	var c = A2($author$project$Design$control, tk.a$.y, tk);
+	var onHome = !model.aK;
+	var homeLabel = (w < 500) ? A2($author$project$I18n$t, model.j, 76) : ((w < 760) ? A2($author$project$I18n$t, model.j, 74) : A2($author$project$I18n$t, model.j, 76));
+	var c = A2($author$project$Design$control, tk.a_.w, tk);
 	var minW = function () {
-		var kChars = tk.a_;
-		var fromPadding = kChars * c.T;
-		var fromFont = kChars * tk._.aV;
+		var kChars = tk.aZ;
+		var fromPadding = kChars * c.S;
+		var fromFont = kChars * tk.Z.aU;
 		return (_Utils_cmp(fromPadding, fromFont) > 0) ? fromPadding : fromFont;
 	}();
 	var baseControlStyles = _List_fromArray(
@@ -9962,7 +10166,7 @@ var $author$project$Main$topBar = function (model) {
 			A2(
 			$elm$html$Html$Attributes$style,
 			'height',
-			$author$project$Design$px(c.p)),
+			$author$project$Design$px(c.n)),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'min-width',
@@ -9970,30 +10174,30 @@ var $author$project$Main$topBar = function (model) {
 			A2(
 			$elm$html$Html$Attributes$style,
 			'padding',
-			$author$project$Design$px(c.U) + (' ' + $author$project$Design$px(c.T))),
+			$author$project$Design$px(c.T) + (' ' + $author$project$Design$px(c.S))),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'border-radius',
-			$author$project$Design$px(tk.t.g)),
+			$author$project$Design$px(tk.r.e)),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'border',
 			$author$project$Design$px(
-				A2($author$project$Design$borderFor, tk.P.ba, tk)) + (' solid ' + $author$project$Theme$interactiveBorder(model.h))),
+				A2($author$project$Design$borderFor, tk.P.a9, tk)) + (' solid ' + $author$project$Theme$interactiveBorder(model.f))),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'background',
-			$author$project$Theme$interactiveBg(model.h)),
+			$author$project$Theme$interactiveBg(model.f)),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'color',
-			$author$project$Theme$textColor(model.h)),
+			$author$project$Theme$textColor(model.f)),
 			A2(
 			$elm$html$Html$Attributes$style,
 			'font-size',
-			$author$project$Design$px(tk._.aV)),
-			A2($elm$html$Html$Attributes$style, 'line-height', tk.a3.aV),
-			A2($elm$html$Html$Attributes$style, 'transition', 'background ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', border-color ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', box-shadow ' + (tk.a4.cg + (' ' + (tk.a4.b1 + (', outline-color ' + (tk.a4.cg + (' ' + tk.a4.b1)))))))))))))))
+			$author$project$Design$px(tk.Z.aU)),
+			A2($elm$html$Html$Attributes$style, 'line-height', tk.a2.aU),
+			A2($elm$html$Html$Attributes$style, 'transition', 'background ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', border-color ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', box-shadow ' + (tk.a3.ch + (' ' + (tk.a3.b2 + (', outline-color ' + (tk.a3.ch + (' ' + tk.a3.b2)))))))))))))))
 		]);
 	var viewHome = A2(
 		$elm$html$Html$button,
@@ -10016,7 +10220,7 @@ var $author$project$Main$topBar = function (model) {
 			A2(
 				$elm$core$List$cons,
 				$elm$html$Html$Attributes$value(
-					$author$project$I18n$langToString(model.l)),
+					$author$project$I18n$langToString(model.j)),
 				baseControlStyles)),
 		_List_fromArray(
 			[
@@ -10071,11 +10275,11 @@ var $author$project$Main$topBar = function (model) {
 			[
 				$elm$html$Html$text(
 				function () {
-					var _v0 = model.h;
+					var _v0 = model.f;
 					if (!_v0) {
-						return A2($author$project$I18n$t, model.l, 6);
+						return A2($author$project$I18n$t, model.j, 6);
 					} else {
-						return A2($author$project$I18n$t, model.l, 5);
+						return A2($author$project$I18n$t, model.j, 5);
 					}
 				}())
 			]));
@@ -10095,11 +10299,11 @@ var $author$project$Main$topBar = function (model) {
 				A2(
 				$elm$html$Html$Attributes$style,
 				'gap',
-				$author$project$Design$px(tk.X.g)),
+				$author$project$Design$px(tk.V.e)),
 				A2(
 				$elm$html$Html$Attributes$style,
 				'margin-bottom',
-				$author$project$Design$px(tk.X.g))
+				$author$project$Design$px(tk.V.e))
 			]),
 		_List_fromArray(
 			[
@@ -10111,12 +10315,12 @@ var $author$project$Main$topBar = function (model) {
 						A2(
 						$elm$html$Html$Attributes$style,
 						'font-size',
-						$author$project$Design$px(tk._.bb))
+						$author$project$Design$px(tk.Z.ba))
 					]),
 				_List_fromArray(
 					[
 						$elm$html$Html$text(
-						A2($author$project$I18n$t, model.l, 0))
+						A2($author$project$I18n$t, model.j, 0))
 					])),
 				A2(
 				$elm$html$Html$div,
@@ -10131,7 +10335,7 @@ var $author$project$Main$topBar = function (model) {
 								A2(
 								$elm$html$Html$Attributes$style,
 								'gap',
-								$author$project$Design$px(tk.X.g)),
+								$author$project$Design$px(tk.V.e)),
 								A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end'),
 								A2($elm$html$Html$Attributes$style, 'align-items', 'center')
 							]),
@@ -10146,7 +10350,7 @@ var $author$project$Main$topBar = function (model) {
 									A2(
 									$elm$html$Html$Attributes$style,
 									'gap',
-									$author$project$Design$px(tk.X.g)),
+									$author$project$Design$px(tk.V.e)),
 									A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 								]),
 							secondRowRight)
@@ -10167,15 +10371,15 @@ var $author$project$Pages$About$view = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$panelBg(ctx.h)),
+					$author$project$Theme$panelBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'color',
-					$author$project$Theme$textColor(ctx.h)),
+					$author$project$Theme$textColor(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '16px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '12px')
 				]),
@@ -10187,7 +10391,7 @@ var $author$project$Pages$About$view = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 11))
+							A2($author$project$I18n$t, ctx.j, 11))
 						])),
 					A2(
 					$elm$html$Html$p,
@@ -10195,7 +10399,7 @@ var $author$project$Pages$About$view = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 12))
+							A2($author$project$I18n$t, ctx.j, 12))
 						]))
 				]));
 	});
@@ -10583,7 +10787,7 @@ var $author$project$Pages$Editor$isDeterministic = function (transitions) {
 		function (t, dict) {
 			return A3(
 				$elm$core$Dict$update,
-				_Utils_Tuple2(t.d, t.k),
+				_Utils_Tuple2(t.c, t.i),
 				function (maybe) {
 					return $elm$core$Maybe$Just(
 						A2($elm$core$Maybe$withDefault, 0, maybe) + 1);
@@ -10593,7 +10797,7 @@ var $author$project$Pages$Editor$isDeterministic = function (transitions) {
 	var hasLambda = A2(
 		$elm$core$List$any,
 		function (t) {
-			return $author$project$Pages$Editor$isLambdaLabel(t.k);
+			return $author$project$Pages$Editor$isLambdaLabel(t.i);
 		},
 		transitions);
 	var counts = A3($elm$core$List$foldl, step, $elm$core$Dict$empty, transitions);
@@ -10607,8 +10811,8 @@ var $author$project$Pages$Editor$isDeterministic = function (transitions) {
 };
 var $author$project$Pages$Editor$automatonPanel = F2(
 	function (ctx, model) {
-		var deterministic = $author$project$Pages$Editor$isDeterministic(model.c);
-		var label = deterministic ? A2($author$project$I18n$t, ctx.l, 15) : A2($author$project$I18n$t, ctx.l, 16);
+		var deterministic = $author$project$Pages$Editor$isDeterministic(model.b);
+		var label = deterministic ? A2($author$project$I18n$t, ctx.j, 15) : A2($author$project$I18n$t, ctx.j, 16);
 		var color = deterministic ? '#2ecc71' : '#e67e22';
 		return A2(
 			$elm$html$Html$div,
@@ -10617,11 +10821,11 @@ var $author$project$Pages$Editor$automatonPanel = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$interactiveBg(ctx.h)),
+					$author$project$Theme$interactiveBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$interactiveBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$interactiveBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '4px 8px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '999px'),
 					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
@@ -10641,7 +10845,7 @@ var $author$project$Pages$Editor$automatonPanel = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 14) + ':')
+							A2($author$project$I18n$t, ctx.j, 14) + ':')
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -10683,31 +10887,31 @@ var $author$project$Pages$Editor$DeleteState = function (a) {
 var $author$project$Pages$Editor$DeleteTransition = function (a) {
 	return {$: 8, a: a};
 };
-var $author$project$I18n$EditorDeleteState = 52;
-var $author$project$I18n$EditorDeleteTransition = 54;
-var $author$project$I18n$EditorMakeAccepting = 58;
-var $author$project$I18n$EditorMakeStart = 56;
-var $author$project$I18n$EditorMode = 33;
-var $author$project$I18n$EditorModeAddState = 34;
-var $author$project$I18n$EditorModeAddTransition = 35;
-var $author$project$I18n$EditorModeMoveState = 36;
-var $author$project$I18n$EditorNo = 51;
-var $author$project$I18n$EditorSelected = 43;
-var $author$project$I18n$EditorSelectedAccepting = 48;
-var $author$project$I18n$EditorSelectedNone = 44;
-var $author$project$I18n$EditorSelectedNotFound = 45;
-var $author$project$I18n$EditorSelectedPos = 47;
-var $author$project$I18n$EditorSelectedStart = 49;
-var $author$project$I18n$EditorSelectedState = 46;
-var $author$project$I18n$EditorSelectedTransition = 53;
-var $author$project$I18n$EditorStateName = 31;
-var $author$project$I18n$EditorStateNameUniqueError = 32;
-var $author$project$I18n$EditorTransitionFrom = 42;
-var $author$project$I18n$EditorTransitionSelectStart = 40;
-var $author$project$I18n$EditorTransitions = 38;
-var $author$project$I18n$EditorUnsetAccepting = 57;
-var $author$project$I18n$EditorUnsetStart = 55;
-var $author$project$I18n$EditorYes = 50;
+var $author$project$I18n$EditorDeleteState = 55;
+var $author$project$I18n$EditorDeleteTransition = 57;
+var $author$project$I18n$EditorMakeAccepting = 61;
+var $author$project$I18n$EditorMakeStart = 59;
+var $author$project$I18n$EditorMode = 36;
+var $author$project$I18n$EditorModeAddState = 37;
+var $author$project$I18n$EditorModeAddTransition = 38;
+var $author$project$I18n$EditorModeMoveState = 39;
+var $author$project$I18n$EditorNo = 54;
+var $author$project$I18n$EditorSelected = 46;
+var $author$project$I18n$EditorSelectedAccepting = 51;
+var $author$project$I18n$EditorSelectedNone = 47;
+var $author$project$I18n$EditorSelectedNotFound = 48;
+var $author$project$I18n$EditorSelectedPos = 50;
+var $author$project$I18n$EditorSelectedStart = 52;
+var $author$project$I18n$EditorSelectedState = 49;
+var $author$project$I18n$EditorSelectedTransition = 56;
+var $author$project$I18n$EditorStateName = 34;
+var $author$project$I18n$EditorStateNameUniqueError = 35;
+var $author$project$I18n$EditorTransitionFrom = 45;
+var $author$project$I18n$EditorTransitionSelectStart = 43;
+var $author$project$I18n$EditorTransitions = 41;
+var $author$project$I18n$EditorUnsetAccepting = 60;
+var $author$project$I18n$EditorUnsetStart = 58;
+var $author$project$I18n$EditorYes = 53;
 var $author$project$Pages$Editor$MoveState = 2;
 var $author$project$Pages$Editor$SetMode = function (a) {
 	return {$: 11, a: a};
@@ -10747,13 +10951,13 @@ var $elm$html$Html$Attributes$size = function (n) {
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $author$project$Pages$Editor$editorControlsPanel = F2(
 	function (ctx, model) {
-		var simulationLocked = model.N || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing));
+		var simulationLocked = model.N || (!_Utils_eq(model.E, $elm$core$Maybe$Nothing));
 		var modeButton = F2(
 			function (target, label) {
 				return A2(
 					$elm$html$Html$button,
 					_Utils_ap(
-						$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+						$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 						_List_fromArray(
 							[
 								$elm$html$Html$Events$onClick(
@@ -10761,11 +10965,11 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 								A2(
 								$elm$html$Html$Attributes$style,
 								'background',
-								_Utils_eq(model.z, target) ? $author$project$Theme$hoverBg(ctx.h) : $author$project$Theme$interactiveBg(ctx.h)),
+								_Utils_eq(model.x, target) ? $author$project$Theme$hoverBg(ctx.f) : $author$project$Theme$interactiveBg(ctx.f)),
 								A2(
 								$elm$html$Html$Attributes$style,
 								'border-color',
-								_Utils_eq(model.z, target) ? $author$project$Theme$hoverBorder(ctx.h) : $author$project$Theme$interactiveBorder(ctx.h)),
+								_Utils_eq(model.x, target) ? $author$project$Theme$hoverBorder(ctx.f) : $author$project$Theme$interactiveBorder(ctx.f)),
 								$elm$html$Html$Attributes$disabled(simulationLocked)
 							])),
 					_List_fromArray(
@@ -10781,11 +10985,11 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$panelBg(ctx.h)),
+					$author$project$Theme$panelBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '12px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '12px'),
 					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')
@@ -10801,7 +11005,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 33))
+							A2($author$project$I18n$t, ctx.j, 36))
 						])),
 					A2(
 					$elm$html$Html$div,
@@ -10817,17 +11021,17 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 							A2(
 							modeButton,
 							0,
-							A2($author$project$I18n$t, ctx.l, 34)),
+							A2($author$project$I18n$t, ctx.j, 37)),
 							A2(
 							modeButton,
 							1,
-							A2($author$project$I18n$t, ctx.l, 35)),
+							A2($author$project$I18n$t, ctx.j, 38)),
 							A2(
 							modeButton,
 							2,
-							A2($author$project$I18n$t, ctx.l, 36))
+							A2($author$project$I18n$t, ctx.j, 39))
 						])),
-					(model.z === 1) ? A2(
+					(model.x === 1) ? A2(
 					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
@@ -10838,7 +11042,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 38))
+									A2($author$project$I18n$t, ctx.j, 41))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -10857,16 +11061,16 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 											$elm$html$Html$Attributes$type_('text'),
 											$elm$html$Html$Attributes$size(12),
 											$elm$html$Html$Attributes$placeholder('λ'),
-											$elm$html$Html$Attributes$value(model.aR),
+											$elm$html$Html$Attributes$value(model.aQ),
 											$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetTransitionLabel)
 										]),
 									_List_Nil)
 								])),
 							function () {
-							var _v0 = model.ae;
+							var _v0 = model.X;
 							if (_v0.$ === 1) {
 								return $elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 40));
+									A2($author$project$I18n$t, ctx.j, 43));
 							} else {
 								var sid = _v0.a;
 								return A2(
@@ -10878,12 +11082,12 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 42) + (': ' + (A2($author$project$Pages$Editor$stateNameById, model.b, sid) + (' → ' + A2($author$project$I18n$t, ctx.l, 40)))))
+											A2($author$project$I18n$t, ctx.j, 45) + (': ' + (A2($author$project$Pages$Editor$stateNameById, model.a, sid) + (' → ' + A2($author$project$I18n$t, ctx.j, 43)))))
 										]));
 							}
 						}()
 						])) : $elm$html$Html$text(''),
-					(model.z === 2) ? A2(
+					(model.x === 2) ? A2(
 					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
@@ -10894,13 +11098,13 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 43))
+									A2($author$project$I18n$t, ctx.j, 46))
 								])),
 							function () {
-							var _v1 = _Utils_Tuple2(model.q, model.D);
+							var _v1 = _Utils_Tuple2(model.o, model.y);
 							if (!_v1.a.$) {
 								var sid = _v1.a.a;
-								var _v2 = A2($author$project$Pages$Editor$getStateById, sid, model.b);
+								var _v2 = A2($author$project$Pages$Editor$getStateById, sid, model.a);
 								if (_v2.$ === 1) {
 									return A2(
 										$elm$html$Html$div,
@@ -10908,7 +11112,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												A2($author$project$I18n$t, ctx.l, 45))
+												A2($author$project$I18n$t, ctx.j, 48))
 											]));
 								} else {
 									var s = _v2.a;
@@ -10923,7 +11127,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 46) + (': ' + $elm$core$String$fromInt(s.a)))
+														A2($author$project$I18n$t, ctx.j, 49) + (': ' + $elm$core$String$fromInt(s.bz)))
 													])),
 												A2(
 												$elm$html$Html$div,
@@ -10934,18 +11138,18 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 31) + ': '),
+														A2($author$project$I18n$t, ctx.j, 34) + ': '),
 														A2(
 														$elm$html$Html$input,
 														_List_fromArray(
 															[
 																$elm$html$Html$Attributes$type_('text'),
-																$elm$html$Html$Attributes$value(s.f),
+																$elm$html$Html$Attributes$value(s.bC),
 																$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSelectedStateName)
 															]),
 														_List_Nil)
 													])),
-												model.Y ? A2(
+												model.W ? A2(
 												$elm$html$Html$div,
 												_List_fromArray(
 													[
@@ -10955,7 +11159,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 32))
+														A2($author$project$I18n$t, ctx.j, 35))
 													])) : $elm$html$Html$text(''),
 												A2(
 												$elm$html$Html$div,
@@ -10963,7 +11167,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 47) + (': ' + ($elm$core$String$fromFloat(s.i) + (', ' + $elm$core$String$fromFloat(s.j)))))
+														A2($author$project$I18n$t, ctx.j, 50) + (': ' + ($elm$core$String$fromFloat(s.g) + (', ' + $elm$core$String$fromFloat(s.h)))))
 													])),
 												A2(
 												$elm$html$Html$div,
@@ -10971,7 +11175,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 48) + (': ' + (s.v ? A2($author$project$I18n$t, ctx.l, 50) : A2($author$project$I18n$t, ctx.l, 51))))
+														A2($author$project$I18n$t, ctx.j, 51) + (': ' + (s.t ? A2($author$project$I18n$t, ctx.j, 53) : A2($author$project$I18n$t, ctx.j, 54))))
 													])),
 												A2(
 												$elm$html$Html$div,
@@ -10979,7 +11183,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 49) + (': ' + (s.A ? A2($author$project$I18n$t, ctx.l, 50) : A2($author$project$I18n$t, ctx.l, 51))))
+														A2($author$project$I18n$t, ctx.j, 52) + (': ' + (s.A ? A2($author$project$I18n$t, ctx.j, 53) : A2($author$project$I18n$t, ctx.j, 54))))
 													])),
 												A2(
 												$elm$html$Html$div,
@@ -10994,16 +11198,16 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 														A2(
 														$elm$html$Html$button,
 														_Utils_ap(
-															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 															_List_fromArray(
 																[
 																	$elm$html$Html$Events$onClick(
-																	$author$project$Pages$Editor$DeleteState(s.a))
+																	$author$project$Pages$Editor$DeleteState(s.bz))
 																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
-																A2($author$project$I18n$t, ctx.l, 52))
+																A2($author$project$I18n$t, ctx.j, 55))
 															]))
 													])),
 												A2(
@@ -11019,32 +11223,32 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 														A2(
 														$elm$html$Html$button,
 														_Utils_ap(
-															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 															_List_fromArray(
 																[
 																	$elm$html$Html$Events$onClick(
-																	$author$project$Pages$Editor$ToggleStart(s.a)),
+																	$author$project$Pages$Editor$ToggleStart(s.bz)),
 																	$elm$html$Html$Attributes$disabled(simulationLocked)
 																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
-																s.A ? A2($author$project$I18n$t, ctx.l, 55) : A2($author$project$I18n$t, ctx.l, 56))
+																s.A ? A2($author$project$I18n$t, ctx.j, 58) : A2($author$project$I18n$t, ctx.j, 59))
 															])),
 														A2(
 														$elm$html$Html$button,
 														_Utils_ap(
-															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 															_List_fromArray(
 																[
 																	$elm$html$Html$Events$onClick(
-																	$author$project$Pages$Editor$ToggleAccepting(s.a)),
+																	$author$project$Pages$Editor$ToggleAccepting(s.bz)),
 																	$elm$html$Html$Attributes$disabled(simulationLocked)
 																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
-																s.v ? A2($author$project$I18n$t, ctx.l, 57) : A2($author$project$I18n$t, ctx.l, 58))
+																s.t ? A2($author$project$I18n$t, ctx.j, 60) : A2($author$project$I18n$t, ctx.j, 61))
 															]))
 													]))
 											]));
@@ -11057,9 +11261,9 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 										A2(
 											$elm$core$List$filter,
 											function (transition) {
-												return _Utils_eq(transition.a, tid);
+												return _Utils_eq(transition.bz, tid);
 											},
-											model.c));
+											model.b));
 									if (_v4.$ === 1) {
 										return A2(
 											$elm$html$Html$div,
@@ -11067,7 +11271,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 											_List_fromArray(
 												[
 													$elm$html$Html$text(
-													A2($author$project$I18n$t, ctx.l, 45))
+													A2($author$project$I18n$t, ctx.j, 48))
 												]));
 									} else {
 										var transition = _v4.a;
@@ -11082,7 +11286,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 													_List_fromArray(
 														[
 															$elm$html$Html$text(
-															A2($author$project$I18n$t, ctx.l, 53) + (': ' + $elm$core$String$fromInt(transition.a)))
+															A2($author$project$I18n$t, ctx.j, 56) + (': ' + $elm$core$String$fromInt(transition.bz)))
 														])),
 													A2(
 													$elm$html$Html$div,
@@ -11090,7 +11294,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 													_List_fromArray(
 														[
 															$elm$html$Html$text(
-															A2($author$project$I18n$t, ctx.l, 42) + (': ' + (A2($author$project$Pages$Editor$stateNameById, model.b, transition.d) + (' → ' + A2($author$project$Pages$Editor$stateNameById, model.b, transition.e)))))
+															A2($author$project$I18n$t, ctx.j, 45) + (': ' + (A2($author$project$Pages$Editor$stateNameById, model.a, transition.c) + (' → ' + A2($author$project$Pages$Editor$stateNameById, model.a, transition.d)))))
 														])),
 													A2(
 													$elm$html$Html$input,
@@ -11099,7 +11303,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 															$elm$html$Html$Attributes$type_('text'),
 															$elm$html$Html$Attributes$size(12),
 															$elm$html$Html$Attributes$placeholder('λ'),
-															$elm$html$Html$Attributes$value(model.W),
+															$elm$html$Html$Attributes$value(model.M),
 															$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSelectedTransitionLabel)
 														]),
 													_List_Nil),
@@ -11116,16 +11320,16 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 															A2(
 															$elm$html$Html$button,
 															_Utils_ap(
-																$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+																$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 																_List_fromArray(
 																	[
 																		$elm$html$Html$Events$onClick(
-																		$author$project$Pages$Editor$DeleteTransition(transition.a))
+																		$author$project$Pages$Editor$DeleteTransition(transition.bz))
 																	])),
 															_List_fromArray(
 																[
 																	$elm$html$Html$text(
-																	A2($author$project$I18n$t, ctx.l, 54))
+																	A2($author$project$I18n$t, ctx.j, 57))
 																]))
 														]))
 												]));
@@ -11137,7 +11341,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												A2($author$project$I18n$t, ctx.l, 44))
+												A2($author$project$I18n$t, ctx.j, 47))
 											]));
 								}
 							}
@@ -11152,20 +11356,29 @@ var $author$project$Pages$Editor$ConfirmRenameSlot = function (a) {
 var $author$project$Pages$Editor$DeleteFromSlot = function (a) {
 	return {$: 30, a: a};
 };
-var $author$project$I18n$EditorClose = 30;
-var $author$project$I18n$EditorConfirmRename = 26;
+var $author$project$I18n$EditorClose = 33;
+var $author$project$I18n$EditorConfirmRename = 29;
 var $author$project$I18n$EditorDeleteFromSlot = 24;
+var $author$project$I18n$EditorExportFas = 26;
+var $author$project$I18n$EditorImportError = 27;
+var $author$project$I18n$EditorImportFas = 25;
 var $author$project$I18n$EditorLoadFromSlot = 23;
-var $author$project$I18n$EditorRenameSlot = 25;
+var $author$project$I18n$EditorRenameSlot = 28;
 var $author$project$I18n$EditorSaveModalTitle = 21;
 var $author$project$I18n$EditorSaveToSlot = 22;
-var $author$project$I18n$EditorSaved = 27;
-var $author$project$I18n$EditorSlot = 28;
-var $author$project$I18n$EditorSlotEmpty = 29;
+var $author$project$I18n$EditorSaved = 30;
+var $author$project$I18n$EditorSlot = 31;
+var $author$project$I18n$EditorSlotEmpty = 32;
+var $author$project$Pages$Editor$ExportSlot = function (a) {
+	return {$: 35, a: a};
+};
+var $author$project$Pages$Editor$ImportSlot = function (a) {
+	return {$: 36, a: a};
+};
 var $author$project$Pages$Editor$LoadFromSlot = function (a) {
 	return {$: 29, a: a};
 };
-var $author$project$Pages$Editor$NoOp = {$: 35};
+var $author$project$Pages$Editor$NoOp = {$: 39};
 var $author$project$Pages$Editor$SaveToSlot = function (a) {
 	return {$: 28, a: a};
 };
@@ -11183,9 +11396,9 @@ var $author$project$Pages$Editor$saveModal = F2(
 				A2(
 					$elm$core$Basics$max,
 					10,
-					$elm$core$String$length(model.L) + 2)) + 'ch';
-			var hasAutomaton = !$elm$core$String$isEmpty(slot.O);
-			var slotLabel = hasAutomaton ? ($elm$core$String$isEmpty(slot.f) ? '' : slot.f) : A2($author$project$I18n$t, ctx.l, 29);
+					$elm$core$String$length(model.K) + 2)) + 'ch';
+			var hasAutomaton = !$elm$core$String$isEmpty(slot.bs);
+			var slotLabel = hasAutomaton ? ($elm$core$String$isEmpty(slot.bC) ? '' : slot.bC) : A2($author$project$I18n$t, ctx.j, 32);
 			return A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -11193,7 +11406,7 @@ var $author$project$Pages$Editor$saveModal = F2(
 						A2(
 						$elm$html$Html$Attributes$style,
 						'border',
-						'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+						'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 						A2($elm$html$Html$Attributes$style, 'padding', '10px'),
 						A2($elm$html$Html$Attributes$style, 'border-radius', '8px')
 					]),
@@ -11216,18 +11429,18 @@ var $author$project$Pages$Editor$saveModal = F2(
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
-										A2($author$project$I18n$t, ctx.l, 28) + (' ' + ($elm$core$String$fromInt(slot.a) + ':')))
+										A2($author$project$I18n$t, ctx.j, 31) + (' ' + ($elm$core$String$fromInt(slot.bz) + ':')))
 									])),
 								_Utils_eq(
-								model.M,
-								$elm$core$Maybe$Just(slot.a)) ? A2(
+								model.L,
+								$elm$core$Maybe$Just(slot.bz)) ? A2(
 								$elm$html$Html$input,
 								_List_fromArray(
 									[
 										$elm$html$Html$Attributes$type_('text'),
-										$elm$html$Html$Attributes$value(model.L),
+										$elm$html$Html$Attributes$value(model.K),
 										$elm$html$Html$Attributes$placeholder(
-										A2($author$project$I18n$t, ctx.l, 25)),
+										A2($author$project$I18n$t, ctx.j, 28)),
 										$elm$html$Html$Events$onInput($author$project$Pages$Editor$UpdateRenameDraft),
 										A2($elm$html$Html$Attributes$style, 'width', renameInputWidth)
 									]),
@@ -11239,17 +11452,17 @@ var $author$project$Pages$Editor$saveModal = F2(
 										$elm$html$Html$text(slotLabel)
 									])),
 								_Utils_eq(
-								model.M,
-								$elm$core$Maybe$Just(slot.a)) ? A2(
+								model.L,
+								$elm$core$Maybe$Just(slot.bz)) ? A2(
 								$elm$html$Html$button,
 								_Utils_ap(
-									$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+									$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 									_List_fromArray(
 										[
 											$elm$html$Html$Events$onClick(
-											$author$project$Pages$Editor$ConfirmRenameSlot(slot.a)),
+											$author$project$Pages$Editor$ConfirmRenameSlot(slot.bz)),
 											$elm$html$Html$Attributes$title(
-											A2($author$project$I18n$t, ctx.l, 26))
+											A2($author$project$I18n$t, ctx.j, 29))
 										])),
 								_List_fromArray(
 									[
@@ -11257,21 +11470,21 @@ var $author$project$Pages$Editor$saveModal = F2(
 									])) : A2(
 								$elm$html$Html$button,
 								_Utils_ap(
-									$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+									$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 									_List_fromArray(
 										[
 											$elm$html$Html$Events$onClick(
-											$author$project$Pages$Editor$StartRenameSlot(slot.a)),
+											$author$project$Pages$Editor$StartRenameSlot(slot.bz)),
 											$elm$html$Html$Attributes$title(
-											A2($author$project$I18n$t, ctx.l, 25))
+											A2($author$project$I18n$t, ctx.j, 28))
 										])),
 								_List_fromArray(
 									[
 										$elm$html$Html$text('✎')
 									])),
 								_Utils_eq(
-								model.ax,
-								$elm$core$Maybe$Just(slot.a)) ? A2(
+								model.aq,
+								$elm$core$Maybe$Just(slot.bz)) ? A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
@@ -11281,7 +11494,7 @@ var $author$project$Pages$Editor$saveModal = F2(
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
-										A2($author$project$I18n$t, ctx.l, 27))
+										A2($author$project$I18n$t, ctx.j, 30))
 									])) : $elm$html$Html$text('')
 							])),
 						A2(
@@ -11293,55 +11506,106 @@ var $author$project$Pages$Editor$saveModal = F2(
 								A2($elm$html$Html$Attributes$style, 'margin-top', '8px'),
 								A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
 							]),
-						_Utils_ap(
-							_List_fromArray(
-								[
-									A2(
-									$elm$html$Html$button,
-									_Utils_ap(
-										$author$project$Pages$Editor$editorButtonStyles(ctx.h),
-										_List_fromArray(
-											[
-												$elm$html$Html$Events$onClick(
-												$author$project$Pages$Editor$SaveToSlot(slot.a))
-											])),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+										A2($elm$html$Html$Attributes$style, 'gap', '8px'),
+										A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
+									]),
+								_Utils_ap(
 									_List_fromArray(
 										[
-											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 22))
-										]))
-								]),
-							hasAutomaton ? _List_fromArray(
-								[
-									A2(
-									$elm$html$Html$button,
-									_Utils_ap(
-										$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+											A2(
+											$elm$html$Html$button,
+											_Utils_ap(
+												$author$project$Pages$Editor$editorButtonStyles(ctx.f),
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onClick(
+														$author$project$Pages$Editor$SaveToSlot(slot.bz))
+													])),
+											_List_fromArray(
+												[
+													$elm$html$Html$text(
+													A2($author$project$I18n$t, ctx.j, 22))
+												]))
+										]),
+									hasAutomaton ? _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$button,
+											_Utils_ap(
+												$author$project$Pages$Editor$editorButtonStyles(ctx.f),
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onClick(
+														$author$project$Pages$Editor$LoadFromSlot(slot.bz))
+													])),
+											_List_fromArray(
+												[
+													$elm$html$Html$text(
+													A2($author$project$I18n$t, ctx.j, 23))
+												])),
+											A2(
+											$elm$html$Html$button,
+											_Utils_ap(
+												$author$project$Pages$Editor$editorButtonStyles(ctx.f),
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onClick(
+														$author$project$Pages$Editor$DeleteFromSlot(slot.bz))
+													])),
+											_List_fromArray(
+												[
+													$elm$html$Html$text(
+													A2($author$project$I18n$t, ctx.j, 24))
+												]))
+										]) : _List_Nil)),
+								hasAutomaton ? A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+										A2($elm$html$Html$Attributes$style, 'gap', '8px'),
+										A2($elm$html$Html$Attributes$style, 'margin-left', 'auto'),
+										A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$button,
+										_Utils_ap(
+											$author$project$Pages$Editor$editorButtonStyles(ctx.f),
+											_List_fromArray(
+												[
+													$elm$html$Html$Events$onClick(
+													$author$project$Pages$Editor$ImportSlot(slot.bz))
+												])),
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onClick(
-												$author$project$Pages$Editor$LoadFromSlot(slot.a))
+												$elm$html$Html$text(
+												A2($author$project$I18n$t, ctx.j, 25))
 											])),
-									_List_fromArray(
-										[
-											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 23))
-										])),
-									A2(
-									$elm$html$Html$button,
-									_Utils_ap(
-										$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+										A2(
+										$elm$html$Html$button,
+										_Utils_ap(
+											$author$project$Pages$Editor$editorButtonStyles(ctx.f),
+											_List_fromArray(
+												[
+													$elm$html$Html$Events$onClick(
+													$author$project$Pages$Editor$ExportSlot(slot.bz))
+												])),
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onClick(
-												$author$project$Pages$Editor$DeleteFromSlot(slot.a))
-											])),
-									_List_fromArray(
-										[
-											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 24))
-										]))
-								]) : _List_Nil))
+												$elm$html$Html$text(
+												A2($author$project$I18n$t, ctx.j, 26))
+											]))
+									])) : $elm$html$Html$text('')
+							]))
 					]));
 		};
 		return A2(
@@ -11365,15 +11629,15 @@ var $author$project$Pages$Editor$saveModal = F2(
 							A2(
 							$elm$html$Html$Attributes$style,
 							'background',
-							$author$project$Theme$panelBg(ctx.h)),
+							$author$project$Theme$panelBg(ctx.f)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'color',
-							$author$project$Theme$textColor(ctx.h)),
+							$author$project$Theme$textColor(ctx.f)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'border',
-							'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+							'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 							A2($elm$html$Html$Attributes$style, 'border-radius', '12px'),
 							A2($elm$html$Html$Attributes$style, 'padding', '16px'),
 							A2(
@@ -11390,8 +11654,21 @@ var $author$project$Pages$Editor$saveModal = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 21))
+									A2($author$project$I18n$t, ctx.j, 21))
 								])),
+							model.O ? A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'color', '#e74c3c'),
+									A2($elm$html$Html$Attributes$style, 'margin-bottom', '10px'),
+									A2($elm$html$Html$Attributes$style, 'font-weight', '600')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									A2($author$project$I18n$t, ctx.j, 27))
+								])) : $elm$html$Html$text(''),
 							A2(
 							$elm$html$Html$div,
 							_List_fromArray(
@@ -11400,7 +11677,7 @@ var $author$project$Pages$Editor$saveModal = F2(
 									A2($elm$html$Html$Attributes$style, 'grid-template-columns', '1fr'),
 									A2($elm$html$Html$Attributes$style, 'gap', '10px')
 								]),
-							A2($elm$core$List$map, viewSlot, model.bl)),
+							A2($elm$core$List$map, viewSlot, model.ar)),
 							A2(
 							$elm$html$Html$div,
 							_List_fromArray(
@@ -11412,7 +11689,7 @@ var $author$project$Pages$Editor$saveModal = F2(
 									A2(
 									$elm$html$Html$button,
 									_Utils_ap(
-										$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+										$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 										_List_fromArray(
 											[
 												$elm$html$Html$Events$onClick($author$project$Pages$Editor$CloseSaveModal)
@@ -11420,17 +11697,17 @@ var $author$project$Pages$Editor$saveModal = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 30))
+											A2($author$project$I18n$t, ctx.j, 33))
 										]))
 								]))
 						]))
 				]));
 	});
-var $author$project$I18n$EditorSimulation = 59;
-var $author$project$I18n$EditorSimulationDelay = 61;
-var $author$project$I18n$EditorSimulationInput = 60;
-var $author$project$I18n$EditorSimulationStart = 62;
-var $author$project$I18n$EditorSimulationStop = 63;
+var $author$project$I18n$EditorSimulation = 62;
+var $author$project$I18n$EditorSimulationDelay = 64;
+var $author$project$I18n$EditorSimulationInput = 63;
+var $author$project$I18n$EditorSimulationStart = 65;
+var $author$project$I18n$EditorSimulationStop = 66;
 var $author$project$Pages$Editor$SetSimulationDelay = function (a) {
 	return {$: 19, a: a};
 };
@@ -11451,11 +11728,11 @@ var $elm$html$Html$Attributes$rows = function (n) {
 		'rows',
 		$elm$core$String$fromInt(n));
 };
-var $author$project$I18n$EditorSimulationDeadEnd = 67;
-var $author$project$I18n$EditorSimulationMissingStart = 68;
-var $author$project$I18n$EditorSimulationRejected = 66;
-var $author$project$I18n$EditorSimulationRunning = 64;
-var $author$project$I18n$EditorSimulationSuccess = 65;
+var $author$project$I18n$EditorSimulationDeadEnd = 70;
+var $author$project$I18n$EditorSimulationMissingStart = 71;
+var $author$project$I18n$EditorSimulationRejected = 69;
+var $author$project$I18n$EditorSimulationRunning = 67;
+var $author$project$I18n$EditorSimulationSuccess = 68;
 var $author$project$Pages$Editor$simulationStatus = F2(
 	function (lang, result) {
 		switch (result) {
@@ -11464,34 +11741,34 @@ var $author$project$Pages$Editor$simulationStatus = F2(
 			case 1:
 				return $elm$core$Maybe$Just(
 					_Utils_Tuple2(
-						A2($author$project$I18n$t, lang, 64),
+						A2($author$project$I18n$t, lang, 67),
 						'#2980b9'));
 			case 2:
 				return $elm$core$Maybe$Just(
 					_Utils_Tuple2(
-						A2($author$project$I18n$t, lang, 65),
+						A2($author$project$I18n$t, lang, 68),
 						'#2ecc71'));
 			case 3:
 				return $elm$core$Maybe$Just(
 					_Utils_Tuple2(
-						A2($author$project$I18n$t, lang, 66),
+						A2($author$project$I18n$t, lang, 69),
 						'#e67e22'));
 			case 4:
 				return $elm$core$Maybe$Just(
 					_Utils_Tuple2(
-						A2($author$project$I18n$t, lang, 67),
+						A2($author$project$I18n$t, lang, 70),
 						'#e74c3c'));
 			default:
 				return $elm$core$Maybe$Just(
 					_Utils_Tuple2(
-						A2($author$project$I18n$t, lang, 68),
+						A2($author$project$I18n$t, lang, 71),
 						'#e74c3c'));
 		}
 	});
 var $elm$html$Html$textarea = _VirtualDom_node('textarea');
 var $author$project$Pages$Editor$simulationPanel = F2(
 	function (ctx, model) {
-		var simulationLocked = model.N || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing));
+		var simulationLocked = model.N || (!_Utils_eq(model.E, $elm$core$Maybe$Nothing));
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -11499,11 +11776,11 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$panelBg(ctx.h)),
+					$author$project$Theme$panelBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '14px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '12px'),
 					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden'),
@@ -11533,7 +11810,7 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 59))
+									A2($author$project$I18n$t, ctx.j, 62))
 								])),
 							A2(
 							$elm$html$Html$textarea,
@@ -11542,8 +11819,8 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 									$elm$html$Html$Attributes$rows(1),
 									$elm$html$Html$Attributes$cols(28),
 									$elm$html$Html$Attributes$placeholder(
-									A2($author$project$I18n$t, ctx.l, 60)),
-									$elm$html$Html$Attributes$value(model.az),
+									A2($author$project$I18n$t, ctx.j, 63)),
+									$elm$html$Html$Attributes$value(model.ay),
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationInput),
 									$elm$html$Html$Attributes$disabled(simulationLocked),
 									A2($elm$html$Html$Attributes$style, 'height', '34px'),
@@ -11557,7 +11834,7 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 									$elm$html$Html$Attributes$rows(1),
 									$elm$html$Html$Attributes$cols(10),
 									$elm$html$Html$Attributes$placeholder(
-									A2($author$project$I18n$t, ctx.l, 61)),
+									A2($author$project$I18n$t, ctx.j, 64)),
 									$elm$html$Html$Attributes$value(model.as),
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationDelay),
 									$elm$html$Html$Attributes$disabled(simulationLocked),
@@ -11568,7 +11845,7 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+								$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$StartSimulation),
@@ -11578,27 +11855,27 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 62))
+									A2($author$project$I18n$t, ctx.j, 65))
 								])),
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+								$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$StopSimulation),
 										$elm$html$Html$Attributes$disabled(
-										!(model.N || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing)))),
+										!(model.N || (!_Utils_eq(model.E, $elm$core$Maybe$Nothing)))),
 										A2($elm$html$Html$Attributes$style, 'height', '36px')
 									])),
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 63))
+									A2($author$project$I18n$t, ctx.j, 66))
 								]))
 						])),
 					function () {
-					var _v0 = A2($author$project$Pages$Editor$simulationStatus, ctx.l, model.ad);
+					var _v0 = A2($author$project$Pages$Editor$simulationStatus, ctx.j, model.ac);
 					if (_v0.$ === 1) {
 						return $elm$html$Html$text('');
 					} else {
@@ -11678,21 +11955,21 @@ var $elm$svg$Svg$Events$on = $elm$html$Html$Events$on;
 var $author$project$Pages$Editor$ChooseSimulationTransition = function (a) {
 	return {$: 22, a: a};
 };
-var $author$project$I18n$EditorSimulationChoiceBody = 70;
-var $author$project$I18n$EditorSimulationChoiceTitle = 69;
-var $author$project$I18n$EditorTransitionLabel = 39;
+var $author$project$I18n$EditorSimulationChoiceBody = 73;
+var $author$project$I18n$EditorSimulationChoiceTitle = 72;
+var $author$project$I18n$EditorTransitionLabel = 42;
 var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
 var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 	function (ctx, model) {
-		var _v0 = model.F;
+		var _v0 = model.E;
 		if (_v0.$ === 1) {
 			return $elm$html$Html$text('');
 		} else {
 			var choice = _v0.a;
-			var _v1 = A2($author$project$Pages$Editor$getStateById, choice.bo, model.b);
+			var _v1 = A2($author$project$Pages$Editor$getStateById, choice.bm, model.a);
 			if (_v1.$ === 1) {
 				return $elm$html$Html$text('');
 			} else {
@@ -11703,7 +11980,7 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 						_List_fromArray(
 							[
 								$elm$html$Html$Events$onClick(
-								$author$project$Pages$Editor$ChooseSimulationTransition(transition.a)),
+								$author$project$Pages$Editor$ChooseSimulationTransition(transition.bz)),
 								A2($elm$html$Html$Attributes$style, 'display', 'block'),
 								A2($elm$html$Html$Attributes$style, 'width', '100%'),
 								A2($elm$html$Html$Attributes$style, 'margin-top', '6px'),
@@ -11712,27 +11989,27 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								A2($author$project$Pages$Editor$stateNameById, model.b, transition.d) + (' → ' + (A2($author$project$Pages$Editor$stateNameById, model.b, transition.e) + (' [' + (transition.k + ']')))))
+								A2($author$project$Pages$Editor$stateNameById, model.a, transition.c) + (' → ' + (A2($author$project$Pages$Editor$stateNameById, model.a, transition.d) + (' [' + (transition.i + ']')))))
 							]));
 				};
 				var relatedTransitions = A2(
 					$elm$core$List$filter,
 					function (transition) {
-						return A2($elm$core$List$member, transition.a, choice.am);
+						return A2($elm$core$List$member, transition.bz, choice.ak);
 					},
-					model.c);
+					model.b);
 				var popupWidth = 280;
 				var popupGap = 24;
 				var layout = $author$project$Pages$Editor$editorLayout(model);
 				var leftPos = function () {
-					var maxCanvasLeft = (layout.aY - popupWidth) - 8;
-					var desiredLeft = (((state.i + model.I) - popupWidth) - popupGap) - 60;
+					var maxCanvasLeft = (layout.aX - popupWidth) - 8;
+					var desiredLeft = (((state.g + model.H) - popupWidth) - popupGap) - 60;
 					return A2($elm$core$Basics$min, maxCanvasLeft, desiredLeft);
 				}();
 				var topPos = A2(
 					$elm$core$Basics$max,
 					8,
-					A2($elm$core$Basics$min, layout.aX - 170, (state.j + model.J) - 30));
+					A2($elm$core$Basics$min, layout.aW - 170, (state.h + model.I) - 30));
 				return A2(
 					$elm$html$Html$div,
 					_List_fromArray(
@@ -11749,11 +12026,11 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 							A2(
 							$elm$html$Html$Attributes$style,
 							'background',
-							$author$project$Theme$panelBg(ctx.h)),
+							$author$project$Theme$panelBg(ctx.f)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'border',
-							'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+							'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 							A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
 							A2($elm$html$Html$Attributes$style, 'padding', '10px'),
 							A2($elm$html$Html$Attributes$style, 'width', '280px'),
@@ -11771,7 +12048,7 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 69))
+									A2($author$project$I18n$t, ctx.j, 72))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -11782,7 +12059,7 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 70) + (' ' + (state.f + (', ' + (A2($author$project$I18n$t, ctx.l, 39) + (': ' + choice.be))))))
+									A2($author$project$I18n$t, ctx.j, 73) + (' ' + (state.bC + (', ' + (A2($author$project$I18n$t, ctx.j, 42) + (': ' + choice.bd))))))
 								])),
 							A2(
 							$elm$html$Html$div,
@@ -11803,15 +12080,15 @@ var $author$project$Pages$Editor$simulationChoiceOverlay = F2(
 									A2(
 									$elm$html$Html$Attributes$style,
 									'background',
-									$author$project$Theme$panelBg(ctx.h)),
+									$author$project$Theme$panelBg(ctx.f)),
 									A2(
 									$elm$html$Html$Attributes$style,
 									'border-right',
-									'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+									'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 									A2(
 									$elm$html$Html$Attributes$style,
 									'border-top',
-									'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+									'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 									A2($elm$html$Html$Attributes$style, 'transform', 'rotate(45deg)')
 								]),
 							_List_Nil)
@@ -11877,7 +12154,7 @@ var $elm$svg$Svg$Attributes$y1 = _VirtualDom_attribute('y1');
 var $elm$svg$Svg$Attributes$y2 = _VirtualDom_attribute('y2');
 var $author$project$Pages$Editor$viewState = F3(
 	function (ctx, model, s) {
-		var strokeColor = s.v ? '#2ecc71' : $author$project$Theme$textColor(ctx.h);
+		var strokeColor = s.t ? '#2ecc71' : $author$project$Theme$textColor(ctx.f);
 		var r = 22;
 		var startIndicator = s.A ? _List_fromArray(
 			[
@@ -11886,15 +12163,15 @@ var $author$project$Pages$Editor$viewState = F3(
 				_List_fromArray(
 					[
 						$elm$svg$Svg$Attributes$x1(
-						$elm$core$String$fromFloat(s.i - 64)),
+						$elm$core$String$fromFloat(s.g - 64)),
 						$elm$svg$Svg$Attributes$y1(
-						$elm$core$String$fromFloat(s.j)),
+						$elm$core$String$fromFloat(s.h)),
 						$elm$svg$Svg$Attributes$x2(
-						$elm$core$String$fromFloat(s.i - (r + 6))),
+						$elm$core$String$fromFloat(s.g - (r + 6))),
 						$elm$svg$Svg$Attributes$y2(
-						$elm$core$String$fromFloat(s.j)),
+						$elm$core$String$fromFloat(s.h)),
 						$elm$svg$Svg$Attributes$stroke(
-						$author$project$Theme$textColor(ctx.h)),
+						$author$project$Theme$textColor(ctx.f)),
 						$elm$svg$Svg$Attributes$strokeWidth('3'),
 						$elm$svg$Svg$Attributes$markerEnd('url(#start-arrow)'),
 						$elm$svg$Svg$Attributes$pointerEvents('none')
@@ -11902,11 +12179,11 @@ var $author$project$Pages$Editor$viewState = F3(
 				_List_Nil)
 			]) : _List_Nil;
 		var isSelected = _Utils_eq(
-			model.q,
-			$elm$core$Maybe$Just(s.a));
+			model.o,
+			$elm$core$Maybe$Just(s.bz));
 		var strokeWidth = isSelected ? '3' : '2';
 		var fillColor = function () {
-			var _v4 = _Utils_Tuple2(ctx.h, s.A);
+			var _v4 = _Utils_Tuple2(ctx.f, s.A);
 			if (!_v4.a) {
 				if (_v4.b) {
 					var _v5 = _v4.a;
@@ -11926,7 +12203,7 @@ var $author$project$Pages$Editor$viewState = F3(
 			}
 		}();
 		var _v0 = function () {
-			var _v1 = ctx.h;
+			var _v1 = ctx.f;
 			if (!_v1) {
 				return _Utils_Tuple2('#7aa2ff33', '#7aa2ff');
 			} else {
@@ -11942,9 +12219,9 @@ var $author$project$Pages$Editor$viewState = F3(
 				_List_fromArray(
 					[
 						$elm$svg$Svg$Attributes$cx(
-						$elm$core$String$fromFloat(s.i)),
+						$elm$core$String$fromFloat(s.g)),
 						$elm$svg$Svg$Attributes$cy(
-						$elm$core$String$fromFloat(s.j)),
+						$elm$core$String$fromFloat(s.h)),
 						$elm$svg$Svg$Attributes$r(
 						$elm$core$String$fromInt(r + 4)),
 						$elm$svg$Svg$Attributes$fill(highlightFill),
@@ -11968,9 +12245,9 @@ var $author$project$Pages$Editor$viewState = F3(
 							_List_fromArray(
 								[
 									$elm$svg$Svg$Attributes$cx(
-									$elm$core$String$fromFloat(s.i)),
+									$elm$core$String$fromFloat(s.g)),
 									$elm$svg$Svg$Attributes$cy(
-									$elm$core$String$fromFloat(s.j)),
+									$elm$core$String$fromFloat(s.h)),
 									$elm$svg$Svg$Attributes$r(
 									$elm$core$String$fromInt(r)),
 									$elm$svg$Svg$Attributes$fill(fillColor),
@@ -11984,7 +12261,7 @@ var $author$project$Pages$Editor$viewState = F3(
 										F3(
 											function (button, _v2, _v3) {
 												return (!button) ? _Utils_Tuple2(
-													$author$project$Pages$Editor$StartDrag(s.a),
+													$author$project$Pages$Editor$StartDrag(s.bz),
 													true) : _Utils_Tuple2($author$project$Pages$Editor$NoOp, true);
 											}),
 										A2($elm$json$Json$Decode$field, 'button', $elm$json$Json$Decode$int),
@@ -11997,7 +12274,7 @@ var $author$project$Pages$Editor$viewState = F3(
 										$elm$json$Json$Decode$map,
 										function (button) {
 											return (!button) ? _Utils_Tuple2(
-												$author$project$Pages$Editor$DoubleClickState(s.a),
+												$author$project$Pages$Editor$DoubleClickState(s.bz),
 												true) : _Utils_Tuple2($author$project$Pages$Editor$NoOp, true);
 										},
 										A2($elm$json$Json$Decode$field, 'button', $elm$json$Json$Decode$int))),
@@ -12008,20 +12285,20 @@ var $author$project$Pages$Editor$viewState = F3(
 										$elm$json$Json$Decode$map,
 										function (button) {
 											return (!button) ? _Utils_Tuple2(
-												$author$project$Pages$Editor$SelectState(s.a),
+												$author$project$Pages$Editor$SelectState(s.bz),
 												true) : _Utils_Tuple2($author$project$Pages$Editor$NoOp, true);
 										},
 										A2($elm$json$Json$Decode$field, 'button', $elm$json$Json$Decode$int)))
 								]),
 							_List_Nil),
-							s.v ? A2(
+							s.t ? A2(
 							$elm$svg$Svg$circle,
 							_List_fromArray(
 								[
 									$elm$svg$Svg$Attributes$cx(
-									$elm$core$String$fromFloat(s.i)),
+									$elm$core$String$fromFloat(s.g)),
 									$elm$svg$Svg$Attributes$cy(
-									$elm$core$String$fromFloat(s.j)),
+									$elm$core$String$fromFloat(s.h)),
 									$elm$svg$Svg$Attributes$r(
 									$elm$core$String$fromInt(r - 6)),
 									$elm$svg$Svg$Attributes$fill('none'),
@@ -12036,18 +12313,18 @@ var $author$project$Pages$Editor$viewState = F3(
 								[
 									$elm$svg$Svg$Attributes$x(
 									$elm$core$String$fromFloat(
-										s.i - ($elm$core$String$length(s.f) * 3.5))),
+										s.g - ($elm$core$String$length(s.bC) * 3.5))),
 									$elm$svg$Svg$Attributes$y(
-									$elm$core$String$fromFloat(s.j + 6)),
+									$elm$core$String$fromFloat(s.h + 6)),
 									$elm$svg$Svg$Attributes$fontSize('14'),
 									$elm$svg$Svg$Attributes$fill(
-									$author$project$Theme$textColor(ctx.h)),
+									$author$project$Theme$textColor(ctx.f)),
 									$elm$svg$Svg$Attributes$style('user-select: none; -webkit-user-select: none; -moz-user-select: none;'),
 									$elm$svg$Svg$Attributes$pointerEvents('none')
 								]),
 							_List_fromArray(
 								[
-									$elm$svg$Svg$text(s.f)
+									$elm$svg$Svg$text(s.bC)
 								]))
 						]))));
 	});
@@ -12071,13 +12348,13 @@ var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $author$project$Pages$Editor$viewTransition = F3(
 	function (ctx, model, transitionGroup) {
 		var _v0 = _Utils_Tuple2(
-			A2($author$project$Pages$Editor$getStateById, transitionGroup.d, model.b),
-			A2($author$project$Pages$Editor$getStateById, transitionGroup.e, model.b));
+			A2($author$project$Pages$Editor$getStateById, transitionGroup.c, model.a),
+			A2($author$project$Pages$Editor$getStateById, transitionGroup.d, model.a));
 		if ((!_v0.a.$) && (!_v0.b.$)) {
 			var a = _v0.a.a;
 			var b = _v0.b.a;
 			var shownLabel = $author$project$Pages$Editor$transitionLabelsToText(transitionGroup.aw);
-			var selfLoop = _Utils_eq(transitionGroup.d, transitionGroup.e);
+			var selfLoop = _Utils_eq(transitionGroup.c, transitionGroup.d);
 			var selectTransitionOnClick = A2(
 				$elm$html$Html$Events$stopPropagationOn,
 				'click',
@@ -12085,24 +12362,24 @@ var $author$project$Pages$Editor$viewTransition = F3(
 					$elm$json$Json$Decode$map,
 					function (button) {
 						return (!button) ? _Utils_Tuple2(
-							$author$project$Pages$Editor$SelectTransition(transitionGroup.bk),
+							$author$project$Pages$Editor$SelectTransition(transitionGroup.bj),
 							true) : _Utils_Tuple2($author$project$Pages$Editor$NoOp, true);
 					},
 					A2($elm$json$Json$Decode$field, 'button', $elm$json$Json$Decode$int)));
 			var r = 22;
-			var oppositeTransitionExists = (!_Utils_eq(transitionGroup.d, transitionGroup.e)) && A2(
+			var oppositeTransitionExists = (!_Utils_eq(transitionGroup.c, transitionGroup.d)) && A2(
 				$elm$core$List$any,
 				function (t) {
-					return _Utils_eq(t.d, transitionGroup.e) && _Utils_eq(t.e, transitionGroup.d);
+					return _Utils_eq(t.c, transitionGroup.d) && _Utils_eq(t.d, transitionGroup.c);
 				},
-				model.c);
+				model.b);
 			var isSelected = function () {
-				var _v2 = model.D;
+				var _v2 = model.y;
 				if (_v2.$ === 1) {
 					return false;
 				} else {
 					var selectedId = _v2.a;
-					return A2($elm$core$List$member, selectedId, transitionGroup.am);
+					return A2($elm$core$List$member, selectedId, transitionGroup.ak);
 				}
 			}();
 			var strokeWidth = isSelected ? '4' : '2';
@@ -12112,24 +12389,24 @@ var $author$project$Pages$Editor$viewTransition = F3(
 				$elm$core$String$length(shownLabel) * 9);
 			var hitHeight = 18;
 			var curveOffset = 42;
-			var _v1 = _Utils_Tuple2(b.i - a.i, b.j - a.j);
+			var _v1 = _Utils_Tuple2(b.g - a.g, b.h - a.h);
 			var dx = _v1.a;
 			var dy = _v1.b;
 			var dist = $elm$core$Basics$sqrt((dx * dx) + (dy * dy));
 			var safe = (dist < 0.001) ? 0.001 : dist;
 			var ux = dx / safe;
-			var endX = selfLoop ? (b.i - 18) : (b.i - (ux * (r + 6)));
+			var endX = selfLoop ? (b.g - 18) : (b.g - (ux * (r + 6)));
 			var rightY = ux;
-			var startX = selfLoop ? (a.i + 18) : (a.i + (ux * r));
+			var startX = selfLoop ? (a.g + 18) : (a.g + (ux * r));
 			var uy = dy / safe;
-			var endY = selfLoop ? (b.j - 22) : (b.j - (uy * (r + 6)));
+			var endY = selfLoop ? (b.h - 22) : (b.h - (uy * (r + 6)));
 			var rightX = -uy;
 			var controlX = ((startX + endX) / 2) + (rightX * curveOffset);
-			var labelX = selfLoop ? (a.i + 2) : (oppositeTransitionExists ? ((((0.25 * startX) + (0.5 * controlX)) + (0.25 * endX)) + (rightX * 14)) : (((startX + endX) / 2) + 6));
-			var startY = selfLoop ? (a.j - 22) : (a.j + (uy * r));
+			var labelX = selfLoop ? (a.g + 2) : (oppositeTransitionExists ? ((((0.25 * startX) + (0.5 * controlX)) + (0.25 * endX)) + (rightX * 14)) : (((startX + endX) / 2) + 6));
+			var startY = selfLoop ? (a.h - 22) : (a.h + (uy * r));
 			var controlY = ((startY + endY) / 2) + (rightY * curveOffset);
-			var labelY = selfLoop ? (a.j - 72) : (oppositeTransitionExists ? ((((0.25 * startY) + (0.5 * controlY)) + (0.25 * endY)) + (rightY * 14)) : (((startY + endY) / 2) - 6));
-			var pathD = selfLoop ? ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' C ' + ($elm$core$String$fromFloat(a.i + 40) + (' ' + ($elm$core$String$fromFloat(a.j - 64) + (', ' + ($elm$core$String$fromFloat(a.i - 40) + (' ' + ($elm$core$String$fromFloat(a.j - 64) + (', ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))))))))))) : (oppositeTransitionExists ? ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' Q ' + ($elm$core$String$fromFloat(controlX) + (' ' + ($elm$core$String$fromFloat(controlY) + (' ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))))))) : ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' L ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))));
+			var labelY = selfLoop ? (a.h - 72) : (oppositeTransitionExists ? ((((0.25 * startY) + (0.5 * controlY)) + (0.25 * endY)) + (rightY * 14)) : (((startY + endY) / 2) - 6));
+			var pathD = selfLoop ? ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' C ' + ($elm$core$String$fromFloat(a.g + 40) + (' ' + ($elm$core$String$fromFloat(a.h - 64) + (', ' + ($elm$core$String$fromFloat(a.g - 40) + (' ' + ($elm$core$String$fromFloat(a.h - 64) + (', ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))))))))))) : (oppositeTransitionExists ? ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' Q ' + ($elm$core$String$fromFloat(controlX) + (' ' + ($elm$core$String$fromFloat(controlY) + (' ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))))))) : ('M ' + ($elm$core$String$fromFloat(startX) + (' ' + ($elm$core$String$fromFloat(startY) + (' L ' + ($elm$core$String$fromFloat(endX) + (' ' + $elm$core$String$fromFloat(endY)))))))));
 			return A2(
 				$elm$svg$Svg$g,
 				_List_Nil,
@@ -12152,7 +12429,7 @@ var $author$project$Pages$Editor$viewTransition = F3(
 							[
 								$elm$svg$Svg$Attributes$d(pathD),
 								$elm$svg$Svg$Attributes$stroke(
-								$author$project$Theme$textColor(ctx.h)),
+								$author$project$Theme$textColor(ctx.f)),
 								$elm$svg$Svg$Attributes$strokeWidth(strokeWidth),
 								$elm$svg$Svg$Attributes$markerEnd('url(#arrowhead)'),
 								$elm$svg$Svg$Attributes$fill('none'),
@@ -12186,7 +12463,7 @@ var $author$project$Pages$Editor$viewTransition = F3(
 								$elm$core$String$fromFloat(labelY)),
 								$elm$svg$Svg$Attributes$fontSize('12'),
 								$elm$svg$Svg$Attributes$fill(
-								$author$project$Theme$textColor(ctx.h)),
+								$author$project$Theme$textColor(ctx.f)),
 								$elm$svg$Svg$Attributes$style('user-select: none; -webkit-user-select: none; -moz-user-select: none;'),
 								$elm$svg$Svg$Attributes$pointerEvents('none')
 							]),
@@ -12219,7 +12496,7 @@ var $author$project$Pages$Editor$wheelPanEvent = A2(
 	A2(
 		$elm$json$Json$Decode$map,
 		function (msg) {
-			return {ca: msg, cf: true, cj: false};
+			return {cb: msg, cg: true, ck: false};
 		},
 		A3(
 			$elm$json$Json$Decode$map2,
@@ -12229,7 +12506,7 @@ var $author$project$Pages$Editor$wheelPanEvent = A2(
 var $author$project$Pages$Editor$svgView = F4(
 	function (ctx, model, width, height) {
 		var cursor = function () {
-			var _v0 = model.z;
+			var _v0 = model.x;
 			switch (_v0) {
 				case 0:
 					return 'crosshair';
@@ -12257,7 +12534,7 @@ var $author$project$Pages$Editor$svgView = F4(
 							$elm$svg$Svg$Attributes$width('100%'),
 							$elm$svg$Svg$Attributes$height('100%'),
 							$elm$svg$Svg$Attributes$style(
-							'border:1px solid ' + ($author$project$Theme$panelBorder(ctx.h) + ('; background:' + (((ctx.h === 1) ? '#0b1320' : '#f8f9fb') + ('; cursor: ' + (cursor + '; user-select: none; -webkit-user-select: none; -moz-user-select: none;')))))),
+							'border:1px solid ' + ($author$project$Theme$panelBorder(ctx.f) + ('; background:' + (((ctx.f === 1) ? '#0b1320' : '#f8f9fb') + ('; cursor: ' + (cursor + '; user-select: none; -webkit-user-select: none; -moz-user-select: none;')))))),
 							A2(
 							$elm$svg$Svg$Events$on,
 							'mousedown',
@@ -12307,16 +12584,16 @@ var $author$project$Pages$Editor$svgView = F4(
 							_List_fromArray(
 								[
 									$author$project$Pages$Editor$arrowMarker(
-									$author$project$Theme$textColor(ctx.h)),
+									$author$project$Theme$textColor(ctx.f)),
 									$author$project$Pages$Editor$startArrowMarker(
-									$author$project$Theme$textColor(ctx.h))
+									$author$project$Theme$textColor(ctx.f))
 								])),
 							A2(
 							$elm$svg$Svg$g,
 							_List_fromArray(
 								[
 									$elm$svg$Svg$Attributes$transform(
-									'translate(' + ($elm$core$String$fromFloat(model.I) + (',' + ($elm$core$String$fromFloat(model.J) + ')'))))
+									'translate(' + ($elm$core$String$fromFloat(model.H) + (',' + ($elm$core$String$fromFloat(model.I) + ')'))))
 								]),
 							$elm$core$List$concat(
 								_List_fromArray(
@@ -12324,11 +12601,11 @@ var $author$project$Pages$Editor$svgView = F4(
 										A2(
 										$elm$core$List$map,
 										A2($author$project$Pages$Editor$viewTransition, ctx, model),
-										$author$project$Pages$Editor$groupTransitionsForRender(model.c)),
+										$author$project$Pages$Editor$groupTransitionsForRender(model.b)),
 										A2(
 										$elm$core$List$map,
 										A2($author$project$Pages$Editor$viewState, ctx, model),
-										model.b)
+										model.a)
 									])))
 						])),
 					A2($author$project$Pages$Editor$simulationChoiceOverlay, ctx, model)
@@ -12352,11 +12629,11 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$panelBg(ctx.h)),
+					$author$project$Theme$panelBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '12px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '12px'),
 					A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')
@@ -12372,7 +12649,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 17))
+							A2($author$project$I18n$t, ctx.j, 17))
 						])),
 					A2(
 					$elm$html$Html$textarea,
@@ -12381,7 +12658,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							$elm$html$Html$Attributes$rows(18),
 							$elm$html$Html$Attributes$cols(36),
 							$elm$html$Html$Events$onInput($author$project$Pages$Editor$CodeEdited),
-							$elm$html$Html$Attributes$value(model.ao),
+							$elm$html$Html$Attributes$value(model.am),
 							A2($elm$html$Html$Attributes$style, 'margin-top', '8px'),
 							A2($elm$html$Html$Attributes$style, 'width', '100%'),
 							A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box')
@@ -12400,7 +12677,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+								$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$ImportCode)
@@ -12408,12 +12685,12 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 18))
+									A2($author$project$I18n$t, ctx.j, 18))
 								])),
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+								$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$ExportCode)
@@ -12421,7 +12698,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							_List_fromArray(
 								[
 									$elm$html$Html$text(
-									A2($author$project$I18n$t, ctx.l, 19))
+									A2($author$project$I18n$t, ctx.j, 19))
 								]))
 						]))
 				]));
@@ -12438,7 +12715,7 @@ var $author$project$Pages$Editor$view = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'color',
-					$author$project$Theme$textColor(ctx.h)),
+					$author$project$Theme$textColor(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'height',
@@ -12479,7 +12756,7 @@ var $author$project$Pages$Editor$view = F2(
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
-											A2($author$project$I18n$t, ctx.l, 13))
+											A2($author$project$I18n$t, ctx.j, 13))
 										])),
 									A2(
 									$elm$html$Html$div,
@@ -12494,7 +12771,7 @@ var $author$project$Pages$Editor$view = F2(
 											A2(
 											$elm$html$Html$button,
 											_Utils_ap(
-												$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+												$author$project$Pages$Editor$editorButtonStyles(ctx.f),
 												_List_fromArray(
 													[
 														$elm$html$Html$Events$onClick($author$project$Pages$Editor$OpenSaveModal)
@@ -12502,12 +12779,12 @@ var $author$project$Pages$Editor$view = F2(
 											_List_fromArray(
 												[
 													$elm$html$Html$text(
-													A2($author$project$I18n$t, ctx.l, 20))
+													A2($author$project$I18n$t, ctx.j, 20))
 												])),
 											A2($author$project$Pages$Editor$automatonPanel, ctx, model)
 										]))
 								])),
-							A4($author$project$Pages$Editor$svgView, ctx, model, layout.aY, layout.aX)
+							A4($author$project$Pages$Editor$svgView, ctx, model, layout.aX, layout.aW)
 						])),
 					A2($author$project$Pages$Editor$editorControlsPanel, ctx, model),
 					A2($author$project$Pages$Editor$transitionFunctionPanel, ctx, model)
@@ -12526,7 +12803,7 @@ var $author$project$Pages$Editor$view = F2(
 				[
 					content,
 					A2($author$project$Pages$Editor$simulationPanel, ctx, model),
-					model.aM ? A2($author$project$Pages$Editor$saveModal, ctx, model) : $elm$html$Html$text('')
+					model.aL ? A2($author$project$Pages$Editor$saveModal, ctx, model) : $elm$html$Html$text('')
 				]));
 	});
 var $author$project$I18n$InstructionsBody = 10;
@@ -12542,15 +12819,15 @@ var $author$project$Pages$Instructions$view = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
-					$author$project$Theme$panelBg(ctx.h)),
+					$author$project$Theme$panelBg(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'color',
-					$author$project$Theme$textColor(ctx.h)),
+					$author$project$Theme$textColor(ctx.f)),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'border',
-					'1px solid ' + $author$project$Theme$panelBorder(ctx.h)),
+					'1px solid ' + $author$project$Theme$panelBorder(ctx.f)),
 					A2($elm$html$Html$Attributes$style, 'padding', '16px'),
 					A2($elm$html$Html$Attributes$style, 'border-radius', '12px')
 				]),
@@ -12562,7 +12839,7 @@ var $author$project$Pages$Instructions$view = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 9))
+							A2($author$project$I18n$t, ctx.j, 9))
 						])),
 					A2(
 					$elm$html$Html$pre,
@@ -12574,14 +12851,14 @@ var $author$project$Pages$Instructions$view = F2(
 					_List_fromArray(
 						[
 							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.l, 10))
+							A2($author$project$I18n$t, ctx.j, 10))
 						]))
 				]));
 	});
 var $author$project$Main$view = function (model) {
-	var tk = $author$project$Design$tokens(model.ay);
+	var tk = $author$project$Design$tokens(model.ax);
 	return {
-		bS: _List_fromArray(
+		bT: _List_fromArray(
 			[
 				A2(
 				$elm$html$Html$div,
@@ -12590,11 +12867,11 @@ var $author$project$Main$view = function (model) {
 						A2(
 						$elm$html$Html$Attributes$style,
 						'background',
-						$author$project$Theme$bgColor(model.h)),
+						$author$project$Theme$bgColor(model.f)),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'color',
-						$author$project$Theme$textColor(model.h)),
+						$author$project$Theme$textColor(model.f)),
 						A2($elm$html$Html$Attributes$style, 'min-height', '100dvh'),
 						A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box'),
 						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
@@ -12603,14 +12880,14 @@ var $author$project$Main$view = function (model) {
 						A2(
 						$elm$html$Html$Attributes$style,
 						'padding',
-						$author$project$Design$px(tk.X.n)),
+						$author$project$Design$px(tk.V.l)),
 						A2($elm$html$Html$Attributes$style, 'font-family', 'Inter, Segoe UI, Arial, sans-serif')
 					]),
 				_List_fromArray(
 					[
 						$author$project$Main$topBar(model),
 						function () {
-						var _v0 = model.aL;
+						var _v0 = model.aK;
 						switch (_v0) {
 							case 0:
 								return A2(
@@ -12642,8 +12919,8 @@ var $author$project$Main$view = function (model) {
 											$author$project$Main$EditorMsg,
 											A2(
 												$author$project$Pages$Editor$view,
-												{l: model.l, h: model.h, cp: model.aU, cq: model.aC},
-												model.Q))
+												{j: model.j, f: model.f, cq: model.aT, cr: model.aB},
+												model.z))
 										]));
 							case 2:
 								return A2(
@@ -12651,25 +12928,25 @@ var $author$project$Main$view = function (model) {
 									$author$project$Main$InstructionsMsg,
 									A2(
 										$author$project$Pages$Instructions$view,
-										{l: model.l, h: model.h},
-										model.aH));
+										{j: model.j, f: model.f},
+										model.aG));
 							default:
 								return A2(
 									$elm$html$Html$map,
 									$author$project$Main$AboutMsg,
 									A2(
 										$author$project$Pages$About$view,
-										{l: model.l, h: model.h},
-										model.aE));
+										{j: model.j, f: model.f},
+										model.aD));
 						}
 					}()
 					]))
 			]),
-		cm: A2($author$project$I18n$t, model.l, 0)
+		cn: A2($author$project$I18n$t, model.j, 0)
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$application(
-	{b8: $author$project$Main$init, cc: $author$project$Main$UrlChanged, cd: $author$project$Main$LinkClicked, ck: $author$project$Main$subscriptions, cn: $author$project$Main$update, co: $author$project$Main$view});
+	{b9: $author$project$Main$init, cd: $author$project$Main$UrlChanged, ce: $author$project$Main$LinkClicked, cl: $author$project$Main$subscriptions, co: $author$project$Main$update, cp: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
@@ -12681,7 +12958,7 @@ _Platform_export({'Main':{'init':$author$project$Main$main(
 						$elm$json$Json$Decode$andThen,
 						function (automatonSlots) {
 							return $elm$json$Json$Decode$succeed(
-								{a8: automatonSlots, l: lang, h: theme});
+								{a7: automatonSlots, j: lang, f: theme});
 						},
 						A2($elm$json$Json$Decode$field, 'automatonSlots', $elm$json$Json$Decode$string));
 				},

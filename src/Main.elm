@@ -5,10 +5,13 @@ import Browser.Navigation as Nav
 import Browser.Events
 import Browser.Dom as Dom
 import Task
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Html as H exposing (Html, button, div, h1, h2, text, select, option)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
 import Url
+import String
 import Route exposing (Route(..))
 import I18n exposing (Lang(..), Key(..), t, toggleLang, langFromString, langToString)
 import Theme
@@ -72,6 +75,7 @@ type Msg
     | AboutMsg About.Msg
     | ViewportChanged Int Int
     | GotViewport (Result Dom.Error Dom.Viewport)
+    | GotImportAutomatonFile Decode.Value
 
 
 
@@ -84,6 +88,15 @@ type alias Flags =
     
 
 port saveAutomatonSlots : String -> Cmd msg
+
+
+port exportAutomatonFile : Encode.Value -> Cmd msg
+
+
+port importAutomatonFile : Int -> Cmd msg
+
+
+port importAutomatonFileResult : (Decode.Value -> msg) -> Sub msg
 
 
 main : Program Flags Model Msg
@@ -168,8 +181,54 @@ update msg model =
 
                     else
                         Cmd.none
+
+                maybeExportCmd =
+                    case sub of
+                        Editor.ExportSlot slotId ->
+                            subModel.saveSlots
+                                |> List.filter (\slot -> slot.id == slotId && not (String.isEmpty slot.automatonJson))
+                                |> List.head
+                                |> Maybe.map
+                                    (\slot ->
+                                        exportAutomatonFile
+                                            (Encode.object
+                                                [ ( "fileName", Encode.string (if String.isEmpty slot.name then "slot-" ++ String.fromInt slot.id else slot.name) )
+                                                , ( "content", Encode.string slot.automatonJson )
+                                                ]
+                                            )
+                                    )
+                                |> Maybe.withDefault Cmd.none
+
+                        Editor.ImportSlot slotId ->
+                            importAutomatonFile slotId
+
+                        _ ->
+                            Cmd.none
             in
-            ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd ] )
+            ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
+
+        GotImportAutomatonFile value ->
+            case Decode.decodeValue decodeImportFileResult value of
+                Ok ( slotId, content ) ->
+                    let
+                        ( editorModel, editorCmd ) =
+                            Editor.update (Editor.ApplyImportedSlot slotId content) model.editor
+
+                        persistCmd =
+                            if model.editor.saveSlots /= editorModel.saveSlots then
+                                saveAutomatonSlots (Editor.encodeSaveSlots editorModel.saveSlots)
+
+                            else
+                                Cmd.none
+                    in
+                    ( { model | editor = editorModel }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
+
+                Err _ ->
+                    let
+                        ( editorModel, editorCmd ) =
+                            Editor.update Editor.ImportSlotFailed model.editor
+                    in
+                    ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
 
         InstructionsMsg sub ->
             let (subModel, subCmd) = Instructions.update sub model.instructions
@@ -206,7 +265,17 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Browser.Events.onResize ViewportChanged
+    Sub.batch
+        [ Browser.Events.onResize ViewportChanged
+        , importAutomatonFileResult GotImportAutomatonFile
+        ]
+
+
+decodeImportFileResult : Decode.Decoder ( Int, String )
+decodeImportFileResult =
+    Decode.map2 Tuple.pair
+        (Decode.field "slotId" Decode.int)
+        (Decode.field "content" Decode.string)
 
 
 
