@@ -12,6 +12,9 @@ module Theme
         , hoverBorder
         , focusOutline
         , hoverShadow
+        , successColor
+        , warningColor
+        , errorColor
         )
 
 type Theme
@@ -98,3 +101,26 @@ hoverShadow th =
     case th of
         Light -> "0 6px 18px rgba(0,0,0,0.12)"
         Dark  -> "0 6px 18px rgba(0,0,0,0.35)"
+
+
+
+
+successColor : Theme -> String
+successColor th =
+    case th of
+        Light -> "#1f9d55"
+        Dark -> "#37d67a"
+
+
+warningColor : Theme -> String
+warningColor th =
+    case th of
+        Light -> "#c96a12"
+        Dark -> "#f39c49"
+
+
+errorColor : Theme -> String
+errorColor th =
+    case th of
+        Light -> "#c0392b"
+        Dark -> "#ff7666"

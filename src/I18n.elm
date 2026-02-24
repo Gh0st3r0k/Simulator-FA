@@ -109,6 +109,10 @@ type Key
     | EditorSimulationMissingStart
     | EditorSimulationChoiceTitle
     | EditorSimulationChoiceBody
+    | EditorAutomatonTypeDetailsToggle
+    | EditorAutomatonNonDetReasonsTitle
+    | EditorAutomatonNonDetReasonDuplicate
+    | EditorAutomatonNonDetReasonLambda
     | BackHomeIcon
     | BackHomeText
     | BackHomeIconText
@@ -514,6 +518,26 @@ t lang key =
         ( EN, EditorSimulationChoiceBody ) -> "Choose which transition to follow from state"
         ( SK, EditorSimulationChoiceBody ) -> "Vyberte, ktorý prechod sa má použiť zo stavu"
         ( UA, EditorSimulationChoiceBody ) -> "Оберіть, яким переходом іти зі стану"
+
+        ( RU, EditorAutomatonTypeDetailsToggle ) -> "Показать/скрыть причины недетерминированности"
+        ( EN, EditorAutomatonTypeDetailsToggle ) -> "Show/hide non-determinism reasons"
+        ( SK, EditorAutomatonTypeDetailsToggle ) -> "Zobraziť/skryť dôvody nedeterminizmu"
+        ( UA, EditorAutomatonTypeDetailsToggle ) -> "Показати/сховати причини недетермінованості"
+
+        ( RU, EditorAutomatonNonDetReasonsTitle ) -> "Причины недетерминированности"
+        ( EN, EditorAutomatonNonDetReasonsTitle ) -> "Reasons for non-determinism"
+        ( SK, EditorAutomatonNonDetReasonsTitle ) -> "Dôvody nedeterminizmu"
+        ( UA, EditorAutomatonNonDetReasonsTitle ) -> "Причини недетермінованості"
+
+        ( RU, EditorAutomatonNonDetReasonDuplicate ) -> "Из состояния {state} есть несколько переходов по символу ‘{label}’"
+        ( EN, EditorAutomatonNonDetReasonDuplicate ) -> "State {state} has multiple transitions for symbol ‘{label}’"
+        ( SK, EditorAutomatonNonDetReasonDuplicate ) -> "Zo stavu {state} existuje viac prechodov pre symbol ‘{label}’"
+        ( UA, EditorAutomatonNonDetReasonDuplicate ) -> "Із стану {state} є кілька переходів за символом ‘{label}’"
+
+        ( RU, EditorAutomatonNonDetReasonLambda ) -> "Есть λ-переход из {from} в {to}"
+        ( EN, EditorAutomatonNonDetReasonLambda ) -> "There is a λ-transition from {from} to {to}"
+        ( SK, EditorAutomatonNonDetReasonLambda ) -> "Existuje λ-prechod z {from} do {to}"
+        ( UA, EditorAutomatonNonDetReasonLambda ) -> "Є λ-перехід із {from} в {to}"
 
         ( RU, BackHomeIcon  ) -> "←"
         ( EN, BackHomeIcon  ) -> "←"
