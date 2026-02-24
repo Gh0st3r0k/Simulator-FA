@@ -5283,7 +5283,7 @@ var $author$project$Pages$Editor$initWithSlots = function (slots) {
 	return {
 		am: '',
 		X: $elm$core$Maybe$Nothing,
-		B: 0,
+		z: 0,
 		C: 1,
 		m: 1,
 		J: 0,
@@ -6130,7 +6130,7 @@ var $author$project$Pages$Editor$decodeState = A2(
 					return {
 						v: accepting,
 						a: id,
-						z: isStart,
+						A: isStart,
 						f: A2(
 							$elm$core$Maybe$withDefault,
 							$elm$core$String$fromInt(id),
@@ -6578,13 +6578,13 @@ var $author$project$Pages$Editor$buildAutomatonFromParsedTransitions = F2(
 							},
 							maybeExistingState)),
 					a: sid,
-					z: A2(
+					A: A2(
 						$elm$core$Maybe$withDefault,
 						sid === 1,
 						A2(
 							$elm$core$Maybe$map,
 							function ($) {
-								return $.z;
+								return $.A;
 							},
 							maybeExistingState)),
 					f: name,
@@ -6731,7 +6731,7 @@ var $author$project$Pages$Editor$encodeState = function (s) {
 				$elm$json$Json$Encode$bool(s.v)),
 				_Utils_Tuple2(
 				'isStart',
-				$elm$json$Json$Encode$bool(s.z))
+				$elm$json$Json$Encode$bool(s.A))
 			]));
 };
 var $author$project$Pages$Editor$encodeTransition = function (t) {
@@ -6887,7 +6887,7 @@ var $author$project$Pages$Editor$ensureSingleStart = F2(
 				return _Utils_update(
 					s,
 					{
-						z: _Utils_eq(s.a, id)
+						A: _Utils_eq(s.a, id)
 					});
 			},
 			states);
@@ -6896,7 +6896,7 @@ var $author$project$Pages$Editor$enforceSingleStartFlag = function (states) {
 	var _v0 = A2(
 		$elm$core$List$filter,
 		function ($) {
-			return $.z;
+			return $.A;
 		},
 		states);
 	if (!_v0.b) {
@@ -7051,7 +7051,7 @@ var $author$project$Pages$Editor$findStartState = function (states) {
 		A2(
 			$elm$core$List$filter,
 			function ($) {
-				return $.z;
+				return $.A;
 			},
 			states));
 };
@@ -7374,7 +7374,7 @@ var $author$project$Pages$Editor$update = F2(
 									}),
 								$elm$core$Platform$Cmd$none);
 						case 0:
-							var _v7 = model.B;
+							var _v7 = model.z;
 							if (!_v7) {
 								if (targetTag !== 'svg') {
 									return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -7386,7 +7386,7 @@ var $author$project$Pages$Editor$update = F2(
 									var newState = {
 										v: false,
 										a: stateId,
-										z: false,
+										A: false,
 										f: $elm$core$String$fromInt(stateId),
 										i: wx,
 										j: wy
@@ -7409,7 +7409,7 @@ var $author$project$Pages$Editor$update = F2(
 								}
 							} else {
 								if (targetTag === 'svg') {
-									var _v9 = model.B;
+									var _v9 = model.z;
 									if (_v9 === 2) {
 										return _Utils_Tuple2(
 											_Utils_update(
@@ -7473,7 +7473,7 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(clearedDrag, $elm$core$Platform$Cmd$none);
 				case 3:
 					var sid = msg.a;
-					var _v13 = model.B;
+					var _v13 = model.z;
 					if (_v13 === 2) {
 						return _Utils_Tuple2(
 							_Utils_update(
@@ -7488,7 +7488,7 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 4:
 					var sid = msg.a;
-					var _v14 = model.B;
+					var _v14 = model.z;
 					if (_v14 === 2) {
 						var toggle = function (s) {
 							return _Utils_eq(s.a, sid) ? _Utils_update(
@@ -7507,7 +7507,7 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 5:
 					var sid = msg.a;
-					var _v15 = model.B;
+					var _v15 = model.z;
 					switch (_v15) {
 						case 1:
 							var _v16 = model.ac;
@@ -7557,7 +7557,7 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 6:
 					var tid = msg.a;
-					var _v17 = model.B;
+					var _v17 = model.z;
 					if (_v17 === 2) {
 						var draftLabel = function () {
 							var _v18 = $elm$core$List$head(
@@ -7623,7 +7623,7 @@ var $author$project$Pages$Editor$update = F2(
 						$elm$core$Platform$Cmd$none);
 				case 9:
 					var sid = msg.a;
-					var _v19 = model.B;
+					var _v19 = model.z;
 					if (_v19 === 2) {
 						var updatedStates = function () {
 							var _v20 = A2($author$project$Pages$Editor$getStateById, sid, model.b);
@@ -7631,12 +7631,12 @@ var $author$project$Pages$Editor$update = F2(
 								return model.b;
 							} else {
 								var s = _v20.a;
-								return s.z ? A2(
+								return s.A ? A2(
 									$elm$core$List$map,
 									function (t) {
 										return _Utils_eq(t.a, sid) ? _Utils_update(
 											t,
-											{z: false}) : t;
+											{A: false}) : t;
 									},
 									model.b) : A2($author$project$Pages$Editor$ensureSingleStart, sid, model.b);
 							}
@@ -7654,7 +7654,7 @@ var $author$project$Pages$Editor$update = F2(
 					}
 				case 10:
 					var sid = msg.a;
-					var _v21 = model.B;
+					var _v21 = model.z;
 					if (_v21 === 2) {
 						var toggle = function (s) {
 							return _Utils_eq(s.a, sid) ? _Utils_update(
@@ -7677,7 +7677,7 @@ var $author$project$Pages$Editor$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{X: $elm$core$Maybe$Nothing, B: newMode, q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing, U: '', ac: $elm$core$Maybe$Nothing}),
+							{X: $elm$core$Maybe$Nothing, z: newMode, q: $elm$core$Maybe$Nothing, D: $elm$core$Maybe$Nothing, U: '', ac: $elm$core$Maybe$Nothing}),
 						$elm$core$Platform$Cmd$none);
 				case 12:
 					var label = msg.a;
@@ -10566,6 +10566,24 @@ var $author$project$Pages$Editor$automatonPanel = F2(
 						]))
 				]));
 	});
+var $author$project$Pages$Editor$editorButtonStyles = function (theme) {
+	return _List_fromArray(
+		[
+			A2(
+			$elm$html$Html$Attributes$style,
+			'background',
+			$author$project$Theme$interactiveBg(theme)),
+			A2(
+			$elm$html$Html$Attributes$style,
+			'color',
+			$author$project$Theme$textColor(theme)),
+			A2(
+			$elm$html$Html$Attributes$style,
+			'border',
+			'1px solid ' + $author$project$Theme$interactiveBorder(theme)),
+			A2($elm$html$Html$Attributes$style, 'border-radius', '8px')
+		]);
+};
 var $author$project$Pages$Editor$AddTransition = 1;
 var $author$project$Pages$Editor$DeleteState = function (a) {
 	return {$: 7, a: a};
@@ -10638,28 +10656,12 @@ var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('
 var $author$project$Pages$Editor$editorControlsPanel = F2(
 	function (ctx, model) {
 		var simulationLocked = model.M || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing));
-		var baseButtonStyles = _List_fromArray(
-			[
-				A2(
-				$elm$html$Html$Attributes$style,
-				'background',
-				$author$project$Theme$interactiveBg(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'color',
-				$author$project$Theme$textColor(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'border',
-				'1px solid ' + $author$project$Theme$interactiveBorder(ctx.h)),
-				A2($elm$html$Html$Attributes$style, 'border-radius', '8px')
-			]);
 		var modeButton = F2(
 			function (target, label) {
 				return A2(
 					$elm$html$Html$button,
 					_Utils_ap(
-						baseButtonStyles,
+						$author$project$Pages$Editor$editorButtonStyles(ctx.h),
 						_List_fromArray(
 							[
 								$elm$html$Html$Events$onClick(
@@ -10667,7 +10669,11 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 								A2(
 								$elm$html$Html$Attributes$style,
 								'background',
-								_Utils_eq(model.B, target) ? '#2ecc71' : $author$project$Theme$interactiveBg(ctx.h)),
+								_Utils_eq(model.z, target) ? $author$project$Theme$hoverBg(ctx.h) : $author$project$Theme$interactiveBg(ctx.h)),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'border-color',
+								_Utils_eq(model.z, target) ? $author$project$Theme$hoverBorder(ctx.h) : $author$project$Theme$interactiveBorder(ctx.h)),
 								$elm$html$Html$Attributes$disabled(simulationLocked)
 							])),
 					_List_fromArray(
@@ -10729,7 +10735,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 							2,
 							A2($author$project$I18n$t, ctx.l, 34))
 						])),
-					(model.B === 1) ? A2(
+					(model.z === 1) ? A2(
 					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
@@ -10785,7 +10791,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 							}
 						}()
 						])) : $elm$html$Html$text(''),
-					(model.B === 2) ? A2(
+					(model.z === 2) ? A2(
 					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
@@ -10881,7 +10887,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 												_List_fromArray(
 													[
 														$elm$html$Html$text(
-														A2($author$project$I18n$t, ctx.l, 47) + (': ' + (s.z ? A2($author$project$I18n$t, ctx.l, 48) : A2($author$project$I18n$t, ctx.l, 49))))
+														A2($author$project$I18n$t, ctx.l, 47) + (': ' + (s.A ? A2($author$project$I18n$t, ctx.l, 48) : A2($author$project$I18n$t, ctx.l, 49))))
 													])),
 												A2(
 												$elm$html$Html$div,
@@ -10895,11 +10901,13 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 													[
 														A2(
 														$elm$html$Html$button,
-														_List_fromArray(
-															[
-																$elm$html$Html$Events$onClick(
-																$author$project$Pages$Editor$DeleteState(s.a))
-															]),
+														_Utils_ap(
+															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															_List_fromArray(
+																[
+																	$elm$html$Html$Events$onClick(
+																	$author$project$Pages$Editor$DeleteState(s.a))
+																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
@@ -10918,25 +10926,29 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 													[
 														A2(
 														$elm$html$Html$button,
-														_List_fromArray(
-															[
-																$elm$html$Html$Events$onClick(
-																$author$project$Pages$Editor$ToggleStart(s.a)),
-																$elm$html$Html$Attributes$disabled(simulationLocked)
-															]),
+														_Utils_ap(
+															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															_List_fromArray(
+																[
+																	$elm$html$Html$Events$onClick(
+																	$author$project$Pages$Editor$ToggleStart(s.a)),
+																	$elm$html$Html$Attributes$disabled(simulationLocked)
+																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
-																s.z ? A2($author$project$I18n$t, ctx.l, 53) : A2($author$project$I18n$t, ctx.l, 54))
+																s.A ? A2($author$project$I18n$t, ctx.l, 53) : A2($author$project$I18n$t, ctx.l, 54))
 															])),
 														A2(
 														$elm$html$Html$button,
-														_List_fromArray(
-															[
-																$elm$html$Html$Events$onClick(
-																$author$project$Pages$Editor$ToggleAccepting(s.a)),
-																$elm$html$Html$Attributes$disabled(simulationLocked)
-															]),
+														_Utils_ap(
+															$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+															_List_fromArray(
+																[
+																	$elm$html$Html$Events$onClick(
+																	$author$project$Pages$Editor$ToggleAccepting(s.a)),
+																	$elm$html$Html$Attributes$disabled(simulationLocked)
+																])),
 														_List_fromArray(
 															[
 																$elm$html$Html$text(
@@ -11011,11 +11023,13 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 														[
 															A2(
 															$elm$html$Html$button,
-															_List_fromArray(
-																[
-																	$elm$html$Html$Events$onClick(
-																	$author$project$Pages$Editor$DeleteTransition(transition.a))
-																]),
+															_Utils_ap(
+																$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Events$onClick(
+																		$author$project$Pages$Editor$DeleteTransition(transition.a))
+																	])),
 															_List_fromArray(
 																[
 																	$elm$html$Html$text(
@@ -11111,11 +11125,13 @@ var $author$project$Pages$Editor$saveModal = F2(
 							[
 								A2(
 								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onClick(
-										$author$project$Pages$Editor$SaveToSlot(slot.a))
-									]),
+								_Utils_ap(
+									$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+									_List_fromArray(
+										[
+											$elm$html$Html$Events$onClick(
+											$author$project$Pages$Editor$SaveToSlot(slot.a))
+										])),
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
@@ -11123,13 +11139,15 @@ var $author$project$Pages$Editor$saveModal = F2(
 									])),
 								A2(
 								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onClick(
-										$author$project$Pages$Editor$LoadFromSlot(slot.a)),
-										$elm$html$Html$Attributes$disabled(
-										$elm$core$String$isEmpty(slot.G))
-									]),
+								_Utils_ap(
+									$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+									_List_fromArray(
+										[
+											$elm$html$Html$Events$onClick(
+											$author$project$Pages$Editor$LoadFromSlot(slot.a)),
+											$elm$html$Html$Attributes$disabled(
+											$elm$core$String$isEmpty(slot.G))
+										])),
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
@@ -11137,13 +11155,15 @@ var $author$project$Pages$Editor$saveModal = F2(
 									])),
 								A2(
 								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onClick(
-										$author$project$Pages$Editor$DeleteFromSlot(slot.a)),
-										$elm$html$Html$Attributes$disabled(
-										$elm$core$String$isEmpty(slot.G))
-									]),
+								_Utils_ap(
+									$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+									_List_fromArray(
+										[
+											$elm$html$Html$Events$onClick(
+											$author$project$Pages$Editor$DeleteFromSlot(slot.a)),
+											$elm$html$Html$Attributes$disabled(
+											$elm$core$String$isEmpty(slot.G))
+										])),
 								_List_fromArray(
 									[
 										$elm$html$Html$text(
@@ -11219,10 +11239,12 @@ var $author$project$Pages$Editor$saveModal = F2(
 								[
 									A2(
 									$elm$html$Html$button,
-									_List_fromArray(
-										[
-											$elm$html$Html$Events$onClick($author$project$Pages$Editor$CloseSaveModal)
-										]),
+									_Utils_ap(
+										$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick($author$project$Pages$Editor$CloseSaveModal)
+											])),
 									_List_fromArray(
 										[
 											$elm$html$Html$text(
@@ -11298,22 +11320,6 @@ var $elm$html$Html$textarea = _VirtualDom_node('textarea');
 var $author$project$Pages$Editor$simulationPanel = F2(
 	function (ctx, model) {
 		var simulationLocked = model.M || (!_Utils_eq(model.F, $elm$core$Maybe$Nothing));
-		var baseButtonStyles = _List_fromArray(
-			[
-				A2(
-				$elm$html$Html$Attributes$style,
-				'background',
-				$author$project$Theme$interactiveBg(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'color',
-				$author$project$Theme$textColor(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'border',
-				'1px solid ' + $author$project$Theme$interactiveBorder(ctx.h)),
-				A2($elm$html$Html$Attributes$style, 'border-radius', '8px')
-			]);
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -11390,7 +11396,7 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								baseButtonStyles,
+								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$StartSimulation),
@@ -11405,7 +11411,7 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								baseButtonStyles,
+								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$StopSimulation),
@@ -11701,7 +11707,7 @@ var $author$project$Pages$Editor$viewState = F3(
 	function (ctx, model, s) {
 		var strokeColor = s.v ? '#2ecc71' : $author$project$Theme$textColor(ctx.h);
 		var r = 22;
-		var startIndicator = s.z ? _List_fromArray(
+		var startIndicator = s.A ? _List_fromArray(
 			[
 				A2(
 				$elm$svg$Svg$line,
@@ -11728,7 +11734,7 @@ var $author$project$Pages$Editor$viewState = F3(
 			$elm$core$Maybe$Just(s.a));
 		var strokeWidth = isSelected ? '3' : '2';
 		var fillColor = function () {
-			var _v4 = _Utils_Tuple2(ctx.h, s.z);
+			var _v4 = _Utils_Tuple2(ctx.h, s.A);
 			if (!_v4.a) {
 				if (_v4.b) {
 					var _v5 = _v4.a;
@@ -12051,7 +12057,7 @@ var $author$project$Pages$Editor$wheelPanEvent = A2(
 var $author$project$Pages$Editor$svgView = F4(
 	function (ctx, model, width, height) {
 		var cursor = function () {
-			var _v0 = model.B;
+			var _v0 = model.z;
 			switch (_v0) {
 				case 0:
 					return 'crosshair';
@@ -12166,22 +12172,6 @@ var $author$project$Pages$Editor$ExportCode = {$: 16};
 var $author$project$Pages$Editor$ImportCode = {$: 15};
 var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 	function (ctx, model) {
-		var baseButtonStyles = _List_fromArray(
-			[
-				A2(
-				$elm$html$Html$Attributes$style,
-				'background',
-				$author$project$Theme$interactiveBg(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'color',
-				$author$project$Theme$textColor(ctx.h)),
-				A2(
-				$elm$html$Html$Attributes$style,
-				'border',
-				'1px solid ' + $author$project$Theme$interactiveBorder(ctx.h)),
-				A2($elm$html$Html$Attributes$style, 'border-radius', '8px')
-			]);
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -12238,7 +12228,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								baseButtonStyles,
+								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$ImportCode)
@@ -12251,7 +12241,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							A2(
 							$elm$html$Html$button,
 							_Utils_ap(
-								baseButtonStyles,
+								$author$project$Pages$Editor$editorButtonStyles(ctx.h),
 								_List_fromArray(
 									[
 										$elm$html$Html$Events$onClick($author$project$Pages$Editor$ExportCode)
@@ -12331,10 +12321,12 @@ var $author$project$Pages$Editor$view = F2(
 										[
 											A2(
 											$elm$html$Html$button,
-											_List_fromArray(
-												[
-													$elm$html$Html$Events$onClick($author$project$Pages$Editor$OpenSaveModal)
-												]),
+											_Utils_ap(
+												$author$project$Pages$Editor$editorButtonStyles(ctx.h),
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onClick($author$project$Pages$Editor$OpenSaveModal)
+													])),
 											_List_fromArray(
 												[
 													$elm$html$Html$text(

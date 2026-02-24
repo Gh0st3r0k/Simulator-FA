@@ -13,7 +13,7 @@ import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
 import Task
-import Theme exposing (Theme, interactiveBg, interactiveBorder, panelBg, panelBorder, textColor)
+import Theme exposing (Theme, hoverBg, hoverBorder, interactiveBg, interactiveBorder, panelBg, panelBorder, textColor)
 
 
 -- MODEL
@@ -1760,7 +1760,7 @@ view ctx model =
                     [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "margin-bottom" "8px", HA.style "gap" "8px" ]
                         [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTitle) ]
                         , div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
-                            [ H.button [ onClick OpenSaveModal ] [ H.text (t ctx.lang EditorSave) ]
+                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick OpenSaveModal ]) [ H.text (t ctx.lang EditorSave) ]
                             , automatonPanel ctx model
                             ]
                         ]
@@ -2443,9 +2443,9 @@ saveModal ctx model =
                     ]
                     []
                 , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
-                    [ H.button [ onClick (SaveToSlot slot.id) ] [ H.text (t ctx.lang EditorSaveToSlot) ]
-                    , H.button [ onClick (LoadFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ] [ H.text (t ctx.lang EditorLoadFromSlot) ]
-                    , H.button [ onClick (DeleteFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ] [ H.text (t ctx.lang EditorDeleteFromSlot) ]
+                    [ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ]
+                    , H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
+                    , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
                     ]
                 ]
     in
@@ -2468,9 +2468,18 @@ saveModal ctx model =
             ]
             [ H.h2 [] [ H.text (t ctx.lang EditorSaveModalTitle) ]
             , div [ HA.style "display" "grid", HA.style "grid-template-columns" "1fr", HA.style "gap" "10px" ] (List.map viewSlot model.saveSlots)
-            , div [ HA.style "margin-top" "12px" ] [ H.button [ onClick CloseSaveModal ] [ H.text (t ctx.lang EditorClose) ] ]
+            , div [ HA.style "margin-top" "12px" ] [ H.button (editorButtonStyles ctx.theme ++ [ onClick CloseSaveModal ]) [ H.text (t ctx.lang EditorClose) ] ]
             ]
         ]
+
+
+editorButtonStyles : Theme -> List (H.Attribute msg)
+editorButtonStyles theme =
+    [ HA.style "background" (interactiveBg theme)
+    , HA.style "color" (textColor theme)
+    , HA.style "border" ("1px solid " ++ interactiveBorder theme)
+    , HA.style "border-radius" "8px"
+    ]
 
 
 editorControlsPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
@@ -2479,18 +2488,12 @@ editorControlsPanel ctx model =
         simulationLocked =
             model.simulationRunning || (model.simulationChoice /= Nothing)
 
-        baseButtonStyles =
-            [ HA.style "background" (interactiveBg ctx.theme)
-            , HA.style "color" (textColor ctx.theme)
-            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
-            , HA.style "border-radius" "8px"
-            ]
-
         modeButton target label =
             H.button
-                (baseButtonStyles
+                (editorButtonStyles ctx.theme
                     ++ [ onClick (SetMode target)
-                       , HA.style "background" (if model.mode == target then "#2ecc71" else interactiveBg ctx.theme)
+                       , HA.style "background" (if model.mode == target then hoverBg ctx.theme else interactiveBg ctx.theme)
+                       , HA.style "border-color" (if model.mode == target then hoverBorder ctx.theme else interactiveBorder ctx.theme)
                        , HA.disabled simulationLocked
                        ]
                 )
@@ -2565,17 +2568,21 @@ editorControlsPanel ctx model =
                                     , div [] [ H.text (t ctx.lang EditorSelectedAccepting ++ ": " ++ (if s.accepting then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
                                     , div [] [ H.text (t ctx.lang EditorSelectedStart ++ ": " ++ (if s.isStart then t ctx.lang EditorYes else t ctx.lang EditorNo)) ]
                                     , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
-                                        [ H.button [ onClick (DeleteState s.id) ] [ H.text (t ctx.lang EditorDeleteState) ] ]
+                                        [ H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteState s.id) ]) [ H.text (t ctx.lang EditorDeleteState) ] ]
                                     , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
                                         [ H.button
-                                            [ onClick (ToggleStart s.id)
-                                            , HA.disabled simulationLocked
-                                            ]
+                                            (editorButtonStyles ctx.theme
+                                                ++ [ onClick (ToggleStart s.id)
+                                                   , HA.disabled simulationLocked
+                                                   ]
+                                            )
                                             [ H.text (if s.isStart then t ctx.lang EditorUnsetStart else t ctx.lang EditorMakeStart) ]
                                         , H.button
-                                            [ onClick (ToggleAccepting s.id)
-                                            , HA.disabled simulationLocked
-                                            ]
+                                            (editorButtonStyles ctx.theme
+                                                ++ [ onClick (ToggleAccepting s.id)
+                                                   , HA.disabled simulationLocked
+                                                   ]
+                                            )
                                             [ H.text (if s.accepting then t ctx.lang EditorUnsetAccepting else t ctx.lang EditorMakeAccepting) ]
                                         ]
                                     ]
@@ -2598,7 +2605,7 @@ editorControlsPanel ctx model =
                                         ]
                                         []
                                     , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
-                                        [ H.button [ onClick (DeleteTransition transition.id) ] [ H.text (t ctx.lang EditorDeleteTransition) ] ]
+                                        [ H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteTransition transition.id) ]) [ H.text (t ctx.lang EditorDeleteTransition) ] ]
                                     ]
 
                     _ ->
@@ -2612,14 +2619,8 @@ editorControlsPanel ctx model =
 
 transitionFunctionPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 transitionFunctionPanel ctx model =
-    let
-        baseButtonStyles =
-            [ HA.style "background" (interactiveBg ctx.theme)
-            , HA.style "color" (textColor ctx.theme)
-            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
-            , HA.style "border-radius" "8px"
-            ]
-    in
+    
+    
     div
         [ HA.style "width" "300px"
         , HA.style "background" (panelBg ctx.theme)
@@ -2631,8 +2632,8 @@ transitionFunctionPanel ctx model =
         [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
         , textarea [ rows 18, cols 36, onInput CodeEdited, value model.codeDraft, HA.style "margin-top" "8px", HA.style "width" "100%", HA.style "box-sizing" "border-box" ] []
         , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
-            [ H.button (baseButtonStyles ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
-            , H.button (baseButtonStyles ++ [ onClick ExportCode ]) [ H.text (t ctx.lang EditorExport) ]
+            [ H.button (editorButtonStyles ctx.theme ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
+            , H.button (editorButtonStyles ctx.theme ++ [ onClick ExportCode ]) [ H.text (t ctx.lang EditorExport) ]
             ]
         ]
 
@@ -2643,12 +2644,6 @@ simulationPanel ctx model =
         simulationLocked =
             model.simulationRunning || (model.simulationChoice /= Nothing)
 
-        baseButtonStyles =
-            [ HA.style "background" (interactiveBg ctx.theme)
-            , HA.style "color" (textColor ctx.theme)
-            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
-            , HA.style "border-radius" "8px"
-            ]
     in
     div
         [ HA.style "background" (panelBg ctx.theme)
@@ -2683,7 +2678,7 @@ simulationPanel ctx model =
                 ]
                 []
             , H.button
-                (baseButtonStyles
+                (editorButtonStyles ctx.theme
                     ++ [ onClick StartSimulation
                        , HA.disabled simulationLocked
                        , HA.style "height" "36px"
@@ -2691,7 +2686,7 @@ simulationPanel ctx model =
                 )
                 [ H.text (t ctx.lang EditorSimulationStart) ]
             , H.button
-                (baseButtonStyles
+                (editorButtonStyles ctx.theme
                     ++ [ onClick StopSimulation
                        , HA.disabled (not (model.simulationRunning || (model.simulationChoice /= Nothing)))
                        , HA.style "height" "36px"
