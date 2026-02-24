@@ -51,6 +51,8 @@ type alias Model =
     , renamingSlot : Maybe Int
     , renameDraft : String
     , recentlySavedSlot : Maybe Int
+    , animatingSavedSlot : Maybe Int
+    , animatingDeletedSlot : Maybe Int
     , slotImportError : Bool
     , viewportWidth : Int
     , viewportHeight : Int
@@ -169,6 +171,8 @@ initWithSlots slots =
     , renamingSlot = Nothing
     , renameDraft = ""
     , recentlySavedSlot = Nothing
+    , animatingSavedSlot = Nothing
+    , animatingDeletedSlot = Nothing
     , slotImportError = False
     , viewportWidth = 1200
     , viewportHeight = 800
@@ -220,6 +224,8 @@ type Msg
     | UpdateRenameDraft String
     | ConfirmRenameSlot Int
     | ClearRecentlySavedSlot Int
+    | ClearSavedSlotAnimation Int
+    | ClearDeletedSlotAnimation Int
     | ExportSlot Int
     | ImportSlot Int
     | ApplyImportedSlot Int String
@@ -778,9 +784,18 @@ update msg model =
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots, recentlySavedSlot = Just slotId, slotImportError = False }
-                , Process.sleep 2000
-                    |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                ( { model
+                    | saveSlots = List.map updateSlot model.saveSlots
+                    , recentlySavedSlot = Just slotId
+                    , animatingSavedSlot = Just slotId
+                    , slotImportError = False
+                  }
+                , Cmd.batch
+                    [ Process.sleep 2000
+                        |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                    , Process.sleep 420
+                        |> Task.perform (\_ -> ClearSavedSlotAnimation slotId)
+                    ]
                 )
 
             LoadFromSlot slotId ->
@@ -843,11 +858,13 @@ update msg model =
                 in
                 ( { model
                     | saveSlots = List.map updateSlot model.saveSlots
+                    , animatingDeletedSlot = Just slotId
                     , renamingSlot = if model.renamingSlot == Just slotId then Nothing else model.renamingSlot
                     , renameDraft = if model.renamingSlot == Just slotId then "" else model.renameDraft
                     , slotImportError = False
                   }
-                , Cmd.none
+                , Process.sleep 420
+                    |> Task.perform (\_ -> ClearDeletedSlotAnimation slotId)
                 )
 
             StartRenameSlot slotId ->
@@ -885,6 +902,20 @@ update msg model =
                 else
                     ( model, Cmd.none )
 
+            ClearSavedSlotAnimation slotId ->
+                if model.animatingSavedSlot == Just slotId then
+                    ( { model | animatingSavedSlot = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+
+            ClearDeletedSlotAnimation slotId ->
+                if model.animatingDeletedSlot == Just slotId then
+                    ( { model | animatingDeletedSlot = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+                    
             ExportSlot _ ->
                 ( { model | slotImportError = False }, Cmd.none )
 
@@ -908,10 +939,15 @@ update msg model =
                         ( { model
                             | saveSlots = List.map updateSlot model.saveSlots
                             , recentlySavedSlot = Just slotId
+                            , animatingSavedSlot = Just slotId
                             , slotImportError = False
                           }
-                        , Process.sleep 2000
-                            |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                        , Cmd.batch
+                            [ Process.sleep 2000
+                                |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                            , Process.sleep 420
+                                |> Task.perform (\_ -> ClearSavedSlotAnimation slotId)
+                            ]
                         )
 
                     Err _ ->
@@ -2660,6 +2696,39 @@ saveModal ctx model =
                 hasAutomaton =
                     not (String.isEmpty slot.automatonJson)
 
+                isSaving =
+                    model.animatingSavedSlot == Just slot.id
+
+                isDeleting =
+                    model.animatingDeletedSlot == Just slot.id
+
+                slotBackground =
+                    if isSaving then
+                        "rgba(46, 204, 113, 0.12)"
+
+                    else if isDeleting then
+                        "rgba(231, 76, 60, 0.12)"
+
+                    else
+                        "transparent"
+
+                slotTransform =
+                    if isSaving then
+                        "translateY(-1px) scale(1.01)"
+
+                    else if isDeleting then
+                        "scale(0.985)"
+
+                    else
+                        "scale(1)"
+
+                slotOpacity =
+                    if isDeleting then
+                        "0.82"
+
+                    else
+                        "1"
+                        
                 slotLabel =
                     if hasAutomaton then
                         if String.isEmpty slot.name then
@@ -2678,6 +2747,10 @@ saveModal ctx model =
                 [ HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
                 , HA.style "padding" "10px"
                 , HA.style "border-radius" "8px"
+                , HA.style "background" slotBackground
+                , HA.style "transform" slotTransform
+                , HA.style "opacity" slotOpacity
+                , HA.style "transition" "background 360ms ease, transform 360ms ease, opacity 360ms ease"
                 ]
                 [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
                     [ H.div [] [ H.text (t ctx.lang EditorSlot ++ " " ++ String.fromInt slot.id ++ ":") ]
