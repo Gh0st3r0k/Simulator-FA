@@ -11281,7 +11281,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 								A2(
 								$elm$html$Html$Attributes$style,
 								'flex',
-								automatonDetailsExpanded ? '1 1 0' : '1 1 auto'),
+								automatonDetailsExpanded ? '55 1 0' : '1 1 auto'),
 								A2($elm$html$Html$Attributes$style, 'min-height', '0')
 							])),
 					_List_fromArray(
@@ -11655,7 +11655,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 								A2(
 								$elm$html$Html$Attributes$style,
 								'flex',
-								automatonDetailsExpanded ? '1 1 0' : '0 0 auto'),
+								automatonDetailsExpanded ? '45 1 0' : '0 0 auto'),
 								A2(
 								$elm$html$Html$Attributes$style,
 								'min-height',

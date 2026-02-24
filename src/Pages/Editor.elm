@@ -2800,7 +2800,7 @@ editorControlsPanel ctx model =
                 ++ [ HA.style "display" "flex"
                    , HA.style "flex-direction" "column"
                    , HA.style "gap" "8px"
-                   , HA.style "flex" (if automatonDetailsExpanded then "1 1 0" else "1 1 auto")
+                   , HA.style "flex" (if automatonDetailsExpanded then "55 1 0" else "1 1 auto")
                    , HA.style "min-height" "0"
                    ]
             )
@@ -2917,7 +2917,7 @@ editorControlsPanel ctx model =
                 ++ [ HA.style "display" "flex"
                    , HA.style "flex-direction" "column"
                    , HA.style "gap" "8px"
-                   , HA.style "flex" (if automatonDetailsExpanded then "1 1 0" else "0 0 auto")
+                   , HA.style "flex" (if automatonDetailsExpanded then "45 1 0" else "0 0 auto")
                    , HA.style "min-height" (if automatonDetailsExpanded then "0" else "auto")
                    ]
             )
