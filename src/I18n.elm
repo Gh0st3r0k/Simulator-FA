@@ -53,6 +53,14 @@ type Key
     | EditorAutomatonDeterministic
     | EditorAutomatonNonDeterministic
     | EditorTransitionFunction
+    | EditorCodeDraftChanges
+    | EditorCodeValidationLinePrefix
+    | EditorCodeValidationFormat
+    | EditorCodeValidationTargetNoSpaces
+    | EditorCodeValidationSourceNoSpaces
+    | EditorCodeValidationConditionSingle
+    | EditorCodeValidationTwoParts
+    | EditorCodeValidationArrowLine
     | EditorImport
     | EditorExport
     | EditorSave
@@ -107,6 +115,7 @@ type Key
     | EditorSimulationRejected
     | EditorSimulationDeadEnd
     | EditorSimulationMissingStart
+    | EditorSimulationBlockedByCodeErrors
     | EditorSimulationChoiceTitle
     | EditorSimulationChoiceBody
     | EditorAutomatonTypeDetailsToggle
@@ -238,6 +247,46 @@ t lang key =
         ( EN, EditorTransitionFunction ) -> "Transition function"
         ( SK, EditorTransitionFunction ) -> "Prechodová funkcia"
         ( UA, EditorTransitionFunction ) -> "Функція переходів"
+
+        ( RU, EditorCodeDraftChanges ) -> "Изменения"
+        ( EN, EditorCodeDraftChanges ) -> "Changes"
+        ( SK, EditorCodeDraftChanges ) -> "Zmeny"
+        ( UA, EditorCodeDraftChanges ) -> "Зміни"
+
+        ( RU, EditorCodeValidationLinePrefix ) -> "Строка"
+        ( EN, EditorCodeValidationLinePrefix ) -> "Line"
+        ( SK, EditorCodeValidationLinePrefix ) -> "Riadok"
+        ( UA, EditorCodeValidationLinePrefix ) -> "Рядок"
+
+        ( RU, EditorCodeValidationFormat ) -> "Ожидается формат: (став_откуда, условие) => став_куда"
+        ( EN, EditorCodeValidationFormat ) -> "Expected format: (from_state, condition) => to_state"
+        ( SK, EditorCodeValidationFormat ) -> "Očakávaný formát: (z_stavu, podmienka) => do_stavu"
+        ( UA, EditorCodeValidationFormat ) -> "Очікуваний формат: (стан_звідки, умова) => стан_куди"
+
+        ( RU, EditorCodeValidationTargetNoSpaces ) -> "Название става справа должно быть одним словом без пробелов"
+        ( EN, EditorCodeValidationTargetNoSpaces ) -> "Target state name must be a single word without spaces"
+        ( SK, EditorCodeValidationTargetNoSpaces ) -> "Názov cieľového stavu musí byť jedno slovo bez medzier"
+        ( UA, EditorCodeValidationTargetNoSpaces ) -> "Назва цільового стану має бути одним словом без пробілів"
+
+        ( RU, EditorCodeValidationSourceNoSpaces ) -> "Название става слева должно быть одним словом без пробелов"
+        ( EN, EditorCodeValidationSourceNoSpaces ) -> "Source state name must be a single word without spaces"
+        ( SK, EditorCodeValidationSourceNoSpaces ) -> "Názov zdrojového stavu musí byť jedno slovo bez medzier"
+        ( UA, EditorCodeValidationSourceNoSpaces ) -> "Назва початкового стану має бути одним словом без пробілів"
+
+        ( RU, EditorCodeValidationConditionSingle ) -> "Условие должно быть одним значением"
+        ( EN, EditorCodeValidationConditionSingle ) -> "Condition must be a single value"
+        ( SK, EditorCodeValidationConditionSingle ) -> "Podmienka musí byť jedna hodnota"
+        ( UA, EditorCodeValidationConditionSingle ) -> "Умова має бути одним значенням"
+
+        ( RU, EditorCodeValidationTwoParts ) -> "Ожидается ровно два элемента: став и условие"
+        ( EN, EditorCodeValidationTwoParts ) -> "Expected exactly two items: state and condition"
+        ( SK, EditorCodeValidationTwoParts ) -> "Očakávajú sa presne dve položky: stav a podmienka"
+        ( UA, EditorCodeValidationTwoParts ) -> "Очікується рівно два елементи: стан і умова"
+
+        ( RU, EditorCodeValidationArrowLine ) -> "Ожидается стрелка => и одна запись на строку"
+        ( EN, EditorCodeValidationArrowLine ) -> "Expected arrow => and one entry per line"
+        ( SK, EditorCodeValidationArrowLine ) -> "Očakáva sa šípka => a jeden záznam na riadok"
+        ( UA, EditorCodeValidationArrowLine ) -> "Очікується стрілка => і один запис на рядок"
 
         ( RU, EditorImport ) -> "Импорт"
         ( EN, EditorImport ) -> "Import"
@@ -508,6 +557,11 @@ t lang key =
         ( EN, EditorSimulationMissingStart ) -> "Error: no start state selected"
         ( SK, EditorSimulationMissingStart ) -> "Chyba: nie je zvolený počiatočný stav"
         ( UA, EditorSimulationMissingStart ) -> "Помилка: не вибрано початковий стан"
+
+        ( RU, EditorSimulationBlockedByCodeErrors ) -> "Ошибка в переходовой функции, исправьте её чтобы симуляция могла идти"
+        ( EN, EditorSimulationBlockedByCodeErrors ) -> "There is an error in the transition function. Fix it to run simulation"
+        ( SK, EditorSimulationBlockedByCodeErrors ) -> "V prechodovej funkcii je chyba. Opravte ju, aby sa simulácia spustila"
+        ( UA, EditorSimulationBlockedByCodeErrors ) -> "У функції переходів є помилка. Виправте її, щоб запустити симуляцію"
 
         ( RU, EditorSimulationChoiceTitle ) -> "Есть несколько переходов"
         ( EN, EditorSimulationChoiceTitle ) -> "Multiple transitions available"

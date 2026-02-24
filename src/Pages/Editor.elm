@@ -3,7 +3,7 @@ module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeS
 import Dict
 import Html as H exposing (Html, button, div, h2, input, textarea, text)
 import Html.Attributes as HA exposing (..)
-import Html.Events exposing (custom, onBlur, onClick, onFocus, onInput, stopPropagationOn)
+import Html.Events exposing (custom, on, onBlur, onClick, onFocus, onInput, stopPropagationOn)
 import I18n exposing (Key(..), Lang, t)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -13,7 +13,7 @@ import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
 import Task
-import Theme exposing (Theme, hoverBg, hoverBorder, interactiveBg, interactiveBorder, panelBg, panelBorder, successColor, textColor, warningColor)
+import Theme exposing (Theme, errorColor, hoverBg, hoverBorder, interactiveBg, interactiveBorder, panelBg, panelBorder, successColor, textColor, warningColor)
 
 
 -- MODEL
@@ -38,6 +38,9 @@ type alias Model =
     , codeDraftVersion : Int
     , codeDraftDirty : Bool
     , codeEditorFocused : Bool
+    , codeValidationErrors : List CodeValidationError
+    , codeEditorScrollTop : Float
+    , codeEditorScrollLeft : Float
     , simulationInput : String
     , simulationDelay : String
     , simulationRunning : Bool
@@ -59,6 +62,8 @@ type alias Model =
     , automatonTypeExpanded : Bool
     , automatonTypeAnimationActive : Bool
     , automatonTypeAnimationNonce : Int
+    , globalNotice : Maybe Key
+    , globalNoticeNonce : Int
     }
 
 
@@ -158,6 +163,9 @@ initWithSlots slots =
     , codeDraftVersion = 0
     , codeDraftDirty = False
     , codeEditorFocused = False
+    , codeValidationErrors = []
+    , codeEditorScrollTop = 0
+    , codeEditorScrollLeft = 0
     , simulationInput = ""
     , simulationDelay = "500"
     , simulationRunning = False
@@ -179,6 +187,8 @@ initWithSlots slots =
     , automatonTypeExpanded = False
     , automatonTypeAnimationActive = False
     , automatonTypeAnimationNonce = 0
+    , globalNotice = Nothing
+    , globalNoticeNonce = 0
     }
 
 
@@ -207,6 +217,7 @@ type Msg
     | CodeEdited String
     | TryParseCodeDraft Int
     | SetCodeEditorFocused Bool
+    | CodeEditorScrolled Float Float
     | SetSimulationInput String
     | SetSimulationDelay String
     | StartSimulation
@@ -233,6 +244,7 @@ type Msg
     | ClearSlotImportError
     | ToggleAutomatonTypeDetails
     | AutomatonTypeAnimationFinished Int
+    | DismissGlobalNotice Int
     | NoOp
 
 
@@ -317,16 +329,16 @@ update msg model =
 
             SetCodeEditorFocused focused ->
                 if focused then
-                    ( { model
-                        | codeEditorFocused = True
-                        , codeDraft = encodeTransitionLanguage model.states model.transitions
-                        , codeDraftDirty = False
-                      }
-                    , Cmd.none
-                    )
+                    ( { model | codeEditorFocused = True }, Cmd.none )
+
+                else if hasCodeValidationErrors model then
+                    ( { model | codeEditorFocused = True }, Cmd.none )
 
                 else
                     ( { model | codeEditorFocused = False }, Cmd.none )
+
+            CodeEditorScrolled top left ->
+                ( { model | codeEditorScrollTop = top, codeEditorScrollLeft = left }, Cmd.none )
 
             SetSimulationInput s ->
                 ( { model | simulationInput = s }, Cmd.none )
@@ -341,6 +353,13 @@ update msg model =
                 else
                     ( model, Cmd.none )
 
+            DismissGlobalNotice nonce ->
+                if nonce == model.globalNoticeNonce then
+                    ( { model | globalNotice = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+            
             _ ->
                 ( model, Cmd.none )
 
@@ -680,50 +699,8 @@ update msg model =
                             ( { model | states = updatedStates, stateNameConflict = False }, Cmd.none )
 
             ImportCode ->
-                case parseCodeDraftToAutomaton model model.codeDraft of
-                    Ok normalizedAutomaton ->
-                        ( { model
-                            | states = normalizedAutomaton.states
-                            , transitions = normalizedAutomaton.transitions
-                            , nextStateId = normalizedAutomaton.nextStateId
-                            , nextTransitionId = normalizedAutomaton.nextTransitionId
-                            , stateNameConflict = False
-                            , codeDraftDirty = False
-                          }
-                        , Cmd.none
-                        )
-
-                    Err reason ->
-                        if reason == "duplicate-state-names" then
-                            ( { model | stateNameConflict = True }, Cmd.none )
-
-                        else
-                            ( { model | codeDraftDirty = True }, Cmd.none )
-
-            ExportCode ->
-                ( { model | codeDraft = encodeTransitionLanguage model.states model.transitions, codeDraftDirty = False }, Cmd.none )
-
-            CodeEdited s ->
-                ( { model | codeDraft = s, codeDraftVersion = model.codeDraftVersion + 1, codeDraftDirty = True }
-                , Process.sleep 500 |> Task.perform (\_ -> TryParseCodeDraft (model.codeDraftVersion + 1))
-                )
-
-            SetCodeEditorFocused focused ->
-                if focused then
-                    ( { model
-                        | codeEditorFocused = True
-                        , codeDraft = encodeTransitionLanguage model.states model.transitions
-                        , codeDraftDirty = False
-                      }
-                    , Cmd.none
-                    )
-
-                else
-                    ( { model | codeEditorFocused = False }, Cmd.none )
-
-            TryParseCodeDraft version ->
-                if version /= model.codeDraftVersion then
-                    ( model, Cmd.none )
+                if hasCodeValidationErrors model then
+                    ( { model | codeDraftDirty = True }, Cmd.none )
 
                 else
                     case parseCodeDraftToAutomaton model model.codeDraft of
@@ -735,6 +712,62 @@ update msg model =
                                 , nextTransitionId = normalizedAutomaton.nextTransitionId
                                 , stateNameConflict = False
                                 , codeDraftDirty = False
+                                , codeValidationErrors = []
+                              }
+                            , Cmd.none
+                            )
+
+                        Err reason ->
+                            if reason == "duplicate-state-names" then
+                                ( { model | stateNameConflict = True }, Cmd.none )
+
+                            else
+                                ( { model | codeDraftDirty = True }, Cmd.none )
+
+            ExportCode ->
+                ( { model | codeDraft = encodeTransitionLanguage model.states model.transitions, codeDraftDirty = False, codeValidationErrors = [] }, Cmd.none )
+
+            CodeEdited s ->
+                ( { model
+                    | codeDraft = s
+                    , codeDraftVersion = model.codeDraftVersion + 1
+                    , codeDraftDirty = True
+                    , codeValidationErrors = validateTransitionCode s
+                  }
+                , Process.sleep 500 |> Task.perform (\_ -> TryParseCodeDraft (model.codeDraftVersion + 1))
+                )
+
+            SetCodeEditorFocused focused ->
+                if focused then
+                    ( { model | codeEditorFocused = True }, Cmd.none )
+
+                else if hasCodeValidationErrors model then
+                    ( { model | codeEditorFocused = True }, Cmd.none )
+
+                else
+                    ( { model | codeEditorFocused = False }, Cmd.none )
+
+            CodeEditorScrolled top left ->
+                ( { model | codeEditorScrollTop = top, codeEditorScrollLeft = left }, Cmd.none )
+
+            TryParseCodeDraft version ->
+                if version /= model.codeDraftVersion then
+                    ( model, Cmd.none )
+
+                else if hasCodeValidationErrors model then
+                    ( { model | codeDraftDirty = True }, Cmd.none )
+
+                else
+                    case parseCodeDraftToAutomaton model model.codeDraft of
+                        Ok normalizedAutomaton ->
+                            ( { model
+                                | states = normalizedAutomaton.states
+                                , transitions = normalizedAutomaton.transitions
+                                , nextStateId = normalizedAutomaton.nextStateId
+                                , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                , stateNameConflict = False
+                                , codeDraftDirty = False
+                                , codeValidationErrors = []
                               }
                             , Cmd.none
                             )
@@ -749,7 +782,11 @@ update msg model =
                 ( { model | simulationDelay = s }, Cmd.none )
 
             StartSimulation ->
-                startSimulation model
+                if hasCodeValidationErrors model then
+                    showGlobalNotice EditorSimulationBlockedByCodeErrors model
+
+                else
+                    startSimulation model
 
             AdvanceSimulation ->
                 stepSimulation model
@@ -984,6 +1021,13 @@ update msg model =
                 else
                     ( model, Cmd.none )
                 
+            DismissGlobalNotice nonce ->
+                if nonce == model.globalNoticeNonce then
+                    ( { model | globalNotice = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+                    
             NoOp ->
                 ( model, Cmd.none )
 
@@ -1593,6 +1637,13 @@ type alias ParsedTransition =
     }
 
 
+type alias CodeValidationError =
+    { lineNumber : Int
+    , lineText : String
+    , message : Key
+    }
+    
+
 encodeTransitionLanguage : List State -> List Transition -> String
 encodeTransitionLanguage states transitions =
     transitions
@@ -1639,6 +1690,80 @@ decodeTransitionLanguage existingStates raw =
 
         Ok parsedTransitions ->
             Ok (buildAutomatonFromParsedTransitions existingStates parsedTransitions)
+
+
+hasCodeValidationErrors : Model -> Bool
+hasCodeValidationErrors model =
+    not (List.isEmpty model.codeValidationErrors)
+
+
+validateTransitionCode : String -> List CodeValidationError
+validateTransitionCode raw =
+    raw
+        |> String.lines
+        |> List.indexedMap validateTransitionLine
+        |> List.filterMap identity
+
+
+validateTransitionLine : Int -> String -> Maybe CodeValidationError
+validateTransitionLine idx originalLine =
+    let
+        line =
+            String.trim originalLine
+
+        build message =
+            Just
+                { lineNumber = idx + 1
+                , lineText = if String.isEmpty line then originalLine else line
+                , message = message
+                }
+    in
+    if String.isEmpty line then
+        Nothing
+
+    else
+        case String.split "=>" line of
+            [ leftRaw, rightRaw ] ->
+                let
+                    left =
+                        String.trim leftRaw
+
+                    right =
+                        String.trim rightRaw
+                in
+                if not (String.startsWith "(" left && String.endsWith ")" left) then
+                    build EditorCodeValidationFormat
+
+                else if String.isEmpty right || String.contains " " right then
+                    build EditorCodeValidationTargetNoSpaces
+
+                else
+                    let
+                        inside =
+                            left
+                                |> String.dropLeft 1
+                                |> String.dropRight 1
+
+                        parts =
+                            String.split "," inside
+                                |> List.map String.trim
+                    in
+                    case parts of
+                        [ fromName, condition ] ->
+                            if String.isEmpty fromName || String.contains " " fromName then
+                                build EditorCodeValidationSourceNoSpaces
+
+                            else if String.isEmpty condition || String.contains " " condition || String.length condition /= 1 then
+                                build EditorCodeValidationConditionSingle
+
+                            else
+                                Nothing
+
+                        _ ->
+                            build EditorCodeValidationTwoParts
+
+            _ ->
+                build EditorCodeValidationArrowLine
 
 
 parseTransitionLine : String -> Result String ParsedTransition
@@ -2044,7 +2169,7 @@ view ctx model =
                 , transitionFunctionPanel ctx model
                 ]
     in
-    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px" ]
+    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative" ]
         [ content
         , simulationPanel ctx model
         , if model.saveModalOpen then
@@ -2052,7 +2177,47 @@ view ctx model =
 
           else
             text ""
+        , case model.globalNotice of
+            Just noticeKey ->
+                div
+                    [ HA.style "position" "fixed"
+                    , HA.style "top" "20px"
+                    , HA.style "left" "50%"
+                    , HA.style "transform" "translateX(-50%)"
+                    , HA.style "z-index" "9999"
+                    , HA.style "background" (panelBg ctx.theme)
+                    , HA.style "color" (errorColor ctx.theme)
+                    , HA.style "border" ("1px solid " ++ errorColor ctx.theme)
+                    , HA.style "padding" "12px 16px"
+                    , HA.style "border-radius" "10px"
+                    , HA.style "box-shadow" "0 8px 24px rgba(0,0,0,0.2)"
+                    , HA.style "font-weight" "600"
+                    ]
+                    [ H.text (t ctx.lang noticeKey) ]
+
+            Nothing ->
+                text ""
         ]
+
+
+showGlobalNotice : Key -> Model -> ( Model, Cmd Msg )
+showGlobalNotice key model =
+    let
+        nextNonce =
+            model.globalNoticeNonce + 1
+    in
+    ( { model | globalNotice = Just key, globalNoticeNonce = nextNonce }
+    , Process.sleep 3.0 |> Task.perform (\_ -> DismissGlobalNotice nextNonce)
+    )
+
+
+codeEditorScrollEvent : H.Attribute Msg
+codeEditorScrollEvent =
+    on "scroll"
+        (Decode.map2 CodeEditorScrolled
+            (Decode.at [ "target", "scrollTop" ] Decode.float)
+            (Decode.at [ "target", "scrollLeft" ] Decode.float)
+        )
 
 
 wheelPanEvent : H.Attribute Msg
@@ -3083,12 +3248,30 @@ editorControlsPanel ctx model =
 transitionFunctionPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 transitionFunctionPanel ctx model =
     let
+        formatValidationError err =
+            t ctx.lang EditorCodeValidationLinePrefix
+                ++ " "
+                ++ String.fromInt err.lineNumber
+                ++ ": "
+                ++ err.lineText
+                ++ " — "
+                ++ t ctx.lang err.message
+
         transitionFunctionValue =
             if model.codeEditorFocused || model.codeDraftDirty then
                 model.codeDraft
 
             else
                 encodeTransitionLanguage model.states model.transitions
+
+        draftIndicatorTitle =
+            if hasCodeValidationErrors model then
+                model.codeValidationErrors
+                    |> List.map formatValidationError
+                    |> String.join "\n"
+
+            else
+                t ctx.lang EditorCodeDraftChanges
     in
     div
         [ HA.style "width" "300px"
@@ -3103,12 +3286,91 @@ transitionFunctionPanel ctx model =
         [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "gap" "8px" ]
             [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
             , if model.codeDraftDirty then
-                H.span [ HA.style "font-size" "14px", HA.style "color" (warningColor ctx.theme), title "Изменения" ] [ H.text "✎" ]
+                H.span
+                    [ HA.style "font-size" "14px"
+                    , HA.style "color" (if hasCodeValidationErrors model then errorColor ctx.theme else warningColor ctx.theme)
+                    , title draftIndicatorTitle
+                    ]
+                    [ H.text "✎" ]
 
               else
                 text ""
             ]
-        , textarea [ onFocus (SetCodeEditorFocused True), onBlur (SetCodeEditorFocused False), onInput CodeEdited, value transitionFunctionValue, HA.style "margin-top" "8px", HA.style "width" "100%", HA.style "flex" "1", HA.style "min-height" "0", HA.style "box-sizing" "border-box", HA.style "resize" "none" ] []
+        , let
+            errorLineNumbers =
+                List.map .lineNumber model.codeValidationErrors
+
+            displayLines =
+                case String.lines transitionFunctionValue of
+                    [] ->
+                        [ "" ]
+
+                    lines ->
+                        lines
+          in
+          div
+            [ HA.style "position" "relative"
+            , HA.style "margin-top" "8px"
+            , HA.style "flex" "1"
+            , HA.style "min-height" "0"
+            , HA.style "overflow" "hidden"
+            ]
+            [ H.pre
+                [ HA.style "position" "absolute"
+                , HA.style "inset" "0"
+                , HA.style "margin" "0"
+                , HA.style "padding" "8px"
+                , HA.style "overflow" "hidden"
+                , HA.style "white-space" "pre-wrap"
+                , HA.style "word-break" "break-word"
+                , HA.style "font-family" "monospace"
+                , HA.style "font-size" "14px"
+                , HA.style "line-height" "20px"
+                , HA.style "pointer-events" "none"
+                , HA.style "color" "transparent"
+                ]
+                [ H.div
+                    [ HA.style "min-height" "100%"
+                    , HA.style "min-width" "100%"
+                    , HA.style "transform" ("translate(" ++ String.fromFloat (0 - model.codeEditorScrollLeft) ++ "px, " ++ String.fromFloat (0 - model.codeEditorScrollTop) ++ "px)")
+                    ]
+                    (displayLines
+                        |> List.indexedMap
+                            (\idx lineText ->
+                                H.div
+                                    [ HA.style "text-decoration-line" (if List.member (idx + 1) errorLineNumbers then "underline" else "none")
+                                    , HA.style "text-decoration-style" (if List.member (idx + 1) errorLineNumbers then "wavy" else "solid")
+                                    , HA.style "text-decoration-color" (if List.member (idx + 1) errorLineNumbers then errorColor ctx.theme else "transparent")
+                                    ]
+                                    [ H.text (if String.isEmpty lineText then " " else lineText) ]
+                            )
+                    )
+                ]
+            , textarea
+                [ onFocus (SetCodeEditorFocused True)
+                , onBlur (SetCodeEditorFocused False)
+                , onInput CodeEdited
+                , value transitionFunctionValue
+                , HA.style "position" "relative"
+                , HA.style "z-index" "1"
+                , codeEditorScrollEvent
+                , HA.style "width" "100%"
+                , HA.style "height" "100%"
+                , HA.style "flex" "1"
+                , HA.style "min-height" "0"
+                , HA.style "box-sizing" "border-box"
+                , HA.style "resize" "none"
+                , HA.style "background" "transparent"
+                , HA.style "font-family" "monospace"
+                , HA.style "font-size" "14px"
+                , HA.style "line-height" "20px"
+                , HA.style "padding" "8px"
+                , HA.style "border-color" (if hasCodeValidationErrors model then errorColor ctx.theme else "")
+                , HA.style "color" (textColor ctx.theme)
+                , HA.style "caret-color" (textColor ctx.theme)
+                ]
+                []
+            ]
         , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
             [ H.button (editorButtonStyles ctx.theme ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
             , H.button (editorButtonStyles ctx.theme ++ [ onClick ExportCode ]) [ H.text (t ctx.lang EditorExport) ]
@@ -3120,7 +3382,7 @@ simulationPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 simulationPanel ctx model =
     let
         simulationLocked =
-            model.simulationRunning || (model.simulationChoice /= Nothing)
+            model.simulationRunning || (model.simulationChoice /= Nothing) || hasCodeValidationErrors model
 
     in
     div
