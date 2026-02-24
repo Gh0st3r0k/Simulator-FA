@@ -344,7 +344,7 @@ update msg model =
                 ( { model | simulationInput = s }, Cmd.none )
 
             SetSimulationDelay s ->
-                ( { model | simulationDelay = s }, Cmd.none )
+                ( { model | simulationDelay = simulationDelayFromSpeedIndex s }, Cmd.none )
 
             AutomatonTypeAnimationFinished nonce ->
                 if nonce == model.automatonTypeAnimationNonce then
@@ -790,7 +790,7 @@ update msg model =
                 ( { model | simulationInput = s }, Cmd.none )
 
             SetSimulationDelay s ->
-                ( { model | simulationDelay = s }, Cmd.none )
+                ( { model | simulationDelay = simulationDelayFromSpeedIndex s }, Cmd.none )
 
             StartSimulation ->
                 if hasCodeValidationErrors model then
@@ -1417,6 +1417,68 @@ parseDelay raw =
             500
 
 
+simulationSpeedStops : List Int
+simulationSpeedStops =
+    [ 10, 250, 500, 750, 1000 ]
+
+
+simulationSpeedIndexFromDelay : String -> Int
+simulationSpeedIndexFromDelay rawDelay =
+    let
+        delay =
+            round (parseDelay rawDelay)
+
+        pickNearest current best =
+            case current of
+                [] ->
+                    best
+
+                ( index, candidate ) :: rest ->
+                    if abs (delay - candidate) < abs (delay - Tuple.second best) then
+                        pickNearest rest ( index, candidate )
+
+                    else
+                        pickNearest rest best
+    in
+    case List.indexedMap Tuple.pair simulationSpeedStops of
+        [] ->
+            2
+
+        first :: rest ->
+            pickNearest rest first |> Tuple.first
+
+
+simulationDelayFromSpeedIndex : String -> String
+simulationDelayFromSpeedIndex rawIndex =
+    case String.toInt rawIndex of
+        Nothing ->
+            "500"
+
+        Just index ->
+            simulationSpeedStops
+                |> List.drop index
+                |> List.head
+                |> Maybe.map String.fromInt
+                |> Maybe.withDefault "500"
+
+
+clampInt : Int -> Int -> Int -> Int
+clampInt low high value =
+    if value < low then
+        low
+
+    else if value > high then
+        high
+
+    else
+        value
+
+
+simulationInputWidthCh : String -> Int
+simulationInputWidthCh inputValue =
+    clampInt 18 110 (String.length inputValue + 6)
+                
+                
 stopSimulation : SimulationResult -> Model -> Model
 stopSimulation result model =
     { model
@@ -3504,6 +3566,11 @@ simulationPanel ctx model =
         simulationLocked =
             model.simulationRunning || (model.simulationChoice /= Nothing) || hasCodeValidationErrors model
 
+        speedIndex =
+            simulationSpeedIndexFromDelay model.simulationDelay
+
+        inputWidthCh =
+            simulationInputWidthCh model.simulationInput
     in
     div
         [ HA.style "background" (panelBg ctx.theme)
@@ -3513,36 +3580,53 @@ simulationPanel ctx model =
         , HA.style "overflow" "hidden"
         , HA.style "flex-shrink" "0"
         ]
-        [ div [ HA.style "display" "flex", HA.style "gap" "10px", HA.style "align-items" "center", HA.style "flex-wrap" "nowrap" ]
+        [ div [ HA.style "display" "flex", HA.style "gap" "10px", HA.style "align-items" "center", HA.style "flex-wrap" "wrap" ]
             [ H.h2 [ HA.style "margin" "0", HA.style "font-size" "20px", HA.style "min-width" "130px" ] [ H.text (t ctx.lang EditorSimulation) ]
             , textarea
                 [ rows 1
-                , cols 28
                 , placeholder (t ctx.lang EditorSimulationInput)
                 , value model.simulationInput
                 , onInput SetSimulationInput
                 , HA.disabled simulationLocked
-                , HA.style "height" "34px"
+                , HA.style "min-width" "170px"
+                , HA.style "width" ("min(" ++ String.fromInt inputWidthCh ++ "ch, 92vw)")
+                , HA.style "max-width" "100%"
+                , HA.style "height" "32px"
+                , HA.style "min-height" "32px"
+                , HA.style "max-height" "120px"
+                , HA.style "padding" "6px 12px"
+                , HA.style "line-height" "16px"
+                , HA.style "box-sizing" "border-box"
+                , HA.style "resize" "none"
+                , HA.style "overflow-y" "auto"
+                , HA.style "background" "#161b22"
+                , HA.style "color" "#e6edf3"
                 , HA.style "font-size" "16px"
-                , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
                 , HA.style "border-radius" "8px"
                 , HA.style "outline" "none"
                 ]
                 []
-            , textarea
-                [ rows 1
-                , cols 10
-                , placeholder (t ctx.lang EditorSimulationDelay)
-                , value model.simulationDelay
-                , onInput SetSimulationDelay
-                , HA.disabled simulationLocked
-                , HA.style "height" "34px"
-                , HA.style "font-size" "16px"
-                , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
-                , HA.style "border-radius" "8px"
-                , HA.style "outline" "none"
+            , div
+                [ HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "4px"
+                , HA.style "min-width" "170px"
                 ]
-                []
+                [ input
+                    [ type_ "range"
+                    , HA.min "0"
+                    , HA.max "4"
+                    , step "1"
+                    , value (String.fromInt speedIndex)
+                    , onInput SetSimulationDelay
+                    , HA.disabled simulationLocked
+                    , HA.style "width" "100%"
+                    ]
+                    []
+                , div [ HA.style "font-size" "12px", HA.style "text-align" "center", HA.style "opacity" "0.85" ]
+                    [ text (t ctx.lang EditorSimulationDelay ++ ": " ++ model.simulationDelay ++ " ms") ]
+                ]
             , H.button
                 (editorButtonStyles ctx.theme
                     ++ [ onClick StartSimulation
