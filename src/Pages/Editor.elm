@@ -1012,19 +1012,22 @@ isDeterministic transitions =
     (not hasDuplicate) && (not hasLambda)
 
 
-editorLayout : Model -> { editorHeight : Int, canvasWidth : Int, canvasHeight : Int }
+editorLayout : Model -> { editorHeight : Int, mainRowHeight : Int, canvasWidth : Int, canvasHeight : Int }
 editorLayout model =
     let
         editorHeight =
-            Basics.max 420 (model.viewportHeight - 170)
+            Basics.max 560 (model.viewportHeight - 90)
+
+        mainRowHeight =
+            Basics.max 320 (editorHeight - 120)
 
         canvasWidth =
-            Basics.max 460 (model.viewportWidth - 640)
+            Basics.max 360 (model.viewportWidth - 860)
 
         canvasHeight =
-            editorHeight - 84
+            mainRowHeight - 56
     in
-    { editorHeight = editorHeight, canvasWidth = canvasWidth, canvasHeight = canvasHeight }
+    { editorHeight = editorHeight, mainRowHeight = mainRowHeight, canvasWidth = canvasWidth, canvasHeight = canvasHeight }
 
 
 panWithWheel : Float -> Float -> Model -> Model
@@ -1750,21 +1753,26 @@ view ctx model =
                 [ HA.style "display" "flex"
                 , HA.style "gap" "12px"
                 , HA.style "color" (textColor ctx.theme)
-                , HA.style "height" (String.fromInt layout.editorHeight ++ "px")
+                , HA.style "height" (String.fromInt layout.mainRowHeight ++ "px")
                 , HA.style "overflow" "hidden"
                 ]
                 [ div [ HA.style "flex" "1", HA.style "min-width" "0", HA.style "display" "flex", HA.style "flex-direction" "column" ]
-                    [ H.h2 [ HA.style "margin" "0 0 8px 0" ] [ H.text (t ctx.lang EditorTitle) ]
+                    [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "margin-bottom" "8px", HA.style "gap" "8px" ]
+                        [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTitle) ]
+                        , div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
+                            [ H.button [ onClick OpenSaveModal ] [ H.text (t ctx.lang EditorSave) ]
+                            , automatonPanel ctx model
+                            ]
+                        ]
                     , svgView ctx model layout.canvasWidth layout.canvasHeight
                     ]
-                , sidePanel ctx model
-                , automatonPanel ctx model
+                , editorControlsPanel ctx model
+                , transitionFunctionPanel ctx model
                 ]
     in
-    div [ HA.style "height" "100%", HA.style "overflow" "hidden" ]
-        [ div [ HA.style "margin-bottom" "8px" ]
-            [ H.button [ onClick OpenSaveModal ] [ H.text (t ctx.lang EditorSave) ] ]
-        , content
+    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px" ]
+        [ content
+        , simulationPanel ctx model
         , if model.saveModalOpen then
             saveModal ctx model
 
@@ -1809,7 +1817,6 @@ svgView ctx model width height =
         [ S.svg
             [ SA.width "100%"
             , SA.height "100%"
-            , SA.viewBox ("0 0 " ++ String.fromInt width ++ " " ++ String.fromInt height)
             , SA.style
                 ("border:1px solid "
                     ++ panelBorder ctx.theme
@@ -2354,38 +2361,37 @@ arrowMarker color =
 
 automatonPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 automatonPanel ctx model =
-    if List.isEmpty model.states && List.isEmpty model.transitions then
-        text ""
+    let
+        deterministic =
+            isDeterministic model.transitions
 
-    else
-        let
-            deterministic = isDeterministic model.transitions
-            label =
-                if deterministic then
-                    t ctx.lang EditorAutomatonDeterministic
+        label =
+            if deterministic then
+                t ctx.lang EditorAutomatonDeterministic
 
-                else
-                    t ctx.lang EditorAutomatonNonDeterministic
+            else
+                t ctx.lang EditorAutomatonNonDeterministic
 
-            color =
-                if deterministic then
-                    "#2ecc71"
+        color =
+            if deterministic then
+                "#2ecc71"
 
-                else
-                    "#e67e22"
-        in
-        div
-            [ HA.style "width" "220px"
-            , HA.style "background" (panelBg ctx.theme)
-            , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
-            , HA.style "padding" "12px"
-            , HA.style "border-radius" "12px"
-            , HA.style "align-self" "flex-start"
-            , HA.style "overflow" "auto"
-            ]
-            [ H.h2 [] [ H.text (t ctx.lang EditorType) ]
-            , H.div [ HA.style "color" color, HA.style "font-weight" "bold" ] [ H.text label ]
-            ]
+            else
+                "#e67e22"
+    in
+    div
+        [ HA.style "background" (interactiveBg ctx.theme)
+        , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+        , HA.style "padding" "4px 8px"
+        , HA.style "border-radius" "999px"
+        , HA.style "display" "flex"
+        , HA.style "align-items" "center"
+        , HA.style "gap" "8px"
+        , HA.style "width" "fit-content"
+        ]
+        [ H.div [ HA.style "font-size" "12px", HA.style "opacity" "0.85" ] [ H.text (t ctx.lang EditorType ++ ":") ]
+        , H.div [ HA.style "color" color, HA.style "font-weight" "bold", HA.style "font-size" "12px" ] [ H.text label ]
+        ]
 
 
 startArrowMarker : String -> S.Svg msg
@@ -2467,7 +2473,8 @@ saveModal ctx model =
         ]
 
 
-sidePanel ctx model =
+editorControlsPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
+editorControlsPanel ctx model =
     let
         simulationLocked =
             model.simulationRunning || (model.simulationChoice /= Nothing)
@@ -2478,6 +2485,7 @@ sidePanel ctx model =
             , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
             , HA.style "border-radius" "8px"
             ]
+
         modeButton target label =
             H.button
                 (baseButtonStyles
@@ -2489,21 +2497,15 @@ sidePanel ctx model =
                 [ H.text label ]
     in
     div
-        [ HA.style "width" "360px"
+        [ HA.style "width" "300px"
         , HA.style "background" (panelBg ctx.theme)
         , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
         , HA.style "padding" "12px"
         , HA.style "border-radius" "12px"
-        , HA.style "overflow" "auto"
+        , HA.style "overflow" "hidden"
         ]
-        [ H.h2 [] [ H.text (t ctx.lang EditorTransitionFunction) ]
-        , textarea [ rows 18, cols 40, onInput CodeEdited, value model.codeDraft ] []
-        , div [ HA.style "margin-top" "8px" ]
-            [ H.button (baseButtonStyles ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
-            , H.button (baseButtonStyles ++ [ onClick ExportCode, HA.style "margin-left" "8px" ]) [ H.text (t ctx.lang EditorExport) ]
-            ]
-        , H.h2 [] [ H.text (t ctx.lang EditorMode) ]
-        , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
+        [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorMode) ]
+        , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center", HA.style "margin-top" "8px" ]
             [ modeButton AddState (t ctx.lang EditorModeAddState)
             , modeButton AddTransition (t ctx.lang EditorModeAddTransition)
             , modeButton MoveState (t ctx.lang EditorModeMoveState)
@@ -2530,6 +2532,7 @@ sidePanel ctx model =
                             [ text (t ctx.lang EditorTransitionFrom ++ ": " ++ stateNameById model.states sid ++ " → " ++ t ctx.lang EditorTransitionSelectStart) ]
                   )
                 ]
+
             else
             text ""
         , if model.mode == MoveState then
@@ -2603,33 +2606,87 @@ sidePanel ctx model =
                 ]
 
           else
-            text ""            
-        , H.h2 [] [ H.text (t ctx.lang EditorSimulation) ]
-        , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "align-items" "center" ]
-            [ textarea
+            text ""
+        ]
+
+
+transitionFunctionPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
+transitionFunctionPanel ctx model =
+    let
+        baseButtonStyles =
+            [ HA.style "background" (interactiveBg ctx.theme)
+            , HA.style "color" (textColor ctx.theme)
+            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+            , HA.style "border-radius" "8px"
+            ]
+    in
+    div
+        [ HA.style "width" "300px"
+        , HA.style "background" (panelBg ctx.theme)
+        , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+        , HA.style "padding" "12px"
+        , HA.style "border-radius" "12px"
+        , HA.style "overflow" "hidden"
+        ]
+        [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
+        , textarea [ rows 18, cols 36, onInput CodeEdited, value model.codeDraft, HA.style "margin-top" "8px", HA.style "width" "100%", HA.style "box-sizing" "border-box" ] []
+        , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
+            [ H.button (baseButtonStyles ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
+            , H.button (baseButtonStyles ++ [ onClick ExportCode ]) [ H.text (t ctx.lang EditorExport) ]
+            ]
+        ]
+
+
+simulationPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
+simulationPanel ctx model =
+    let
+        simulationLocked =
+            model.simulationRunning || (model.simulationChoice /= Nothing)
+
+        baseButtonStyles =
+            [ HA.style "background" (interactiveBg ctx.theme)
+            , HA.style "color" (textColor ctx.theme)
+            , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+            , HA.style "border-radius" "8px"
+            ]
+    in
+    div
+        [ HA.style "background" (panelBg ctx.theme)
+        , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+        , HA.style "padding" "14px"
+        , HA.style "border-radius" "12px"
+        , HA.style "overflow" "hidden"
+        , HA.style "flex-shrink" "0"
+        ]
+        [ div [ HA.style "display" "flex", HA.style "gap" "10px", HA.style "align-items" "center", HA.style "flex-wrap" "nowrap" ]
+            [ H.h2 [ HA.style "margin" "0", HA.style "font-size" "20px", HA.style "min-width" "130px" ] [ H.text (t ctx.lang EditorSimulation) ]
+            , textarea
                 [ rows 1
-                , cols 18
+                , cols 28
                 , placeholder (t ctx.lang EditorSimulationInput)
                 , value model.simulationInput
                 , onInput SetSimulationInput
                 , HA.disabled simulationLocked
+                , HA.style "height" "34px"
+                , HA.style "font-size" "16px"
                 ]
                 []
             , textarea
                 [ rows 1
-                , cols 8
+                , cols 10
                 , placeholder (t ctx.lang EditorSimulationDelay)
                 , value model.simulationDelay
                 , onInput SetSimulationDelay
                 , HA.disabled simulationLocked
+                , HA.style "height" "34px"
+                , HA.style "font-size" "16px"
                 ]
                 []
-            ]
-        , div [ HA.style "margin-top" "6px", HA.style "display" "flex", HA.style "gap" "8px" ]
-            [ H.button
+            , H.button
                 (baseButtonStyles
                     ++ [ onClick StartSimulation
                        , HA.disabled simulationLocked
+                       , HA.style "height" "36px"
                        ]
                 )
                 [ H.text (t ctx.lang EditorSimulationStart) ]
@@ -2637,6 +2694,7 @@ sidePanel ctx model =
                 (baseButtonStyles
                     ++ [ onClick StopSimulation
                        , HA.disabled (not (model.simulationRunning || (model.simulationChoice /= Nothing)))
+                       , HA.style "height" "36px"
                        ]
                 )
                 [ H.text (t ctx.lang EditorSimulationStop) ]
