@@ -1411,7 +1411,7 @@ startSimulation : Model -> ( Model, Cmd Msg )
 startSimulation model =
     case findStartState model.states of
         Nothing ->
-            ( { model | simulationResult = MissingStart }, Cmd.none )
+            showGlobalNotice I18n.EditorSimulationMissingStart { model | simulationResult = MissingStart }
 
         Just startState ->
             let
@@ -1434,16 +1434,27 @@ startSimulation model =
                     else
                         Cmd.none
             in
-            ( { model
-                | simulationRunning = willRun
-                , simulationQueue = queue
-                , simulationCurrent = Just startState.id
-                , selected = Just startState.id
-                , simulationResult = initialResult
-                , simulationChoice = Nothing
-              }
-            , cmd
-            )
+            let
+                nextModel =
+                    { model
+                        | simulationRunning = willRun
+                        , simulationQueue = queue
+                        , simulationCurrent = Just startState.id
+                        , selected = Just startState.id
+                        , simulationResult = initialResult
+                        , simulationChoice = Nothing
+                    }
+            in
+            if willRun then
+                ( nextModel, cmd )
+
+            else
+                case simulationResultNoticeKey initialResult of
+                    Just key ->
+                        showGlobalNotice key nextModel
+
+                    Nothing ->
+                        ( nextModel, Cmd.none )
 
 
 applySimulationTransition : Transition -> Bool -> List Char -> List Char -> Model -> ( Model, Cmd Msg )
@@ -1467,13 +1478,8 @@ applySimulationTransition transition consumesInput rest queue model =
             else
                 Cmd.none
     in
-    ( { model
-        | simulationQueue = nextQueue
-        , simulationCurrent = Just transition.to
-        , selected = Just transition.to
-        , simulationRunning = willContinue
-        , simulationChoice = Nothing
-        , simulationResult =
+    let
+        nextResult =
             if willContinue then
                 Running
 
@@ -1491,16 +1497,34 @@ applySimulationTransition transition consumesInput rest queue model =
 
                     Nothing ->
                         DeadEnd
-      }
-    , cmd
-    )
+
+        nextModel =
+            { model
+                | simulationQueue = nextQueue
+                , simulationCurrent = Just transition.to
+                , selected = Just transition.to
+                , simulationRunning = willContinue
+                , simulationChoice = Nothing
+                , simulationResult = nextResult
+            }
+    in
+    if willContinue then
+        ( nextModel, cmd )
+
+    else
+        case simulationResultNoticeKey nextResult of
+            Just key ->
+                showGlobalNotice key nextModel
+
+            Nothing ->
+                ( nextModel, Cmd.none )
 
 
 stepSimulation : Model -> ( Model, Cmd Msg )
 stepSimulation model =
     case ( model.simulationCurrent, model.simulationQueue ) of
         ( Nothing, _ ) ->
-            ( stopSimulation DeadEnd model, Cmd.none )
+            stopSimulationWithNotice DeadEnd model
 
         ( Just sid, queue ) ->
             let
@@ -1550,7 +1574,7 @@ stepSimulation model =
                                 _ ->
                                     DeadEnd
                     in
-                    ( stopSimulation result model, Cmd.none )
+                    stopSimulationWithNotice result model
 
                 [ single ] ->
                     applySimulationTransition single consumesInput rest queue model
@@ -2138,6 +2162,64 @@ simulationStatus lang result =
 
         MissingStart ->
             Just ( t lang I18n.EditorSimulationMissingStart, "#e74c3c" )
+
+
+simulationResultNoticeKey : SimulationResult -> Maybe Key
+simulationResultNoticeKey result =
+    case result of
+        Success ->
+            Just I18n.EditorSimulationSuccess
+
+        Rejected ->
+            Just I18n.EditorSimulationRejected
+
+        DeadEnd ->
+            Just I18n.EditorSimulationDeadEnd
+
+        MissingStart ->
+            Just I18n.EditorSimulationMissingStart
+
+        Idle ->
+            Nothing
+
+        Running ->
+            Nothing
+
+
+stopSimulationWithNotice : SimulationResult -> Model -> ( Model, Cmd Msg )
+stopSimulationWithNotice result model =
+    let
+        nextModel =
+            stopSimulation result model
+    in
+    case simulationResultNoticeKey result of
+        Just key ->
+            showGlobalNotice key nextModel
+
+        Nothing ->
+            ( nextModel, Cmd.none )
+
+
+globalNoticeColor : Theme -> Key -> String
+globalNoticeColor theme key =
+    case key of
+        I18n.EditorSimulationSuccess ->
+            successColor theme
+
+        I18n.EditorSimulationRejected ->
+            warningColor theme
+
+        I18n.EditorSimulationDeadEnd ->
+            errorColor theme
+
+        I18n.EditorSimulationMissingStart ->
+            errorColor theme
+
+        I18n.EditorSimulationBlockedByCodeErrors ->
+            errorColor theme
+
+        _ ->
+            textColor theme
 -- VIEW
 
 view : { lang : Lang, theme : Theme, viewportWidth : Int, viewportHeight : Int } -> Model -> Html Msg
@@ -2179,6 +2261,10 @@ view ctx model =
             text ""
         , case model.globalNotice of
             Just noticeKey ->
+                let
+                    noticeColor =
+                        globalNoticeColor ctx.theme noticeKey
+                in
                 div
                     [ HA.style "position" "fixed"
                     , HA.style "top" "20px"
@@ -2186,8 +2272,8 @@ view ctx model =
                     , HA.style "transform" "translateX(-50%)"
                     , HA.style "z-index" "9999"
                     , HA.style "background" (panelBg ctx.theme)
-                    , HA.style "color" (errorColor ctx.theme)
-                    , HA.style "border" ("1px solid " ++ errorColor ctx.theme)
+                    , HA.style "color" noticeColor
+                    , HA.style "border" ("1px solid " ++ noticeColor)
                     , HA.style "padding" "12px 16px"
                     , HA.style "border-radius" "10px"
                     , HA.style "box-shadow" "0 8px 24px rgba(0,0,0,0.2)"
@@ -2207,7 +2293,7 @@ showGlobalNotice key model =
             model.globalNoticeNonce + 1
     in
     ( { model | globalNotice = Just key, globalNoticeNonce = nextNonce }
-    , Process.sleep 3.0 |> Task.perform (\_ -> DismissGlobalNotice nextNonce)
+    , Process.sleep 5000 |> Task.perform (\_ -> DismissGlobalNotice nextNonce)
     )
 
 
@@ -3365,7 +3451,10 @@ transitionFunctionPanel ctx model =
                 , HA.style "font-size" "14px"
                 , HA.style "line-height" "20px"
                 , HA.style "padding" "8px"
+                , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                , HA.style "border-radius" "8px"
                 , HA.style "border-color" (if hasCodeValidationErrors model then errorColor ctx.theme else "")
+                , HA.style "outline" "none"
                 , HA.style "color" (textColor ctx.theme)
                 , HA.style "caret-color" (textColor ctx.theme)
                 ]
@@ -3404,6 +3493,9 @@ simulationPanel ctx model =
                 , HA.disabled simulationLocked
                 , HA.style "height" "34px"
                 , HA.style "font-size" "16px"
+                , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                , HA.style "border-radius" "8px"
+                , HA.style "outline" "none"
                 ]
                 []
             , textarea
@@ -3415,6 +3507,9 @@ simulationPanel ctx model =
                 , HA.disabled simulationLocked
                 , HA.style "height" "34px"
                 , HA.style "font-size" "16px"
+                , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
+                , HA.style "border-radius" "8px"
+                , HA.style "outline" "none"
                 ]
                 []
             , H.button
@@ -3433,11 +3528,19 @@ simulationPanel ctx model =
                        ]
                 )
                 [ H.text (t ctx.lang EditorSimulationStop) ]
-            ]
-        , case simulationStatus ctx.lang model.simulationResult of
-            Nothing ->
-                text ""
+            , case simulationStatus ctx.lang model.simulationResult of
+                Nothing ->
+                    text ""
 
-            Just ( msg, color ) ->
-                div [ HA.style "color" color, HA.style "margin-top" "6px" ] [ H.text msg ]
+                Just ( msg, color ) ->
+                    div
+                        [ HA.style "color" color
+                        , HA.style "margin-left" "auto"
+                        , HA.style "margin-right" "auto"
+                        , HA.style "text-align" "center"
+                        , HA.style "white-space" "nowrap"
+                        , HA.style "font-weight" "bold"
+                        ]
+                        [ H.text msg ]
+            ]
         ]

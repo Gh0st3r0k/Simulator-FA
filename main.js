@@ -6084,7 +6084,47 @@ var $author$project$Pages$Editor$parseDelay = function (raw) {
 		return 500;
 	}
 };
+var $author$project$Pages$Editor$DismissGlobalNotice = function (a) {
+	return {$: 47, a: a};
+};
 var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$Pages$Editor$showGlobalNotice = F2(
+	function (key, model) {
+		var nextNonce = model.aE + 1;
+		return _Utils_Tuple2(
+			_Utils_update(
+				model,
+				{
+					aD: $elm$core$Maybe$Just(key),
+					aE: nextNonce
+				}),
+			A2(
+				$elm$core$Task$perform,
+				function (_v0) {
+					return $author$project$Pages$Editor$DismissGlobalNotice(nextNonce);
+				},
+				$elm$core$Process$sleep(5000)));
+	});
+var $author$project$I18n$EditorSimulationDeadEnd = 78;
+var $author$project$I18n$EditorSimulationMissingStart = 79;
+var $author$project$I18n$EditorSimulationRejected = 77;
+var $author$project$I18n$EditorSimulationSuccess = 76;
+var $author$project$Pages$Editor$simulationResultNoticeKey = function (result) {
+	switch (result) {
+		case 2:
+			return $elm$core$Maybe$Just(76);
+		case 3:
+			return $elm$core$Maybe$Just(77);
+		case 4:
+			return $elm$core$Maybe$Just(78);
+		case 5:
+			return $elm$core$Maybe$Just(79);
+		case 0:
+			return $elm$core$Maybe$Nothing;
+		default:
+			return $elm$core$Maybe$Nothing;
+	}
+};
 var $author$project$Pages$Editor$applySimulationTransition = F5(
 	function (transition, consumesInput, rest, queue, model) {
 		var nextQueue = consumesInput ? rest : queue;
@@ -6092,34 +6132,44 @@ var $author$project$Pages$Editor$applySimulationTransition = F5(
 		var delay = $author$project$Pages$Editor$parseDelay(model.ax);
 		var cmd = willContinue ? A2(
 			$elm$core$Task$perform,
-			function (_v1) {
+			function (_v2) {
 				return $author$project$Pages$Editor$AdvanceSimulation;
 			},
 			$elm$core$Process$sleep(delay)) : $elm$core$Platform$Cmd$none;
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					o: $elm$core$Maybe$Just(transition.d),
-					E: $elm$core$Maybe$Nothing,
-					ak: $elm$core$Maybe$Just(transition.d),
-					al: nextQueue,
-					af: function () {
-						if (willContinue) {
-							return 1;
-						} else {
-							var _v0 = A2($author$project$Pages$Editor$getStateById, transition.d, model.a);
-							if (!_v0.$) {
-								var s = _v0.a;
-								return (s.t && $elm$core$List$isEmpty(nextQueue)) ? 2 : ($elm$core$List$isEmpty(nextQueue) ? 3 : 4);
-							} else {
-								return 4;
-							}
-						}
-					}(),
-					P: willContinue
-				}),
-			cmd);
+		var nextResult = function () {
+			if (willContinue) {
+				return 1;
+			} else {
+				var _v1 = A2($author$project$Pages$Editor$getStateById, transition.d, model.a);
+				if (!_v1.$) {
+					var s = _v1.a;
+					return (s.t && $elm$core$List$isEmpty(nextQueue)) ? 2 : ($elm$core$List$isEmpty(nextQueue) ? 3 : 4);
+				} else {
+					return 4;
+				}
+			}
+		}();
+		var nextModel = _Utils_update(
+			model,
+			{
+				o: $elm$core$Maybe$Just(transition.d),
+				E: $elm$core$Maybe$Nothing,
+				ak: $elm$core$Maybe$Just(transition.d),
+				al: nextQueue,
+				af: nextResult,
+				P: willContinue
+			});
+		if (willContinue) {
+			return _Utils_Tuple2(nextModel, cmd);
+		} else {
+			var _v0 = $author$project$Pages$Editor$simulationResultNoticeKey(nextResult);
+			if (!_v0.$) {
+				var key = _v0.a;
+				return A2($author$project$Pages$Editor$showGlobalNotice, key, nextModel);
+			} else {
+				return _Utils_Tuple2(nextModel, $elm$core$Platform$Cmd$none);
+			}
+		}
 	});
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -7134,26 +7184,6 @@ var $author$project$Pages$Editor$screenToWorld = F3(
 	function (model, x, y) {
 		return _Utils_Tuple2(x - model.J, y - model.K);
 	});
-var $author$project$Pages$Editor$DismissGlobalNotice = function (a) {
-	return {$: 47, a: a};
-};
-var $author$project$Pages$Editor$showGlobalNotice = F2(
-	function (key, model) {
-		var nextNonce = model.aE + 1;
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					aD: $elm$core$Maybe$Just(key),
-					aE: nextNonce
-				}),
-			A2(
-				$elm$core$Task$perform,
-				function (_v0) {
-					return $author$project$Pages$Editor$DismissGlobalNotice(nextNonce);
-				},
-				$elm$core$Process$sleep(3.0)));
-	});
 var $elm$core$List$sort = function (xs) {
 	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
 };
@@ -7174,11 +7204,12 @@ var $elm$core$String$toList = function (string) {
 var $author$project$Pages$Editor$startSimulation = function (model) {
 	var _v0 = $author$project$Pages$Editor$findStartState(model.a);
 	if (_v0.$ === 1) {
-		return _Utils_Tuple2(
+		return A2(
+			$author$project$Pages$Editor$showGlobalNotice,
+			79,
 			_Utils_update(
 				model,
-				{af: 5}),
-			$elm$core$Platform$Cmd$none);
+				{af: 5}));
 	} else {
 		var startState = _v0.a;
 		var queue = $elm$core$String$toList(model.aI);
@@ -7187,22 +7218,31 @@ var $author$project$Pages$Editor$startSimulation = function (model) {
 		var delay = $author$project$Pages$Editor$parseDelay(model.ax);
 		var cmd = willRun ? A2(
 			$elm$core$Task$perform,
-			function (_v1) {
+			function (_v2) {
 				return $author$project$Pages$Editor$AdvanceSimulation;
 			},
 			$elm$core$Process$sleep(delay)) : $elm$core$Platform$Cmd$none;
-		return _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					o: $elm$core$Maybe$Just(startState.bP),
-					E: $elm$core$Maybe$Nothing,
-					ak: $elm$core$Maybe$Just(startState.bP),
-					al: queue,
-					af: initialResult,
-					P: willRun
-				}),
-			cmd);
+		var nextModel = _Utils_update(
+			model,
+			{
+				o: $elm$core$Maybe$Just(startState.bP),
+				E: $elm$core$Maybe$Nothing,
+				ak: $elm$core$Maybe$Just(startState.bP),
+				al: queue,
+				af: initialResult,
+				P: willRun
+			});
+		if (willRun) {
+			return _Utils_Tuple2(nextModel, cmd);
+		} else {
+			var _v1 = $author$project$Pages$Editor$simulationResultNoticeKey(initialResult);
+			if (!_v1.$) {
+				var key = _v1.a;
+				return A2($author$project$Pages$Editor$showGlobalNotice, key, nextModel);
+			} else {
+				return _Utils_Tuple2(nextModel, $elm$core$Platform$Cmd$none);
+			}
+		}
 	}
 };
 var $author$project$Pages$Editor$editorLayout = function (model) {
@@ -7240,13 +7280,22 @@ var $author$project$Pages$Editor$stopSimulation = F2(
 			model,
 			{E: $elm$core$Maybe$Nothing, ak: $elm$core$Maybe$Nothing, al: _List_Nil, af: result, P: false});
 	});
+var $author$project$Pages$Editor$stopSimulationWithNotice = F2(
+	function (result, model) {
+		var nextModel = A2($author$project$Pages$Editor$stopSimulation, result, model);
+		var _v0 = $author$project$Pages$Editor$simulationResultNoticeKey(result);
+		if (!_v0.$) {
+			var key = _v0.a;
+			return A2($author$project$Pages$Editor$showGlobalNotice, key, nextModel);
+		} else {
+			return _Utils_Tuple2(nextModel, $elm$core$Platform$Cmd$none);
+		}
+	});
 var $author$project$Pages$Editor$stepSimulation = function (model) {
 	var _v0 = _Utils_Tuple2(model.ak, model.al);
 	if (_v0.a.$ === 1) {
 		var _v1 = _v0.a;
-		return _Utils_Tuple2(
-			A2($author$project$Pages$Editor$stopSimulation, 4, model),
-			$elm$core$Platform$Cmd$none);
+		return A2($author$project$Pages$Editor$stopSimulationWithNotice, 4, model);
 	} else {
 		var sid = _v0.a.a;
 		var queue = _v0.b;
@@ -7304,9 +7353,7 @@ var $author$project$Pages$Editor$stepSimulation = function (model) {
 					return 4;
 				}
 			}();
-			return _Utils_Tuple2(
-				A2($author$project$Pages$Editor$stopSimulation, result, model),
-				$elm$core$Platform$Cmd$none);
+			return A2($author$project$Pages$Editor$stopSimulationWithNotice, result, model);
 		} else {
 			if (!candidates.b.b) {
 				var single = candidates.a;
@@ -12154,6 +12201,23 @@ var $author$project$Theme$errorColor = function (th) {
 		return '#ff7666';
 	}
 };
+var $author$project$Pages$Editor$globalNoticeColor = F2(
+	function (theme, key) {
+		switch (key) {
+			case 76:
+				return $author$project$Theme$successColor(theme);
+			case 77:
+				return $author$project$Theme$warningColor(theme);
+			case 78:
+				return $author$project$Theme$errorColor(theme);
+			case 79:
+				return $author$project$Theme$errorColor(theme);
+			case 80:
+				return $author$project$Theme$errorColor(theme);
+			default:
+				return $author$project$Theme$textColor(theme);
+		}
+	});
 var $author$project$Pages$Editor$CloseSaveModal = {$: 30};
 var $author$project$Pages$Editor$ConfirmRenameSlot = function (a) {
 	return {$: 36, a: a};
@@ -12570,11 +12634,7 @@ var $elm$html$Html$Attributes$rows = function (n) {
 		'rows',
 		$elm$core$String$fromInt(n));
 };
-var $author$project$I18n$EditorSimulationDeadEnd = 78;
-var $author$project$I18n$EditorSimulationMissingStart = 79;
-var $author$project$I18n$EditorSimulationRejected = 77;
 var $author$project$I18n$EditorSimulationRunning = 75;
-var $author$project$I18n$EditorSimulationSuccess = 76;
 var $author$project$Pages$Editor$simulationStatus = F2(
 	function (lang, result) {
 		switch (result) {
@@ -12666,7 +12726,13 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationInput),
 									$elm$html$Html$Attributes$disabled(simulationLocked),
 									A2($elm$html$Html$Attributes$style, 'height', '34px'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '16px')
+									A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'border',
+									'1px solid ' + $author$project$Theme$panelBorder(ctx.g)),
+									A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+									A2($elm$html$Html$Attributes$style, 'outline', 'none')
 								]),
 							_List_Nil),
 							A2(
@@ -12681,7 +12747,13 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 									$elm$html$Html$Events$onInput($author$project$Pages$Editor$SetSimulationDelay),
 									$elm$html$Html$Attributes$disabled(simulationLocked),
 									A2($elm$html$Html$Attributes$style, 'height', '34px'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '16px')
+									A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'border',
+									'1px solid ' + $author$project$Theme$panelBorder(ctx.g)),
+									A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+									A2($elm$html$Html$Attributes$style, 'outline', 'none')
 								]),
 							_List_Nil),
 							A2(
@@ -12714,29 +12786,33 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 								[
 									$elm$html$Html$text(
 									A2($author$project$I18n$t, ctx.j, 74))
-								]))
-						])),
-					function () {
-					var _v0 = A2($author$project$Pages$Editor$simulationStatus, ctx.j, model.af);
-					if (_v0.$ === 1) {
-						return $elm$html$Html$text('');
-					} else {
-						var _v1 = _v0.a;
-						var msg = _v1.a;
-						var color = _v1.b;
-						return A2(
-							$elm$html$Html$div,
-							_List_fromArray(
-								[
-									A2($elm$html$Html$Attributes$style, 'color', color),
-									A2($elm$html$Html$Attributes$style, 'margin-top', '6px')
-								]),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(msg)
-								]));
-					}
-				}()
+								])),
+							function () {
+							var _v0 = A2($author$project$Pages$Editor$simulationStatus, ctx.j, model.af);
+							if (_v0.$ === 1) {
+								return $elm$html$Html$text('');
+							} else {
+								var _v1 = _v0.a;
+								var msg = _v1.a;
+								var color = _v1.b;
+								return A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'color', color),
+											A2($elm$html$Html$Attributes$style, 'margin-left', 'auto'),
+											A2($elm$html$Html$Attributes$style, 'margin-right', 'auto'),
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											A2($elm$html$Html$Attributes$style, 'white-space', 'nowrap'),
+											A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(msg)
+										]));
+							}
+						}()
+						]))
 				]));
 	});
 var $author$project$Pages$Editor$CanvasMouseDown = F4(
@@ -13682,8 +13758,14 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 										A2($elm$html$Html$Attributes$style, 'padding', '8px'),
 										A2(
 										$elm$html$Html$Attributes$style,
+										'border',
+										'1px solid ' + $author$project$Theme$panelBorder(ctx.g)),
+										A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+										A2(
+										$elm$html$Html$Attributes$style,
 										'border-color',
 										$author$project$Pages$Editor$hasCodeValidationErrors(model) ? $author$project$Theme$errorColor(ctx.g) : ''),
+										A2($elm$html$Html$Attributes$style, 'outline', 'none'),
 										A2(
 										$elm$html$Html$Attributes$style,
 										'color',
@@ -13840,6 +13922,7 @@ var $author$project$Pages$Editor$view = F2(
 					var _v0 = model.aD;
 					if (!_v0.$) {
 						var noticeKey = _v0.a;
+						var noticeColor = A2($author$project$Pages$Editor$globalNoticeColor, ctx.g, noticeKey);
 						return A2(
 							$elm$html$Html$div,
 							_List_fromArray(
@@ -13853,14 +13936,8 @@ var $author$project$Pages$Editor$view = F2(
 									$elm$html$Html$Attributes$style,
 									'background',
 									$author$project$Theme$panelBg(ctx.g)),
-									A2(
-									$elm$html$Html$Attributes$style,
-									'color',
-									$author$project$Theme$errorColor(ctx.g)),
-									A2(
-									$elm$html$Html$Attributes$style,
-									'border',
-									'1px solid ' + $author$project$Theme$errorColor(ctx.g)),
+									A2($elm$html$Html$Attributes$style, 'color', noticeColor),
+									A2($elm$html$Html$Attributes$style, 'border', '1px solid ' + noticeColor),
 									A2($elm$html$Html$Attributes$style, 'padding', '12px 16px'),
 									A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
 									A2($elm$html$Html$Attributes$style, 'box-shadow', '0 8px 24px rgba(0,0,0,0.2)'),
