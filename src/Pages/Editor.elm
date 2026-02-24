@@ -210,6 +210,7 @@ type Msg
     | ImportSlot Int
     | ApplyImportedSlot Int String
     | ImportSlotFailed
+    | ClearSlotImportError
     | NoOp
 
 
@@ -710,12 +711,12 @@ update msg model =
                 ( { model | saveModalOpen = True, slotImportError = False }, Cmd.none )
 
             CloseSaveModal ->
-                ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "" }, Cmd.none )
+                ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "", slotImportError = False }, Cmd.none )
 
             SaveToSlot slotId ->
                 let
                     automatonJson =
-                        Encode.encode 2 (encodeAutomaton model.states model.transitions)
+                        Encode.encode 0 (encodeAutomaton model.states model.transitions)
 
                     updateSlot slot =
                         if slot.id == slotId then
@@ -839,11 +840,14 @@ update msg model =
 
             ApplyImportedSlot slotId importedJson ->
                 case Decode.decodeString decodeAutomaton importedJson of
-                    Ok _ ->
+                    Ok ( importedStates, importedTransitions ) ->
                         let
+                            minifiedAutomatonJson =
+                                Encode.encode 0 (encodeAutomaton importedStates importedTransitions)
+
                             updateSlot slot =
                                 if slot.id == slotId then
-                                    { slot | automatonJson = importedJson }
+                                    { slot | automatonJson = minifiedAutomatonJson }
 
                                 else
                                     slot
@@ -858,10 +862,17 @@ update msg model =
                         )
 
                     Err _ ->
-                        ( { model | slotImportError = True }, Cmd.none )
+                        ( { model | slotImportError = True }
+                        , Process.sleep 3000 |> Task.perform (\_ -> ClearSlotImportError)
+                        )
 
             ImportSlotFailed ->
-                ( { model | slotImportError = True }, Cmd.none )
+                ( { model | slotImportError = True }
+                , Process.sleep 3000 |> Task.perform (\_ -> ClearSlotImportError)
+                )
+
+            ClearSlotImportError ->
+                ( { model | slotImportError = False }, Cmd.none )
                 
             NoOp ->
                 ( model, Cmd.none )
@@ -2559,14 +2570,15 @@ saveModal ctx model =
                                     []
                                )
                         )
-                    , if hasAutomaton then
-                        div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-left" "auto", HA.style "flex-wrap" "wrap" ]
-                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick (ImportSlot slot.id) ]) [ H.text (t ctx.lang EditorImportFas) ]
-                            , H.button (editorButtonStyles ctx.theme ++ [ onClick (ExportSlot slot.id) ]) [ H.text (t ctx.lang EditorExportFas) ]
-                            ]
+                    , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-left" "auto", HA.style "flex-wrap" "wrap" ]
+                        ((if hasAutomaton then
+                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick (ExportSlot slot.id) ]) [ H.text (t ctx.lang EditorExportFas) ] ]
 
-                      else
-                        text ""
+                          else
+                            []
+                         )
+                            ++ [ H.button (editorButtonStyles ctx.theme ++ [ onClick (ImportSlot slot.id) ]) [ H.text (t ctx.lang EditorImportFas) ] ]
+                        )
                     ]
                 ]
     in
@@ -2587,12 +2599,14 @@ saveModal ctx model =
             , HA.style "padding" "16px"
             , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
             ]
-            [ H.h2 [] [ H.text (t ctx.lang EditorSaveModalTitle) ]
-            , if model.slotImportError then
-                H.div [ HA.style "color" "#e74c3c", HA.style "margin-bottom" "10px", HA.style "font-weight" "600" ] [ H.text (t ctx.lang EditorImportError) ]
+            [ div [ HA.style "display" "flex", HA.style "justify-content" "space-between", HA.style "align-items" "center", HA.style "margin-bottom" "10px", HA.style "min-height" "32px", HA.style "gap" "12px" ]
+                [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorSaveModalTitle) ]
+                , if model.slotImportError then
+                    H.div [ HA.style "color" "#e74c3c", HA.style "font-weight" "600", HA.style "margin-left" "auto", HA.style "text-align" "right" ] [ H.text (t ctx.lang EditorImportError) ]
 
-              else
-                text ""
+                  else
+                    text ""
+                ]
             , div [ HA.style "display" "grid", HA.style "grid-template-columns" "1fr", HA.style "gap" "10px" ] (List.map viewSlot model.saveSlots)
             , div [ HA.style "margin-top" "12px" ] [ H.button (editorButtonStyles ctx.theme ++ [ onClick CloseSaveModal ]) [ H.text (t ctx.lang EditorClose) ] ]
             ]
