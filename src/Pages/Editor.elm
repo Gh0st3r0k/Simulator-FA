@@ -3316,7 +3316,13 @@ editorControlsPanel ctx model =
                    , HA.style "transition" "max-height 240ms ease"
                    ]
             )
-            [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
+            [ div
+                [ HA.style "display" "flex"
+                , HA.style "align-items" "center"
+                , HA.style "justify-content" "center"
+                , HA.style "gap" "8px"
+                , HA.style "min-height" "32px"
+                ]
                 [ if deterministic then
                     text ""
 
@@ -3330,7 +3336,7 @@ editorControlsPanel ctx model =
                                ]
                         )
                         [ H.text (if automatonDetailsExpanded then "▾" else "▴") ]
-                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor ] [ H.text automatonLabel ]
+                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor, HA.style "text-align" "center" ] [ H.text automatonLabel ]
                 ]
             , div
                 [ HA.style "display" "flex"
@@ -3385,7 +3391,7 @@ transitionFunctionPanel ctx model =
                 t ctx.lang EditorCodeDraftChanges
     in
     div
-        [ HA.style "width" "300px"
+        [ HA.style "width" "251px"
         , HA.style "background" (panelBg ctx.theme)
         , HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
         , HA.style "padding" "12px"
@@ -3398,7 +3404,7 @@ transitionFunctionPanel ctx model =
             [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
             , if model.codeDraftDirty then
                 H.span
-                    [ HA.style "font-size" "14px"
+                    [ HA.style "font-size" "20px"
                     , HA.style "color" (if hasCodeValidationErrors model then errorColor ctx.theme else warningColor ctx.theme)
                     , title draftIndicatorTitle
                     ]

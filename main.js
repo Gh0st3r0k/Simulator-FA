@@ -12108,7 +12108,9 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 								[
 									A2($elm$html$Html$Attributes$style, 'display', 'flex'),
 									A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
-									A2($elm$html$Html$Attributes$style, 'gap', '8px')
+									A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
+									A2($elm$html$Html$Attributes$style, 'gap', '8px'),
+									A2($elm$html$Html$Attributes$style, 'min-height', '32px')
 								]),
 							_List_fromArray(
 								[
@@ -12135,7 +12137,8 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 										[
 											A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
 											A2($elm$html$Html$Attributes$style, 'font-weight', '700'),
-											A2($elm$html$Html$Attributes$style, 'color', automatonColor)
+											A2($elm$html$Html$Attributes$style, 'color', automatonColor),
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center')
 										]),
 									_List_fromArray(
 										[
@@ -13608,7 +13611,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					A2($elm$html$Html$Attributes$style, 'width', '300px'),
+					A2($elm$html$Html$Attributes$style, 'width', '251px'),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
@@ -13651,7 +13654,7 @@ var $author$project$Pages$Editor$transitionFunctionPanel = F2(
 							$elm$html$Html$span,
 							_List_fromArray(
 								[
-									A2($elm$html$Html$Attributes$style, 'font-size', '14px'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '20px'),
 									A2(
 									$elm$html$Html$Attributes$style,
 									'color',
