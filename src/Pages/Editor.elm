@@ -45,6 +45,9 @@ type alias Model =
     , stateNameConflict : Bool
     , saveModalOpen : Bool
     , saveSlots : List SaveSlot
+    , renamingSlot : Maybe Int
+    , renameDraft : String
+    , recentlySavedSlot : Maybe Int
     , viewportWidth : Int
     , viewportHeight : Int
     }
@@ -153,6 +156,9 @@ initWithSlots slots =
     , stateNameConflict = False
     , saveModalOpen = False
     , saveSlots = ensureSlotCount 5 slots
+    , renamingSlot = Nothing
+    , renameDraft = ""
+    , recentlySavedSlot = Nothing
     , viewportWidth = 1200
     , viewportHeight = 800
     }
@@ -194,7 +200,10 @@ type Msg
     | SaveToSlot Int
     | LoadFromSlot Int
     | DeleteFromSlot Int
-    | RenameSlot Int String
+    | StartRenameSlot Int
+    | UpdateRenameDraft String
+    | ConfirmRenameSlot Int
+    | ClearRecentlySavedSlot Int
     | NoOp
 
 
@@ -695,7 +704,7 @@ update msg model =
                 ( { model | saveModalOpen = True }, Cmd.none )
 
             CloseSaveModal ->
-                ( { model | saveModalOpen = False }, Cmd.none )
+                ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "" }, Cmd.none )
 
             SaveToSlot slotId ->
                 let
@@ -709,7 +718,10 @@ update msg model =
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+                ( { model | saveSlots = List.map updateSlot model.saveSlots, recentlySavedSlot = Just slotId }
+                , Process.sleep 2000
+                    |> Task.perform (\_ -> ClearRecentlySavedSlot slotId)
+                )
 
             LoadFromSlot slotId ->
                 let
@@ -769,18 +781,48 @@ update msg model =
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+                ( { model
+                    | saveSlots = List.map updateSlot model.saveSlots
+                    , renamingSlot = if model.renamingSlot == Just slotId then Nothing else model.renamingSlot
+                    , renameDraft = if model.renamingSlot == Just slotId then "" else model.renameDraft
+                  }
+                , Cmd.none
+                )
 
-            RenameSlot slotId slotName ->
+            StartRenameSlot slotId ->
                 let
+                    currentName =
+                        model.saveSlots
+                            |> List.filter (\slot -> slot.id == slotId)
+                            |> List.head
+                            |> Maybe.map .name
+                            |> Maybe.withDefault ""
+                in
+                ( { model | renamingSlot = Just slotId, renameDraft = currentName }, Cmd.none )
+
+            UpdateRenameDraft slotName ->
+                ( { model | renameDraft = slotName }, Cmd.none )
+
+            ConfirmRenameSlot slotId ->
+                let
+                    trimmedName =
+                        String.trim model.renameDraft
+
                     updateSlot slot =
                         if slot.id == slotId then
-                            { slot | name = String.trim slotName }
+                            { slot | name = trimmedName }
 
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots }, Cmd.none )
+                ( { model | saveSlots = List.map updateSlot model.saveSlots, renamingSlot = Nothing, renameDraft = "" }, Cmd.none )
+
+            ClearRecentlySavedSlot slotId ->
+                if model.recentlySavedSlot == Just slotId then
+                    ( { model | recentlySavedSlot = Nothing }, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
 
             NoOp ->
                 ( model, Cmd.none )
@@ -2419,34 +2461,65 @@ saveModal ctx model =
     let
         viewSlot slot =
             let
-                slotLabel =
-                    if String.isEmpty slot.automatonJson then
-                        t ctx.lang EditorSlotEmpty
+                hasAutomaton =
+                    not (String.isEmpty slot.automatonJson)
 
-                    else if String.isEmpty slot.name then
-                        ""
+                slotLabel =
+                    if hasAutomaton then
+                        if String.isEmpty slot.name then
+                            ""
+
+                        else
+                            slot.name
 
                     else
-                        slot.name
+                        t ctx.lang EditorSlotEmpty
+
+                renameInputWidth =
+                    String.fromInt (Basics.max 10 (String.length model.renameDraft + 2)) ++ "ch"
             in
             div
                 [ HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
                 , HA.style "padding" "10px"
                 , HA.style "border-radius" "8px"
                 ]
-                [ H.div [] [ H.text (t ctx.lang EditorSlot ++ " " ++ String.fromInt slot.id ++ ": " ++ slotLabel) ]
-                , input
-                    [ HA.type_ "text"
-                    , value slot.name
-                    , placeholder (t ctx.lang EditorRenameSlot)
-                    , onInput (RenameSlot slot.id)
+                [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
+                    [ H.div [] [ H.text (t ctx.lang EditorSlot ++ " " ++ String.fromInt slot.id ++ ":") ]
+                    , if model.renamingSlot == Just slot.id then
+                        input
+                            [ HA.type_ "text"
+                            , value model.renameDraft
+                            , placeholder (t ctx.lang EditorRenameSlot)
+                            , onInput UpdateRenameDraft
+                            , HA.style "width" renameInputWidth
+                            ]
+                            []
+
+                      else
+                        H.div [] [ H.text slotLabel ]
+                    , if model.renamingSlot == Just slot.id then
+                        H.button (editorButtonStyles ctx.theme ++ [ onClick (ConfirmRenameSlot slot.id), title (t ctx.lang EditorConfirmRename) ]) [ H.text "✓" ]
+
+                      else
+                        H.button (editorButtonStyles ctx.theme ++ [ onClick (StartRenameSlot slot.id), title (t ctx.lang EditorRenameSlot) ]) [ H.text "✎" ]
+                    , if model.recentlySavedSlot == Just slot.id then
+                        H.div [ HA.style "color" "#2ecc71", HA.style "font-weight" "bold" ] [ H.text (t ctx.lang EditorSaved) ]
+
+                      else
+                        text ""
                     ]
-                    []
-                , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px" ]
-                    [ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ]
-                    , H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
-                    , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id), HA.disabled (String.isEmpty slot.automatonJson) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
-                    ]
+                , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px", HA.style "flex-wrap" "wrap" ]
+                    (([ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ] ]
+                        ++ (if hasAutomaton then
+                                [ H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
+                                , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
+                                ]
+
+                            else
+                                []
+                           )
+                     )
+                    )
                 ]
     in
     div
@@ -2479,6 +2552,7 @@ editorButtonStyles theme =
     , HA.style "color" (textColor theme)
     , HA.style "border" ("1px solid " ++ interactiveBorder theme)
     , HA.style "border-radius" "8px"
+    , HA.style "padding" "4px 8px"
     ]
 
 

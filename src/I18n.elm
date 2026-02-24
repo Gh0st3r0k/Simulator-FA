@@ -61,6 +61,8 @@ type Key
     | EditorLoadFromSlot
     | EditorDeleteFromSlot
     | EditorRenameSlot
+    | EditorConfirmRename
+    | EditorSaved
     | EditorSlot
     | EditorSlotEmpty
     | EditorClose
@@ -269,6 +271,16 @@ t lang key =
         ( EN, EditorRenameSlot ) -> "Rename"
         ( SK, EditorRenameSlot ) -> "Premenovať"
         ( UA, EditorRenameSlot ) -> "Перейменувати"
+
+        ( RU, EditorConfirmRename ) -> "Подтвердить"
+        ( EN, EditorConfirmRename ) -> "Confirm"
+        ( SK, EditorConfirmRename ) -> "Potvrdiť"
+        ( UA, EditorConfirmRename ) -> "Підтвердити"
+
+        ( RU, EditorSaved ) -> "Сохранено"
+        ( EN, EditorSaved ) -> "Saved"
+        ( SK, EditorSaved ) -> "Uložené"
+        ( UA, EditorSaved ) -> "Збережено"
 
         ( RU, EditorSlot ) -> "Ячейка"
         ( EN, EditorSlot ) -> "Slot"
