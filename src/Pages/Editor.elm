@@ -3,7 +3,7 @@ module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeS
 import Dict
 import Html as H exposing (Html, button, div, h2, input, textarea, text)
 import Html.Attributes as HA exposing (..)
-import Html.Events exposing (custom, onClick, onInput, stopPropagationOn)
+import Html.Events exposing (custom, onBlur, onClick, onFocus, onInput, stopPropagationOn)
 import I18n exposing (Key(..), Lang, t)
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -35,6 +35,9 @@ type alias Model =
     , transitionFrom : Maybe Int
     , transitionLabel : String
     , codeDraft : String
+    , codeDraftVersion : Int
+    , codeDraftDirty : Bool
+    , codeEditorFocused : Bool
     , simulationInput : String
     , simulationDelay : String
     , simulationRunning : Bool
@@ -148,6 +151,9 @@ initWithSlots slots =
     , transitionFrom = Nothing
     , transitionLabel = ""
     , codeDraft = ""
+    , codeDraftVersion = 0
+    , codeDraftDirty = False
+    , codeEditorFocused = False
     , simulationInput = ""
     , simulationDelay = "500"
     , simulationRunning = False
@@ -191,6 +197,8 @@ type Msg
     | ImportCode
     | ExportCode
     | CodeEdited String
+    | TryParseCodeDraft Int
+    | SetCodeEditorFocused Bool
     | SetSimulationInput String
     | SetSimulationDelay String
     | StartSimulation
@@ -295,6 +303,19 @@ update msg model =
             
             StopSimulation ->
                 ( stopSimulation Idle model, Cmd.none )
+
+            SetCodeEditorFocused focused ->
+                if focused then
+                    ( { model
+                        | codeEditorFocused = True
+                        , codeDraft = encodeTransitionLanguage model.states model.transitions
+                        , codeDraftDirty = False
+                      }
+                    , Cmd.none
+                    )
+
+                else
+                    ( { model | codeEditorFocused = False }, Cmd.none )
 
             SetSimulationInput s ->
                 ( { model | simulationInput = s }, Cmd.none )
@@ -641,50 +662,67 @@ update msg model =
                             ( { model | states = updatedStates, stateNameConflict = False }, Cmd.none )
 
             ImportCode ->
-                case Decode.decodeString decodeAutomaton model.codeDraft of
-                    Ok ( ss, ts ) ->
-                        if hasDuplicateStateNames ss then
+                case parseCodeDraftToAutomaton model model.codeDraft of
+                    Ok normalizedAutomaton ->
+                        ( { model
+                            | states = normalizedAutomaton.states
+                            , transitions = normalizedAutomaton.transitions
+                            , nextStateId = normalizedAutomaton.nextStateId
+                            , nextTransitionId = normalizedAutomaton.nextTransitionId
+                            , stateNameConflict = False
+                            , codeDraftDirty = False
+                          }
+                        , Cmd.none
+                        )
+
+                    Err reason ->
+                        if reason == "duplicate-state-names" then
                             ( { model | stateNameConflict = True }, Cmd.none )
 
                         else
-                            let
-                                normalizedStates = enforceSingleStartFlag ss
-                                normalizedAutomaton = normalizeAutomatonIds normalizedStates ts
-                            in
+                            ( { model | codeDraftDirty = True }, Cmd.none )
+
+            ExportCode ->
+                ( { model | codeDraft = encodeTransitionLanguage model.states model.transitions, codeDraftDirty = False }, Cmd.none )
+
+            CodeEdited s ->
+                ( { model | codeDraft = s, codeDraftVersion = model.codeDraftVersion + 1, codeDraftDirty = True }
+                , Process.sleep 500 |> Task.perform (\_ -> TryParseCodeDraft (model.codeDraftVersion + 1))
+                )
+
+            SetCodeEditorFocused focused ->
+                if focused then
+                    ( { model
+                        | codeEditorFocused = True
+                        , codeDraft = encodeTransitionLanguage model.states model.transitions
+                        , codeDraftDirty = False
+                      }
+                    , Cmd.none
+                    )
+
+                else
+                    ( { model | codeEditorFocused = False }, Cmd.none )
+
+            TryParseCodeDraft version ->
+                if version /= model.codeDraftVersion then
+                    ( model, Cmd.none )
+
+                else
+                    case parseCodeDraftToAutomaton model model.codeDraft of
+                        Ok normalizedAutomaton ->
                             ( { model
                                 | states = normalizedAutomaton.states
                                 , transitions = normalizedAutomaton.transitions
                                 , nextStateId = normalizedAutomaton.nextStateId
                                 , nextTransitionId = normalizedAutomaton.nextTransitionId
                                 , stateNameConflict = False
+                                , codeDraftDirty = False
                               }
                             , Cmd.none
                             )
 
-                    Err _ ->
-                        case decodeTransitionLanguage model.states model.codeDraft of
-                            Ok ( ss, ts ) ->
-                                let
-                                    normalizedAutomaton = normalizeAutomatonIds ss ts
-                                in
-                                ( { model
-                                    | states = normalizedAutomaton.states
-                                    , transitions = normalizedAutomaton.transitions
-                                    , nextStateId = normalizedAutomaton.nextStateId
-                                    , nextTransitionId = normalizedAutomaton.nextTransitionId
-                                    , stateNameConflict = False
-                                  }
-                                , Cmd.none
-                                )
-
-                            Err _ ->
-                                ( model, Cmd.none )
-
-            ExportCode ->
-                ( { model | codeDraft = encodeTransitionLanguage model.states model.transitions }, Cmd.none )
-
-            CodeEdited s ->
-                ( { model | codeDraft = s }, Cmd.none )
+                        Err _ ->
+                            ( { model | codeDraftDirty = True }, Cmd.none )
 
             SetSimulationInput s ->
                 ( { model | simulationInput = s }, Cmd.none )
@@ -884,6 +922,29 @@ update msg model =
                 ( model, Cmd.none )
 
 
+
+parseCodeDraftToAutomaton : Model -> String -> Result String { states : List State, transitions : List Transition, nextStateId : Int, nextTransitionId : Int }
+parseCodeDraftToAutomaton model draft =
+    case Decode.decodeString decodeAutomaton draft of
+        Ok ( ss, ts ) ->
+            if hasDuplicateStateNames ss then
+                Err "duplicate-state-names"
+
+            else
+                let
+                    normalizedStates =
+                        enforceSingleStartFlag ss
+                in
+                Ok (normalizeAutomatonIds normalizedStates ts)
+
+        Err _ ->
+            case decodeTransitionLanguage model.states draft of
+                Ok ( ss, ts ) ->
+                    Ok (normalizeAutomatonIds ss ts)
+
+                Err _ ->
+                    Err "parse-failed"
+                    
 
 -- START/STOP HELPERS
 
@@ -1899,7 +1960,8 @@ view ctx model =
                 [ HA.style "display" "flex"
                 , HA.style "gap" "12px"
                 , HA.style "color" (textColor ctx.theme)
-                , HA.style "height" (String.fromInt layout.mainRowHeight ++ "px")
+                , HA.style "flex" "1"
+                , HA.style "min-height" "320px"
                 , HA.style "overflow" "hidden"
                 ]
                 [ div [ HA.style "flex" "1", HA.style "min-width" "0", HA.style "display" "flex", HA.style "flex-direction" "column" ]
@@ -2893,8 +2955,14 @@ editorControlsPanel ctx model =
 
 transitionFunctionPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 transitionFunctionPanel ctx model =
-    
-    
+    let
+        transitionFunctionValue =
+            if model.codeEditorFocused || model.codeDraftDirty then
+                model.codeDraft
+
+            else
+                encodeTransitionLanguage model.states model.transitions
+    in
     div
         [ HA.style "width" "300px"
         , HA.style "background" (panelBg ctx.theme)
@@ -2902,10 +2970,19 @@ transitionFunctionPanel ctx model =
         , HA.style "padding" "12px"
         , HA.style "border-radius" "12px"
         , HA.style "overflow" "hidden"
+        , HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
         ]
-        [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
-        , textarea [ rows 18, cols 36, onInput CodeEdited, value model.codeDraft, HA.style "margin-top" "8px", HA.style "width" "100%", HA.style "box-sizing" "border-box" ] []
-        , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]
+        [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "gap" "8px" ]
+            [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTransitionFunction) ]
+            , if model.codeDraftDirty then
+                H.span [ HA.style "font-size" "14px", HA.style "color" (warningColor ctx.theme), title "Изменения" ] [ H.text "✎" ]
+
+              else
+                text ""
+            ]
+        , textarea [ onFocus (SetCodeEditorFocused True), onBlur (SetCodeEditorFocused False), onInput CodeEdited, value transitionFunctionValue, HA.style "margin-top" "8px", HA.style "width" "100%", HA.style "flex" "1", HA.style "min-height" "0", HA.style "box-sizing" "border-box", HA.style "resize" "none" ] []
+        , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
             [ H.button (editorButtonStyles ctx.theme ++ [ onClick ImportCode ]) [ H.text (t ctx.lang EditorImport) ]
             , H.button (editorButtonStyles ctx.theme ++ [ onClick ExportCode ]) [ H.text (t ctx.lang EditorExport) ]
             ]

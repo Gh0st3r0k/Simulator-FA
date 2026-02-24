@@ -294,13 +294,14 @@ view model =
         [ div
             [ HA.style "background" (bgColor model.theme)
             , HA.style "color" (textColor model.theme)
-            , HA.style "min-height" "100dvh"
+            , HA.style "height" "100dvh"
             , HA.style "box-sizing" "border-box"
             , HA.style "display" "flex"
             , HA.style "flex-direction" "column"
             , HA.style "margin" "0"
             , HA.style "padding" (px tk.spacing.l)   -- было "16px"
             , HA.style "font-family" "Inter, Segoe UI, Arial, sans-serif"
+            , HA.style "overflow" "hidden"
             ]
             [ topBar model
             , case model.route of
