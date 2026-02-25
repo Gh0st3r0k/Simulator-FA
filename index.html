@@ -54,15 +54,25 @@
           return "en";
         }
 
+        const STORAGE_KEYS = {
+          lang: "fas.lang",
+          theme: "fas.theme",
+          automatonSlots: "fas.automatonSlots"
+        };
+
+        function getStorageValue(ls, primaryKey, legacyKey) {
+          return ls.getItem(primaryKey) || ls.getItem(legacyKey);
+        }
+
         function resolveInitialLang(ls) {
-          const stored = ls.getItem("lang");
+          const stored = getStorageValue(ls, STORAGE_KEYS.lang, "lang");
           if (stored) return normalizeLang(stored);
 
           return normalizeLang(window.navigator && window.navigator.language);
         }
 
         function resolveInitialTheme(ls) {
-          const storedTheme = ls.getItem("theme");
+          const storedTheme = getStorageValue(ls, STORAGE_KEYS.theme, "theme");
           if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
 
           const prefersDark =
@@ -84,7 +94,7 @@
           const ls = window.localStorage;
           let lang = resolveInitialLang(ls);
           let theme = resolveInitialTheme(ls);
-          let automatonSlots = ls.getItem("automatonSlots") || "[]";
+          let automatonSlots = getStorageValue(ls, STORAGE_KEYS.automatonSlots, "automatonSlots") || "[]";
 
           document.documentElement.lang = lang;
           applyDocumentTheme(theme);
@@ -99,6 +109,32 @@
   <body>
     <script src="main.js"></script>
     <script>
+      const STORAGE_KEYS = {
+        lang: "fas.lang",
+        theme: "fas.theme",
+        automatonSlots: "fas.automatonSlots"
+      };
+
+      function normalizeLang(value) {
+        const normalized = (value || "").toLowerCase();
+
+        if (normalized.startsWith("sk")) return "sk";
+        if (normalized.startsWith("ru")) return "ru";
+        if (normalized.startsWith("uk") || normalized.startsWith("ua")) return "ua";
+        if (normalized.startsWith("en")) return "en";
+
+        return "en";
+      }
+
+      function applyDocumentTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) {
+          metaTheme.setAttribute("content", theme === "dark" ? "#0b0f14" : "#f9fafb");
+        }
+      }
+
       if (!location.hash) location.hash = "#/";
       const app = Elm.Main.init({ flags: window.__APP_FLAGS__ });
 
@@ -106,12 +142,90 @@
         app.ports.saveAutomatonSlots.subscribe(function (payload) {
           try {
             window.localStorage.setItem("automatonSlots", payload);
+            window.localStorage.setItem(STORAGE_KEYS.automatonSlots, payload);
           } catch (e) {
             // ignore storage write errors
           }
         });
       }
 
+      if (app.ports && app.ports.saveLang) {
+        app.ports.saveLang.subscribe(function (payload) {
+          try {
+            const lang = (payload || "").toLowerCase() || "en";
+            window.localStorage.setItem("lang", lang);
+            window.localStorage.setItem(STORAGE_KEYS.lang, lang);
+            document.documentElement.lang = lang;
+          } catch (e) {
+            // ignore storage write errors
+          }
+        });
+      }
+
+      if (app.ports && app.ports.saveTheme) {
+        app.ports.saveTheme.subscribe(function (payload) {
+          try {
+            const theme = payload === "light" ? "light" : "dark";
+            window.localStorage.setItem("theme", theme);
+            window.localStorage.setItem(STORAGE_KEYS.theme, theme);
+            applyDocumentTheme(theme)
+          } catch (e) {
+            // ignore storage write errors
+          }
+        });
+      }
+
+
+      (function attachRuntimePreferencePersistence() {
+        const THEME_TOGGLE_LABELS = new Set([
+          "Light", "Dark", "Светлая", "Тёмная", "Темна", "Світла", "Svetlá", "Tmavá"
+        ]);
+
+        document.addEventListener("change", function (event) {
+          const target = event.target;
+          if (!(target instanceof HTMLSelectElement)) return;
+
+          const values = Array.from(target.options).map((o) => o.value.toLowerCase());
+          const isLangSelect = ["sk", "en", "ru", "ua"].every((value) => values.includes(value));
+          if (!isLangSelect) return;
+
+          const lang = normalizeLang(target.value);
+          try {
+            window.localStorage.setItem("lang", lang);
+            window.localStorage.setItem(STORAGE_KEYS.lang, lang);
+          } catch (e) {
+            // ignore storage write errors
+          }
+          document.documentElement.lang = lang;
+        });
+
+        document.addEventListener("click", function (event) {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) return;
+
+          const button = target.closest("button");
+          if (!(button instanceof HTMLButtonElement)) return;
+
+          const label = (button.textContent || "").trim();
+          if (!THEME_TOGGLE_LABELS.has(label)) return;
+
+          const currentTheme =
+            window.localStorage.getItem(STORAGE_KEYS.theme) ||
+            window.localStorage.getItem("theme") ||
+            (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark");
+          const nextTheme = currentTheme === "dark" ? "light" : "dark";
+
+          try {
+            window.localStorage.setItem("theme", nextTheme);
+            window.localStorage.setItem(STORAGE_KEYS.theme, nextTheme);
+          } catch (e) {
+            // ignore storage write errors
+          }
+
+          applyDocumentTheme(nextTheme);
+        });
+      })();
+      
       if (app.ports && app.ports.exportAutomatonFile) {
         app.ports.exportAutomatonFile.subscribe(function (payload) {
           try {
