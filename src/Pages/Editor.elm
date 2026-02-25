@@ -1,7 +1,7 @@
 module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
 
 import Dict
-import Html as H exposing (Html, button, div, h2, input, textarea, text)
+import Html as H exposing (Html, button, div, input, textarea, text)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (custom, on, onBlur, onClick, onFocus, onInput, stopPropagationOn)
 import I18n exposing (Key(..), Lang, t)
@@ -2601,7 +2601,8 @@ wheelPanEvent =
 
 
 
-svgView ctx model width height =
+svgView : { a | lang : Lang, theme : Theme } -> Model -> Int -> Int -> Html Msg
+svgView ctx model _ _ =
     let
         cursor =
             case model.mode of
@@ -2736,6 +2737,7 @@ simulationChoiceOverlay ctx model =
 
 
 
+viewState : { a | theme : Theme } -> Model -> State -> S.Svg Msg
 viewState ctx model s =
     let
         r = 22
@@ -2857,6 +2859,7 @@ viewState ctx model s =
         )
 
 
+viewTransition : { a | theme : Theme } -> Model -> TransitionGroup -> S.Svg Msg
 viewTransition ctx model transitionGroup =
     case ( getStateById transitionGroup.from model.states, getStateById transitionGroup.to model.states ) of
         ( Just a, Just b ) ->
@@ -3299,8 +3302,8 @@ saveModal ctx model =
                     ]
                 , div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "margin-top" "8px", HA.style "flex-wrap" "wrap" ]
                     [ div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
-                        ([ H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ] ]
-                            ++ (if hasAutomaton then
+                        (H.button (editorButtonStyles ctx.theme ++ [ onClick (SaveToSlot slot.id) ]) [ H.text (t ctx.lang EditorSaveToSlot) ]
+                            :: (if hasAutomaton then
                                     [ H.button (editorButtonStyles ctx.theme ++ [ onClick (LoadFromSlot slot.id) ]) [ H.text (t ctx.lang EditorLoadFromSlot) ]
                                     , H.button (editorButtonStyles ctx.theme ++ [ onClick (DeleteFromSlot slot.id) ]) [ H.text (t ctx.lang EditorDeleteFromSlot) ]
                                     ]

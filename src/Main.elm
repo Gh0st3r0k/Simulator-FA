@@ -13,7 +13,7 @@ import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, stopP
 import Url
 import String
 import Route exposing (Route(..))
-import I18n exposing (Lang(..), Key(..), t, toggleLang, langFromString, langToString)
+import I18n exposing (Lang(..), Key(..), t, langFromString, langToString)
 import Theme
     exposing
         ( Theme(..)
@@ -33,7 +33,6 @@ import Design
     exposing
         ( Scale(..)
         , Size(..)
-        , Tokens
         , tokens
         , control
         , card

@@ -13768,24 +13768,22 @@ var $author$project$Pages$Editor$saveModal = F2(
 										A2($elm$html$Html$Attributes$style, 'gap', '8px'),
 										A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
 									]),
-								_Utils_ap(
-									_List_fromArray(
-										[
-											A2(
-											$elm$html$Html$button,
-											_Utils_ap(
-												$author$project$Pages$Editor$editorButtonStyles(ctx.b),
-												_List_fromArray(
-													[
-														$elm$html$Html$Events$onClick(
-														$author$project$Pages$Editor$SaveToSlot(slot.bT))
-													])),
+								A2(
+									$elm$core$List$cons,
+									A2(
+										$elm$html$Html$button,
+										_Utils_ap(
+											$author$project$Pages$Editor$editorButtonStyles(ctx.b),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(
-													A2($author$project$I18n$t, ctx.d, 30))
-												]))
-										]),
+													$elm$html$Html$Events$onClick(
+													$author$project$Pages$Editor$SaveToSlot(slot.bT))
+												])),
+										_List_fromArray(
+											[
+												$elm$html$Html$text(
+												A2($author$project$I18n$t, ctx.d, 30))
+											])),
 									hasAutomaton ? _List_fromArray(
 										[
 											A2(
@@ -14876,10 +14874,10 @@ var $author$project$Pages$Editor$wheelPanEvent = A2(
 			A2($elm$json$Json$Decode$field, 'deltaX', $elm$json$Json$Decode$float),
 			A2($elm$json$Json$Decode$field, 'deltaY', $elm$json$Json$Decode$float))));
 var $author$project$Pages$Editor$svgView = F4(
-	function (ctx, model, width, height) {
+	function (ctx, model, _v0, _v1) {
 		var cursor = function () {
-			var _v0 = model.w;
-			switch (_v0) {
+			var _v2 = model.w;
+			switch (_v2) {
 				case 0:
 					return 'crosshair';
 				case 1:
