@@ -108,6 +108,7 @@ type Key
     | EditorSimulation
     | EditorSimulationInput
     | EditorSimulationDelay
+    | EditorGoToStartState
     | EditorSimulationStart
     | EditorSimulationStop
     | EditorSimulationRunning
@@ -522,6 +523,11 @@ t lang key =
         ( EN, EditorSimulationDelay ) -> "Delay"
         ( SK, EditorSimulationDelay ) -> "Oneskorenie"
         ( UA, EditorSimulationDelay ) -> "Затримка"
+
+        ( RU, EditorGoToStartState ) -> "К старту"
+        ( EN, EditorGoToStartState ) -> "Go to start"
+        ( SK, EditorGoToStartState ) -> "Na začiatok"
+        ( UA, EditorGoToStartState ) -> "До початку"
 
         ( RU, EditorSimulationStart ) -> "Запустить симуляцию"
         ( EN, EditorSimulationStart ) -> "Start simulation"

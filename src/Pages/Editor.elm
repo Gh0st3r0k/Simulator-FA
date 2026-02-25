@@ -220,6 +220,7 @@ type Msg
     | CodeEditorScrolled Float Float
     | SetSimulationInput String
     | SetSimulationDelay String
+    | CenterOnStartState
     | StartSimulation
     | AdvanceSimulation
     | ChooseSimulationTransition Int
@@ -329,7 +330,18 @@ update msg model =
 
             SetCodeEditorFocused focused ->
                 if focused then
-                    ( { model | codeEditorFocused = True }, Cmd.none )
+                    if hasCodeValidationErrors model then
+                        ( { model | codeEditorFocused = True }, Cmd.none )
+
+                    else
+                        ( { model
+                            | codeEditorFocused = True
+                            , codeDraft = encodeTransitionLanguage model.states model.transitions
+                            , codeDraftDirty = False
+                            , codeValidationErrors = []
+                          }
+                        , Cmd.none
+                        )
 
                 else if hasCodeValidationErrors model then
                     ( { model | codeEditorFocused = True }, Cmd.none )
@@ -346,6 +358,9 @@ update msg model =
             SetSimulationDelay s ->
                 ( { model | simulationDelay = simulationDelayFromSpeedIndex s }, Cmd.none )
 
+            CenterOnStartState ->
+                ( centerOnPreferredStartState model, Cmd.none )
+                
             AutomatonTypeAnimationFinished nonce ->
                 if nonce == model.automatonTypeAnimationNonce then
                     ( { model | automatonTypeAnimationActive = False }, Cmd.none )
@@ -750,7 +765,18 @@ update msg model =
 
             SetCodeEditorFocused focused ->
                 if focused then
-                    ( { model | codeEditorFocused = True }, Cmd.none )
+                    if hasCodeValidationErrors model then
+                        ( { model | codeEditorFocused = True }, Cmd.none )
+
+                    else
+                        ( { model
+                            | codeEditorFocused = True
+                            , codeDraft = encodeTransitionLanguage model.states model.transitions
+                            , codeDraftDirty = False
+                            , codeValidationErrors = []
+                          }
+                        , Cmd.none
+                        )
 
                 else if hasCodeValidationErrors model then
                     ( { model | codeEditorFocused = True }, Cmd.none )
@@ -792,6 +818,9 @@ update msg model =
             SetSimulationDelay s ->
                 ( { model | simulationDelay = simulationDelayFromSpeedIndex s }, Cmd.none )
 
+            CenterOnStartState ->
+                ( centerOnPreferredStartState model, Cmd.none )
+                
             StartSimulation ->
                 if hasCodeValidationErrors model then
                     showGlobalNotice EditorSimulationBlockedByCodeErrors model
@@ -1277,6 +1306,37 @@ findStartState states =
     List.head <| List.filter .isStart states
 
 
+preferredStartState : List State -> Maybe State
+preferredStartState states =
+    case findStartState states of
+        Just startState ->
+            Just startState
+
+        Nothing ->
+            states
+                |> List.sortBy .id
+                |> List.head
+
+
+centerOnPreferredStartState : Model -> Model
+centerOnPreferredStartState model =
+    case preferredStartState model.states of
+        Nothing ->
+            model
+
+        Just state ->
+            let
+                layout =
+                    editorLayout model
+            in
+            { model
+                | panX = toFloat layout.canvasWidth / 2 - state.x
+                , panY = toFloat layout.canvasHeight / 2 - state.y
+                , panning = Nothing
+                , dragging = Nothing
+            }
+            
+            
 hasLambdaFrom : Int -> List Transition -> Bool
 hasLambdaFrom sid transitions =
     List.any (\t -> t.from == sid && isLambdaLabel t.label) transitions
@@ -2334,7 +2394,8 @@ view ctx model =
                     [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "margin-bottom" "8px", HA.style "gap" "8px" ]
                         [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTitle) ]
                         , div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
-                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick OpenSaveModal ]) [ H.text (t ctx.lang EditorSave) ]
+                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick CenterOnStartState ]) [ H.text (t ctx.lang EditorGoToStartState) ]
+                            , H.button (editorButtonStyles ctx.theme ++ [ onClick OpenSaveModal ]) [ H.text (t ctx.lang EditorSave) ]
                             , automatonPanel ctx model
                             ]
                         ]
@@ -3437,7 +3498,7 @@ transitionFunctionPanel ctx model =
                 ++ t ctx.lang err.message
 
         transitionFunctionValue =
-            if model.codeEditorFocused || model.codeDraftDirty then
+            if model.codeEditorFocused || hasCodeValidationErrors model then
                 model.codeDraft
 
             else
