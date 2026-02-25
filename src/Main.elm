@@ -394,6 +394,16 @@ topBar model =
         viewHome =
             button (onClick (GoTo Home) :: baseControlStyles) [ text homeLabel ]
 
+        viewEditorGoToStart : Html Msg
+        viewEditorGoToStart =
+            button (onClick (EditorMsg Editor.CenterOnStartState) :: baseControlStyles)
+                [ text (t model.lang EditorGoToStartState) ]
+
+        viewEditorSave : Html Msg
+        viewEditorSave =
+            button (onClick (EditorMsg Editor.OpenSaveModal) :: baseControlStyles)
+                [ text (t model.lang EditorSave) ]
+                
         viewLang : Html Msg
         viewLang =
             select
@@ -423,13 +433,52 @@ topBar model =
             , HA.style "justify-content" "flex-end"
             ]
 
-        -- первая строка справа: Язык + Тема (+ Домой только если >=500)
-        firstRowRight : List (Html Msg)
+        -- первая строка справа: выделяем редакторские кнопки в отдельную группу
+        firstRowRight : Html Msg
         firstRowRight =
             if w < 500 then
-                [ viewLang, viewTheme ]
+                div
+                    [ HA.style "display" "flex"
+                    , HA.style "gap" (px tk.spacing.s)
+                    , HA.style "justify-content" "flex-end"
+                    , HA.style "align-items" "center"
+                    ]
+                    [ viewLang, viewTheme ]
             else
-                (if onHome then [] else [ viewHome ]) ++ [ viewLang, viewTheme ]
+                let
+                    editorActions =
+                        if model.route == Editor then
+                            [ viewEditorGoToStart, viewEditorSave ]
+                        else
+                            []
+
+                    commonActions =
+                        (if onHome then [] else [ viewHome ]) ++ [ viewLang, viewTheme ]
+                in
+                div
+                    [ HA.style "display" "flex"
+                    , HA.style "gap" (px tk.spacing.m)
+                    , HA.style "justify-content" "flex-end"
+                    , HA.style "align-items" "center"
+                    ]
+                    ((if List.isEmpty editorActions then
+                        []
+                      else
+                        [ div
+                            [ HA.style "display" "flex"
+                            , HA.style "gap" (px tk.spacing.s)
+                            , HA.style "padding-right" (px tk.spacing.m)
+                            , HA.style "border-right" (px (borderFor tk.border.default tk) ++ " solid " ++ panelBorder model.theme)
+                            ]
+                            editorActions
+                        ])
+                        ++ [ div
+                                [ HA.style "display" "flex"
+                                , HA.style "gap" (px tk.spacing.s)
+                                ]
+                                commonActions
+                           ]
+                    )
 
         -- вторая строка справа: Домой ТОЛЬКО если <500 и не на главной
         secondRowRight : List (Html Msg)
@@ -456,13 +505,7 @@ topBar model =
 
           -- справа: кнопки (1 или 2 строки), ВСЕГДА прижаты вправо
         , div rightContainerAttrs <|
-            div
-                [ HA.style "display" "flex"
-                , HA.style "gap" (px tk.spacing.s)
-                , HA.style "justify-content" "flex-end"
-                , HA.style "align-items" "center"
-                ]
-                firstRowRight
+            firstRowRight
             :: (if List.isEmpty secondRowRight then
                     []
                 else

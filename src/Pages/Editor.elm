@@ -2399,10 +2399,7 @@ view ctx model =
                     [ div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "justify-content" "space-between", HA.style "margin-bottom" "8px", HA.style "gap" "8px" ]
                         [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorTitle) ]
                         , div [ HA.style "display" "flex", HA.style "align-items" "center", HA.style "gap" "8px" ]
-                            [ H.button (editorButtonStyles ctx.theme ++ [ onClick CenterOnStartState ]) [ H.text (t ctx.lang EditorGoToStartState) ]
-                            , H.button (editorButtonStyles ctx.theme ++ [ onClick OpenSaveModal ]) [ H.text (t ctx.lang EditorSave) ]
-                            , automatonPanel ctx model
-                            ]
+                            [ automatonPanel ctx model ]
                         ]
                     , svgView ctx model layout.canvasWidth layout.canvasHeight
                     ]
