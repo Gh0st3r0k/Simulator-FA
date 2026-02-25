@@ -268,10 +268,10 @@ themeToString : Theme -> String
 themeToString theme =
     case theme of
         Dark ->
-            "dark"
+            "light"
 
         Light ->
-            "light"
+            "dark"
 
 
 -- UPDATE

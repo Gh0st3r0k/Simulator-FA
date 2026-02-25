@@ -5979,9 +5979,9 @@ var $author$project$Main$saveLang = _Platform_outgoingPort('saveLang', $elm$json
 var $author$project$Main$saveTheme = _Platform_outgoingPort('saveTheme', $elm$json$Json$Encode$string);
 var $author$project$Main$themeToString = function (theme) {
 	if (theme === 1) {
-		return 'dark';
-	} else {
 		return 'light';
+	} else {
+		return 'dark';
 	}
 };
 var $author$project$Route$toHash = function (route) {
