@@ -467,7 +467,12 @@ view model =
                         ]
 
                 Instructions ->
-                    H.map InstructionsMsg (Instructions.view { lang = model.lang, theme = model.theme } model.instructions)
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "min-height" "0"
+                        , HA.style "overflow" "hidden"
+                        ]
+                        [ H.map InstructionsMsg (Instructions.view { lang = model.lang, theme = model.theme } model.instructions) ]
 
                 About ->
                     H.map AboutMsg (About.view { lang = model.lang, theme = model.theme } model.about)

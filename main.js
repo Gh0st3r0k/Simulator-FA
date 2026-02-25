@@ -8980,7 +8980,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v97 = _v0.a;
 						var _v98 = _v0.b;
-						return 'Учебный проект (бакалаврская работа) по предмету TZIV (teoreticke zaklady informacnych vied) на факультете FIIT STU. Проект создаёт Константин Зайцев — украинец; это визуальный редактор и симулятор конечных автоматов на Elm для обучения, экспериментов и демонстрации работы ДКА/НКА.';
+						return 'Бакалаврская работа по предмету TZIV (teoreticke zaklady informacnych vied) на факультете FIIT STU. Проект создаёт Константин Зайцев — украинец; это визуальный редактор и симулятор конечных автоматов на Elm для обучения, экспериментов и демонстрации работы ДКА/НКА.';
 					case 13:
 						var _v105 = _v0.a;
 						var _v106 = _v0.b;
@@ -9419,7 +9419,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v99 = _v0.a;
 						var _v100 = _v0.b;
-						return 'Educational project (bachelor thesis) for the TZIV course (teoreticke zaklady informacnych vied) at the FIIT STU faculty. The project is developed by Kostiantyn Zaitsev, a Ukrainian student; it provides a visual editor and simulator of finite automata in Elm for learning, experimentation, and DFA/NFA demonstrations.';
+						return 'Bachelor thesis for the TZIV course (teoreticke zaklady informacnych vied) at the FIIT STU faculty. The project is developed by Kostiantyn Zaitsev, a Ukrainian student; it provides a visual editor and simulator of finite automata in Elm for learning, experimentation, and DFA/NFA demonstrations.';
 					case 13:
 						var _v107 = _v0.a;
 						var _v108 = _v0.b;
@@ -9858,7 +9858,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v101 = _v0.a;
 						var _v102 = _v0.b;
-						return 'Vzdelávací projekt (bakalárska práca) pre predmet TZIV (teoreticke zaklady informacnych vied) na fakulte FIIT STU. Projekt vytvára Kostiantyn Zaitsev, ukrajinský študent; ide o vizuálny editor a simulátor konečných automatov v Elme na učenie, experimenty a demonštráciu DKA/NKA.';
+						return 'Bakalárska práca pre predmet TZIV (teoreticke zaklady informacnych vied) na fakulte FIIT STU. Projekt vytvára Kostiantyn Zaitsev, ukrajinský študent; ide o vizuálny editor a simulátor konečných automatov v Elme na učenie, experimenty a demonštráciu DKA/NKA.';
 					case 13:
 						var _v109 = _v0.a;
 						var _v110 = _v0.b;
@@ -10297,7 +10297,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v103 = _v0.a;
 						var _v104 = _v0.b;
-						return 'Навчальний проєкт (бакалаврська робота) для предмета TZIV (teoreticke zaklady informacnych vied) на факультеті FIIT STU. Проєкт розробляє Костянтин Зайцев, українець; це візуальний редактор і симулятор кінцевих автоматів на Elm для навчання, експериментів і демонстрації роботи ДКА/НКА.';
+						return 'Бакалаврська робота для предмета TZIV (teoreticke zaklady informacnych vied) на факультеті FIIT STU. Проєкт розробляє Костянтин Зайцев, українець; це візуальний редактор і симулятор кінцевих автоматів на Elm для навчання, експериментів і демонстрації роботи ДКА/НКА.';
 					case 13:
 						var _v111 = _v0.a;
 						var _v112 = _v0.b;
@@ -15389,13 +15389,63 @@ var $author$project$Pages$Editor$view = F2(
 	});
 var $author$project$I18n$InstructionsBody = 10;
 var $author$project$I18n$InstructionsTitle = 9;
+var $author$project$Pages$Instructions$isSectionHeader = function (line) {
+	var _v0 = $elm$core$String$uncons(line);
+	if (!_v0.$) {
+		var _v1 = _v0.a;
+		var firstChar = _v1.a;
+		var rest = _v1.b;
+		return $elm$core$Char$isDigit(firstChar) && A2($elm$core$String$startsWith, ') ', rest);
+	} else {
+		return false;
+	}
+};
+var $author$project$Pages$Instructions$viewInstructionLine = function (line) {
+	return $elm$core$String$isEmpty(line) ? A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'height', '8px')
+			]),
+		_List_Nil) : ($author$project$Pages$Instructions$isSectionHeader(line) ? A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'font-weight', '700'),
+				A2($elm$html$Html$Attributes$style, 'margin', '10px 0 6px'),
+				A2($elm$html$Html$Attributes$style, 'font-size', '1.02rem')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(line)
+			])) : (A2($elm$core$String$startsWith, '• ', line) ? A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'padding-left', '10px'),
+				A2($elm$html$Html$Attributes$style, 'margin', '4px 0')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(line)
+			])) : A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(line)
+			]))));
+};
 var $author$project$Pages$Instructions$view = F2(
 	function (ctx, _v0) {
+		var instructionLines = $elm$core$String$lines(
+			A2($author$project$I18n$t, ctx.d, 10));
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
 					$elm$html$Html$Attributes$class('responsive-block'),
+					A2($elm$html$Html$Attributes$style, 'margin-top', '0'),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'background',
@@ -15409,7 +15459,11 @@ var $author$project$Pages$Instructions$view = F2(
 					'border',
 					'1px solid ' + $author$project$Theme$panelBorder(ctx.b)),
 					A2($elm$html$Html$Attributes$style, 'padding', '16px'),
-					A2($elm$html$Html$Attributes$style, 'border-radius', '12px')
+					A2($elm$html$Html$Attributes$style, 'border-radius', '12px'),
+					A2($elm$html$Html$Attributes$style, 'height', '100%'),
+					A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box'),
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
 				]),
 			_List_fromArray(
 				[
@@ -15422,17 +15476,20 @@ var $author$project$Pages$Instructions$view = F2(
 							A2($author$project$I18n$t, ctx.d, 9))
 						])),
 					A2(
-					$elm$html$Html$pre,
+					$elm$html$Html$div,
 					_List_fromArray(
 						[
-							A2($elm$html$Html$Attributes$style, 'white-space', 'pre-wrap'),
-							A2($elm$html$Html$Attributes$style, 'line-height', '1.6')
+							A2($elm$html$Html$Attributes$style, 'line-height', '1.65'),
+							A2($elm$html$Html$Attributes$style, 'background', 'rgba(127, 127, 127, 0.08)'),
+							A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(127, 127, 127, 0.25)'),
+							A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '14px'),
+							A2($elm$html$Html$Attributes$style, 'flex', '1'),
+							A2($elm$html$Html$Attributes$style, 'min-height', '0'),
+							A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto'),
+							A2($elm$html$Html$Attributes$style, 'overflow-x', 'hidden')
 						]),
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							A2($author$project$I18n$t, ctx.d, 10))
-						]))
+					A2($elm$core$List$map, $author$project$Pages$Instructions$viewInstructionLine, instructionLines))
 				]));
 	});
 var $author$project$Main$view = function (model) {
@@ -15505,12 +15562,23 @@ var $author$project$Main$view = function (model) {
 										]));
 							case 2:
 								return A2(
-									$elm$html$Html$map,
-									$author$project$Main$InstructionsMsg,
-									A2(
-										$author$project$Pages$Instructions$view,
-										{d: model.d, b: model.b},
-										model.a0));
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'flex', '1'),
+											A2($elm$html$Html$Attributes$style, 'min-height', '0'),
+											A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')
+										]),
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$map,
+											$author$project$Main$InstructionsMsg,
+											A2(
+												$author$project$Pages$Instructions$view,
+												{d: model.d, b: model.b},
+												model.a0))
+										]));
 							default:
 								return A2(
 									$elm$html$Html$map,
