@@ -126,6 +126,23 @@ type Key
     | BackHomeIcon
     | BackHomeText
     | BackHomeIconText
+    | FeedbackButtonAria
+    | FeedbackModalTitle
+    | FeedbackModalHint
+    | FeedbackModalPlaceholder
+    | FeedbackSend
+    | FeedbackEmailLabel
+    | FeedbackEmailPlaceholder
+    | FeedbackMessageLabel
+    | FeedbackRecommendedTitle
+    | FeedbackRecommendedMailLabel
+    | FeedbackRecommendedGoogleFormLabel
+    | FeedbackFormSectionHint
+    | FeedbackMailProviderLabel
+    | FeedbackMailProviderGmail
+    | FeedbackMailProviderOutlook
+    | FeedbackDoNotModifyLabel
+    | FeedbackDescribeDetailsLabel
 
 
 t : Lang -> Key -> String
@@ -613,3 +630,89 @@ t lang key =
         ( EN, BackHomeIconText  ) -> "← Home"
         ( SK, BackHomeIconText  ) -> "← Domov"
         ( UA, BackHomeIconText  ) -> "← На головну"
+
+        ( RU, FeedbackButtonAria ) -> "Открыть форму обратной связи"
+        ( EN, FeedbackButtonAria ) -> "Open feedback form"
+        ( SK, FeedbackButtonAria ) -> "Otvoriť formulár spätnej väzby"
+        ( UA, FeedbackButtonAria ) -> "Відкрити форму зворотного зв’язку"
+
+        ( RU, FeedbackModalTitle ) -> "Обратная связь"
+        ( EN, FeedbackModalTitle ) -> "Feedback"
+        ( SK, FeedbackModalTitle ) -> "Spätná väzba"
+        ( UA, FeedbackModalTitle ) -> "Зворотний зв’язок"
+
+        ( RU, FeedbackModalHint ) -> "Опишите, что можно улучшить, и отправьте форму. Сообщение уйдёт через Formspree."
+        ( EN, FeedbackModalHint ) -> "Describe what can be improved and submit the form. The message is sent via Formspree."
+        ( SK, FeedbackModalHint ) -> "Popíšte, čo sa dá zlepšiť, a odošlite formulár. Správa sa odošle cez Formspree."
+        ( UA, FeedbackModalHint ) -> "Опишіть, що можна покращити, і надішліть форму. Повідомлення буде відправлено через Formspree."
+
+        ( RU, FeedbackModalPlaceholder ) -> "Напишите ваше сообщение..."
+        ( EN, FeedbackModalPlaceholder ) -> "Write your message..."
+        ( SK, FeedbackModalPlaceholder ) -> "Napíšte vašu správu..."
+        ( UA, FeedbackModalPlaceholder ) -> "Напишіть ваше повідомлення..."
+
+
+        ( RU, FeedbackSend ) -> "Отправить"
+        ( EN, FeedbackSend ) -> "Send"
+        ( SK, FeedbackSend ) -> "Odoslať"
+        ( UA, FeedbackSend ) -> "Надіслати"
+
+        ( RU, FeedbackEmailLabel ) -> "Ваш email (необязательно)"
+        ( EN, FeedbackEmailLabel ) -> "Your email (optional)"
+        ( SK, FeedbackEmailLabel ) -> "Váš email (voliteľné)"
+        ( UA, FeedbackEmailLabel ) -> "Ваш email (необов’язково)"
+
+        ( RU, FeedbackEmailPlaceholder ) -> "Ваш email"
+        ( EN, FeedbackEmailPlaceholder ) -> "Your email"
+        ( SK, FeedbackEmailPlaceholder ) -> "Váš email"
+        ( UA, FeedbackEmailPlaceholder ) -> "Ваш email"
+
+        ( RU, FeedbackMessageLabel ) -> "Ваше сообщение"
+        ( EN, FeedbackMessageLabel ) -> "Your message"
+        ( SK, FeedbackMessageLabel ) -> "Vaša správa"
+        ( UA, FeedbackMessageLabel ) -> "Ваше повідомлення"
+
+        ( RU, FeedbackRecommendedTitle ) -> "Рекомендуемый способ"
+        ( EN, FeedbackRecommendedTitle ) -> "Recommended method"
+        ( SK, FeedbackRecommendedTitle ) -> "Odporúčaný spôsob"
+        ( UA, FeedbackRecommendedTitle ) -> "Рекомендований спосіб"
+
+        ( RU, FeedbackRecommendedMailLabel ) -> "Мейл:"
+        ( EN, FeedbackRecommendedMailLabel ) -> "Mail:"
+        ( SK, FeedbackRecommendedMailLabel ) -> "E-mail:"
+        ( UA, FeedbackRecommendedMailLabel ) -> "Пошта:"
+
+        ( RU, FeedbackRecommendedGoogleFormLabel ) -> "Google form:"
+        ( EN, FeedbackRecommendedGoogleFormLabel ) -> "Google form:"
+        ( SK, FeedbackRecommendedGoogleFormLabel ) -> "Google form:"
+        ( UA, FeedbackRecommendedGoogleFormLabel ) -> "Google form:"
+
+        ( RU, FeedbackFormSectionHint ) -> "Сообщения отправляются через Formspree и могут быть ограничены по количеству"
+        ( EN, FeedbackFormSectionHint ) -> "Messages are sent through Formspree and may be rate-limited"
+        ( SK, FeedbackFormSectionHint ) -> "Správy sa odosielajú cez Formspree a môžu byť obmedzené počtom"
+        ( UA, FeedbackFormSectionHint ) -> "Повідомлення надсилаються через Formspree і можуть мати ліміти за кількістю"
+
+        ( RU, FeedbackMailProviderLabel ) -> "Почтовый сервис:"
+        ( EN, FeedbackMailProviderLabel ) -> "Mail service:"
+        ( SK, FeedbackMailProviderLabel ) -> "Poštová služba:"
+        ( UA, FeedbackMailProviderLabel ) -> "Поштовий сервіс:"
+
+        ( RU, FeedbackMailProviderGmail ) -> "Gmail"
+        ( EN, FeedbackMailProviderGmail ) -> "Gmail"
+        ( SK, FeedbackMailProviderGmail ) -> "Gmail"
+        ( UA, FeedbackMailProviderGmail ) -> "Gmail"
+
+        ( RU, FeedbackMailProviderOutlook ) -> "Outlook"
+        ( EN, FeedbackMailProviderOutlook ) -> "Outlook"
+        ( SK, FeedbackMailProviderOutlook ) -> "Outlook"
+        ( UA, FeedbackMailProviderOutlook ) -> "Outlook"
+
+        ( RU, FeedbackDoNotModifyLabel ) -> "Не изменять"
+        ( EN, FeedbackDoNotModifyLabel ) -> "Do not modify"
+        ( SK, FeedbackDoNotModifyLabel ) -> "Neupravovať"
+        ( UA, FeedbackDoNotModifyLabel ) -> "Не змінювати"
+
+        ( RU, FeedbackDescribeDetailsLabel ) -> "Опишите как можно подробнее вашу проблему/предложение"
+        ( EN, FeedbackDescribeDetailsLabel ) -> "Describe your issue/suggestion in as much detail as possible"
+        ( SK, FeedbackDescribeDetailsLabel ) -> "Opíšte svoj problém/návrh čo najpodrobnejšie"
+        ( UA, FeedbackDescribeDetailsLabel ) -> "Опишіть якомога детальніше вашу проблему/пропозицію"

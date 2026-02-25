@@ -7,9 +7,9 @@ import Browser.Dom as Dom
 import Task
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Html as H exposing (Html, button, div, h1, h2, text, select, option)
+import Html as H exposing (Html, button, div, h1, h2, text, select, option, textarea)
 import Html.Attributes as HA exposing (..)
-import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave)
+import Html.Events exposing (onClick, onInput, onMouseEnter, onMouseLeave, stopPropagationOn)
 import Url
 import String
 import Route exposing (Route(..))
@@ -60,8 +60,38 @@ type alias Model =
     , hover : Maybe Route
     , vpW : Int
     , vpH : Int
+    , feedbackModalOpen : Bool
+    , feedbackText : String
+    , feedbackEmailInput : String
+    , feedbackMailProvider : MailProvider
     }
 
+
+type MailProvider
+    = GmailProvider
+    | OutlookProvider
+
+
+mailProviderToString : MailProvider -> String
+mailProviderToString provider =
+    case provider of
+        GmailProvider ->
+            "gmail"
+
+        OutlookProvider ->
+            "outlook"
+
+
+
+mailProviderFromString : String -> MailProvider
+mailProviderFromString value =
+    case value of
+        "outlook" ->
+            OutlookProvider
+
+        _ ->
+            GmailProvider
+            
 
 type Msg
     = LinkClicked Browser.UrlRequest
@@ -76,6 +106,12 @@ type Msg
     | ViewportChanged Int Int
     | GotViewport (Result Dom.Error Dom.Viewport)
     | GotImportAutomatonFile Decode.Value
+    | OpenFeedbackModal
+    | CloseFeedbackModal
+    | UpdateFeedbackText String
+    | UpdateFeedbackEmailInput String
+    | UpdateFeedbackMailProvider String
+    | NoOp
 
 
 
@@ -125,11 +161,92 @@ init flags url key =
       , hover = Nothing
       , vpW = 1200
       , vpH = 800
+      , feedbackModalOpen = False
+      , feedbackText = ""
+      , feedbackEmailInput = ""
+      , feedbackMailProvider = GmailProvider
       }
     , Task.attempt GotViewport Dom.getViewport
     )
 
 
+formspreeEndpoint : String
+formspreeEndpoint =
+    "https://formspree.io/f/mjgejzrq"
+
+
+defaultSenderEmail : String
+defaultSenderEmail =
+    "finiteautomatonsimulator@gmail.com"
+
+
+googleFormUrl : String
+googleFormUrl =
+    "https://forms.gle/your-form-id"
+
+
+currentFasJson : Model -> String
+currentFasJson model =
+    Editor.exportAutomatonJson model.editor
+
+
+currentRuntimeModelJson : Model -> String
+currentRuntimeModelJson model =
+    Editor.exportRuntimeSnapshotJson model.editor
+
+
+indentBlock : String -> String
+indentBlock raw =
+    raw
+        |> String.split "\n"
+        |> List.map (\line -> "    " ++ line)
+        |> String.join "\n"
+
+
+doNotModifyBlock : Model -> String
+doNotModifyBlock model =
+    String.join "\n"
+        [ "========================================"
+        , t model.lang FeedbackDoNotModifyLabel
+        , "========================================"
+        , ""
+        , "fas:"
+        , indentBlock (currentFasJson model)
+        , ""
+        , "model:"
+        , indentBlock (currentRuntimeModelJson model)
+        ]
+
+
+composeFeedbackMessage : Model -> String
+composeFeedbackMessage model =
+    let
+        userMessage =
+            String.trim model.feedbackText
+
+        detailsBlock =
+            if String.isEmpty userMessage then
+                t model.lang FeedbackDescribeDetailsLabel ++ ":\n-"
+
+            else
+                t model.lang FeedbackDescribeDetailsLabel ++ ":\n" ++ userMessage
+    in
+    detailsBlock ++ "\n\n\n\n" ++ doNotModifyBlock model
+
+
+feedbackWebMailLink : Model -> String
+feedbackWebMailLink model =
+    let
+        to = Url.percentEncode defaultSenderEmail
+        subject = Url.percentEncode "Feedback: Finite Automaton Simulator"
+        body = Url.percentEncode (composeFeedbackMessage model)
+    in
+    case model.feedbackMailProvider of
+        GmailProvider ->
+            "https://mail.google.com/mail/?view=cm&fs=1&to=" ++ to ++ "&su=" ++ subject ++ "&body=" ++ body
+
+        OutlookProvider ->
+            "https://outlook.live.com/mail/0/deeplink/compose?to=" ++ to ++ "&subject=" ++ subject ++ "&body=" ++ body
 
 
 
@@ -261,6 +378,24 @@ update msg model =
         GotViewport (Err _) ->
             ( model, Cmd.none )
 
+        OpenFeedbackModal ->
+            ( { model | feedbackModalOpen = True }, Cmd.none )
+
+        CloseFeedbackModal ->
+            ( { model | feedbackModalOpen = False }, Cmd.none )
+
+        UpdateFeedbackText value ->
+            ( { model | feedbackText = value }, Cmd.none )
+
+        UpdateFeedbackEmailInput value ->
+            ( { model | feedbackEmailInput = value }, Cmd.none )
+
+        UpdateFeedbackMailProvider value ->
+            ( { model | feedbackMailProvider = mailProviderFromString value }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
 
 
 subscriptions : Model -> Sub Msg
@@ -337,9 +472,242 @@ view model =
                 About ->
                     H.map AboutMsg (About.view { lang = model.lang, theme = model.theme } model.about)
             ]
+        , feedbackButton model
+        , feedbackModal model
         ]
     }
 
+
+feedbackButton : Model -> Html Msg
+feedbackButton model =
+    button
+        [ onClick OpenFeedbackModal
+        , HA.style "position" "fixed"
+        , HA.style "right" "24px"
+        , HA.style "bottom" "24px"
+        , HA.style "width" "60px"
+        , HA.style "height" "60px"
+        , HA.style "border-radius" "9999px"
+        , HA.style "border" "none"
+        , HA.style "font-size" "28px"
+        , HA.style "cursor" "pointer"
+        , HA.style "background" (hoverBg model.theme)
+        , HA.style "color" (textColor model.theme)
+        , HA.style "box-shadow" "0 10px 28px rgba(0, 0, 0, 0.25)"
+        , HA.style "z-index" "1100"
+        , HA.attribute "aria-label" (t model.lang FeedbackButtonAria)
+        ]
+        [ text "✉" ]
+
+
+feedbackModal : Model -> Html Msg
+feedbackModal model =
+    if not model.feedbackModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.55)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1200"
+            , onClick CloseFeedbackModal
+            ]
+            [ div
+                [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                , HA.style "width" "min(600px, 94vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "16px"
+                , HA.style "box-sizing" "border-box"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "12px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang FeedbackModalTitle) ]
+                , div
+                    [ HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "border-radius" "12px"
+                    , HA.style "padding" "12px"
+                    , HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "8px"
+                    ]
+                    [ div [ HA.style "font-weight" "600" ] [ text (t model.lang FeedbackRecommendedTitle) ]
+                    , div []
+                        [ text (t model.lang FeedbackRecommendedMailLabel)
+                        , text " "
+                        , H.a
+                            [ HA.href (feedbackWebMailLink model)
+                            , HA.style "color" (textColor model.theme)
+                            ]
+                            [ text defaultSenderEmail ]
+                        ]
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "align-items" "center"
+                        , HA.style "gap" "8px"
+                        ]
+                        [ text (t model.lang FeedbackMailProviderLabel)
+                        , select
+                            [ onInput UpdateFeedbackMailProvider
+                            , HA.value (mailProviderToString model.feedbackMailProvider)
+                            , HA.style "padding" "6px"
+                            , HA.style "border-radius" "8px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (interactiveBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            ]
+                            [ option [ HA.value "gmail" ] [ text (t model.lang FeedbackMailProviderGmail) ]
+                            , option [ HA.value "outlook" ] [ text (t model.lang FeedbackMailProviderOutlook) ]
+                            ]
+                        ]
+                    , div []
+                        [ text (t model.lang FeedbackRecommendedGoogleFormLabel)
+                        , text " "
+                        , H.a
+                            [ HA.href googleFormUrl
+                            , HA.target "_blank"
+                            , HA.rel "noopener noreferrer"
+                            , HA.style "color" (textColor model.theme)
+                            ]
+                            [ text googleFormUrl ]
+                        ]
+                    ]
+                , div
+                    [ HA.style "height" "4px"
+                    , HA.style "background" (hoverBorder model.theme)
+                    , HA.style "border-radius" "999px"
+                    , HA.style "margin" "10px 0 6px 0"
+                    ]
+                    []
+                , div
+                    [ HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "border-left" ("6px solid " ++ hoverBorder model.theme)
+                    , HA.style "border-radius" "12px"
+                    , HA.style "padding" "12px 14px"
+                    , HA.style "background" (interactiveBg model.theme)
+                    , HA.style "font-weight" "700"
+                    , HA.style "box-shadow" "0 6px 16px rgba(0,0,0,0.20)"
+                    ]
+                    [ text (t model.lang FeedbackFormSectionHint) ]
+                , H.form
+                    [ HA.action formspreeEndpoint
+                    , HA.method "POST"
+                    , HA.target "_blank"
+                    , HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "12px"
+                    , HA.style "border" ("2px dashed " ++ hoverBorder model.theme)
+                    , HA.style "border-radius" "12px"
+                    , HA.style "padding" "14px"
+                    , HA.style "background" (bgColor model.theme)
+                    ]
+                    [ H.input
+                        [ HA.type_ "hidden"
+                        , HA.name "message"
+                        , HA.value (composeFeedbackMessage model)
+                        ]
+                        []
+                    , H.input
+                        [ HA.type_ "hidden"
+                        , HA.name "email"
+                        , HA.value
+                            (if String.isEmpty (String.trim model.feedbackEmailInput) then
+                                defaultSenderEmail
+                             else
+                                String.trim model.feedbackEmailInput
+                            )
+                        ]
+                        []
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        ]
+                        [ H.label [] [ text (t model.lang FeedbackEmailLabel) ]
+                        , H.input
+                            [ HA.type_ "email"
+                            , HA.name "contact_email"
+                            , HA.value model.feedbackEmailInput
+                            , onInput UpdateFeedbackEmailInput
+                            , HA.placeholder (t model.lang FeedbackEmailPlaceholder)
+                            , HA.style "width" "100%"
+                            , HA.style "box-sizing" "border-box"
+                            , HA.style "padding" "12px"
+                            , HA.style "border-radius" "12px"
+                            , HA.style "border" ("2px solid " ++ hoverBorder model.theme)
+                            , HA.style "background" (panelBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "box-shadow" "inset 0 0 0 1px rgba(255,255,255,0.08)"
+                            ]
+                            []
+                        ]
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        , HA.style "margin-top" "8px"
+                        ]
+                        [ div
+                            [ HA.style "font-weight" "600" ]
+                            [ text (t model.lang FeedbackDescribeDetailsLabel) ]
+                        , H.label [] [ text (t model.lang FeedbackMessageLabel) ]
+                        , textarea
+                            [ HA.placeholder (t model.lang FeedbackModalPlaceholder)
+                            , HA.value model.feedbackText
+                            , onInput UpdateFeedbackText
+                            , HA.name "message_user"
+                            , HA.required True
+                            , HA.rows 8
+                            , HA.style "width" "100%"
+                            , HA.style "box-sizing" "border-box"
+                            , HA.style "resize" "vertical"
+                            , HA.style "padding" "12px"
+                            , HA.style "border-radius" "12px"
+                            , HA.style "border" ("2px solid " ++ hoverBorder model.theme)
+                            , HA.style "background" (panelBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "box-shadow" "inset 0 0 0 1px rgba(255,255,255,0.08)"
+                            ]
+                            []
+                        ]
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "justify-content" "flex-end"
+                        , HA.style "gap" "8px"
+                        ]
+                        [ button
+                            [ onClick CloseFeedbackModal
+                            , HA.type_ "button"
+                            , HA.style "padding" "10px 14px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" "transparent"
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            ]
+                            [ text (t model.lang EditorClose) ]
+                        , button
+                            [ HA.type_ "submit"
+                            , HA.style "padding" "10px 14px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" "none"
+                            , HA.style "background" (hoverBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            , HA.disabled (String.isEmpty (String.trim model.feedbackText))
+                            ]
+                            [ text (t model.lang FeedbackSend) ]
+                        ]
+                    ]
+                ]
+            ]
+            
 
 topBar : Model -> Html Msg
 topBar model =

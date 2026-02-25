@@ -1,4 +1,4 @@
-module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, init, initWithSlots, update, view)
+module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
 
 import Dict
 import Html as H exposing (Html, button, div, h2, input, textarea, text)
@@ -1762,6 +1762,127 @@ ensureSlotCount count slots =
     in
     List.range 1 count |> List.map byId
 
+
+exportAutomatonJson : Model -> String
+exportAutomatonJson model =
+    Encode.encode 0 (encodeAutomaton model.states model.transitions)
+
+
+exportRuntimeSnapshotJson : Model -> String
+exportRuntimeSnapshotJson model =
+    let
+        maybeInt maybeValue =
+            case maybeValue of
+                Just value ->
+                    Encode.int value
+
+                Nothing ->
+                    Encode.null
+
+        modeToString modeValue =
+            case modeValue of
+                AddState ->
+                    "add-state"
+
+                AddTransition ->
+                    "add-transition"
+
+                MoveState ->
+                    "move-state"
+
+
+        saveSlotEncoder slot =
+            Encode.object
+                [ ( "id", Encode.int slot.id )
+                , ( "name", Encode.string slot.name )
+                , ( "automatonJson", Encode.string slot.automatonJson )
+                ]
+
+        simulationChoiceValue =
+            case model.simulationChoice of
+                Nothing ->
+                    Encode.null
+
+                Just choice ->
+                    Encode.object
+                        [ ( "stateId", Encode.int choice.stateId )
+                        , ( "inputLabel", Encode.string choice.inputLabel )
+                        , ( "consumesInput", Encode.bool choice.consumesInput )
+                        , ( "optionCount", Encode.int (List.length choice.transitionIds) )
+                        , ( "transitionIds", Encode.list Encode.int choice.transitionIds )
+                        ]
+
+        globalNoticeValue =
+            case model.globalNotice of
+                Nothing ->
+                    Encode.null
+
+                Just _ ->
+                    Encode.string "present"
+
+        simulationResultValue =
+            case model.simulationResult of
+                Idle ->
+                    Encode.string "idle"
+
+                Running ->
+                    Encode.string "running"
+
+                Success ->
+                    Encode.string "success"
+
+                Rejected ->
+                    Encode.string "rejected"
+
+                DeadEnd ->
+                    Encode.string "dead-end"
+
+                MissingStart ->
+                    Encode.string "missing-start"
+    in
+    Encode.object
+        [ ( "automaton", encodeAutomaton model.states model.transitions )
+        , ( "nextStateId", Encode.int model.nextStateId )
+        , ( "nextTransitionId", Encode.int model.nextTransitionId )
+        , ( "panX", Encode.float model.panX )
+        , ( "panY", Encode.float model.panY )
+        , ( "selected", maybeInt model.selected )
+        , ( "selectedTransition", maybeInt model.selectedTransition )
+        , ( "selectedTransitionLabelDraft", Encode.string model.selectedTransitionLabelDraft )
+        , ( "mode", Encode.string (modeToString model.mode) )
+        , ( "transitionFrom", maybeInt model.transitionFrom )
+        , ( "transitionLabel", Encode.string model.transitionLabel )
+        , ( "codeDraft", Encode.string model.codeDraft )
+        , ( "codeDraftVersion", Encode.int model.codeDraftVersion )
+        , ( "codeDraftDirty", Encode.bool model.codeDraftDirty )
+        , ( "codeEditorFocused", Encode.bool model.codeEditorFocused )
+        , ( "codeValidationErrorCount", Encode.int (List.length model.codeValidationErrors) )
+        , ( "simulationInput", Encode.string model.simulationInput )
+        , ( "simulationDelay", Encode.string model.simulationDelay )
+        , ( "simulationRunning", Encode.bool model.simulationRunning )
+        , ( "simulationQueue", Encode.string (String.fromList model.simulationQueue) )
+        , ( "simulationCurrent", maybeInt model.simulationCurrent )
+        , ( "simulationResult", simulationResultValue )
+        , ( "simulationChoice", simulationChoiceValue )
+        , ( "stateNameConflict", Encode.bool model.stateNameConflict )
+        , ( "saveModalOpen", Encode.bool model.saveModalOpen )
+        , ( "saveSlots", Encode.list saveSlotEncoder model.saveSlots )
+        , ( "renamingSlot", maybeInt model.renamingSlot )
+        , ( "renameDraft", Encode.string model.renameDraft )
+        , ( "recentlySavedSlot", maybeInt model.recentlySavedSlot )
+        , ( "animatingSavedSlot", maybeInt model.animatingSavedSlot )
+        , ( "animatingDeletedSlot", maybeInt model.animatingDeletedSlot )
+        , ( "slotImportError", Encode.bool model.slotImportError )
+        , ( "viewportWidth", Encode.int model.viewportWidth )
+        , ( "viewportHeight", Encode.int model.viewportHeight )
+        , ( "automatonTypeExpanded", Encode.bool model.automatonTypeExpanded )
+        , ( "automatonTypeAnimationActive", Encode.bool model.automatonTypeAnimationActive )
+        , ( "automatonTypeAnimationNonce", Encode.int model.automatonTypeAnimationNonce )
+        , ( "globalNotice", globalNoticeValue )
+        , ( "globalNoticeNonce", Encode.int model.globalNoticeNonce )
+        ]
+        |> Encode.encode 0
+    
 
 encodeSaveSlots : List SaveSlot -> String
 encodeSaveSlots slots =
