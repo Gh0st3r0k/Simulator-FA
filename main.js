@@ -8972,7 +8972,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['• Клик по пустому месту — добавить состояние.', '• Клик по состоянию — выделить; перетаскивайте для перемещения.', '• Двойной клик — переключить принимающее состояние.', '• Импорт/Экспорт JSON — справа.']));
+								['1) Работа с автоматом на холсте', '• Режим «Создать состояния»: клик по пустому месту создаёт состояние.', '• Режим «Создать переходы»: выберите состояние-источник, затем состояние-назначение.', '• Режим «Выбрать»: перетаскивайте состояния, выбирайте состояние или переход для редактирования.', '• Двойной клик по состоянию переключает принимающее состояние.', '• Для выбранного состояния доступны: изменить название, сделать/убрать стартовым, сделать/убрать принимающим, удалить.', '• Для выбранного перехода доступны: изменить метку и удалить переход.', '', '2) Тип автомата', '• Приложение показывает, является ли автомат детерминированным или недетерминированным.', '• Можно открыть детали и посмотреть причины недетерминированности (например, дубликаты условий или λ-переходы).', '', '3) Функция переходов (код слева)', '• Импорт: применяет текст функции переходов к текущему автомату.', '• Экспорт: формирует текст функции переходов из текущего автомата.', '• Подсветка ошибок помогает исправить формат записей.', '', '4) Симуляция', '• Введите входную строку и задайте задержку (мс) между шагами.', '• Старт запускает симуляцию, Стоп останавливает.', '• Пошагово отображаются текущие состояния и результат: принято / отклонено / тупик / нет стартового состояния.', '• Для НКА при неоднозначности можно выбрать следующий переход вручную.', '', '5) Сохранение и обмен', '• Раздел «Сохранение»: сохранение автомата в слот, загрузка, удаление, переименование слотов.', '• Для слотов поддерживается импорт/экспорт .fas.']));
 					case 11:
 						var _v89 = _v0.a;
 						var _v90 = _v0.b;
@@ -8980,7 +8980,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v97 = _v0.a;
 						var _v98 = _v0.b;
-						return 'Учебный проект для FIIT STU: визуальный редактор и симулятор конечных автоматов на Elm.';
+						return 'Учебный проект (бакалаврская работа) по предмету TZIV (teoreticke zaklady informacnych vied) на факультете FIIT STU. Проект создаёт Константин Зайцев — украинец; это визуальный редактор и симулятор конечных автоматов на Elm для обучения, экспериментов и демонстрации работы ДКА/НКА.';
 					case 13:
 						var _v105 = _v0.a;
 						var _v106 = _v0.b;
@@ -9411,7 +9411,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['• Click empty space to create a state.', '• Click state to select; drag to move.', '• Double-click toggles accepting.', '• Import/Export JSON on the right.']));
+								['1) Working with the automaton on the canvas', '• \'Create states\' mode: click on empty space to create a state.', '• \'Create transitions\' mode: select the source state, then the destination state.', '• \'Select\' mode: drag states, select a state or a transition to edit.', '• Double-clicking a state toggles its accepting flag.', '• For the selected state you can: rename it, set/unset start, set/unset accepting, delete.', '• For the selected transition you can: change the label and delete the transition.', '', '2) Automaton type', '• The app shows whether the automaton is deterministic or non-deterministic.', '• You can open details and see reasons for non-determinism (for example, duplicate conditions or λ-transitions).', '', '3) Transition function (code on the left)', '• Import: applies the transition function text to the current automaton.', '• Export: generates the transition function text from the current automaton.', '• Error highlighting helps to fix formatting issues in entries.', '', '4) Simulation', '• Enter the input string and set the delay (ms) between steps.', '• Start begins the simulation, Stop stops it.', '• The simulation shows current states step-by-step and the result: accepted / rejected / dead end / no start state.', '• For NFAs, when ambiguous, you can choose the next transition manually.', '', '5) Saving and sharing', '• \'Save\' section: save the automaton to a slot, load, delete, rename slots.', '• Slots support importing/exporting .fas files.']));
 					case 11:
 						var _v91 = _v0.a;
 						var _v92 = _v0.b;
@@ -9419,7 +9419,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v99 = _v0.a;
 						var _v100 = _v0.b;
-						return 'Educational project: a visual editor and simulator for finite automata in Elm.';
+						return 'Educational project (bachelor thesis) for the TZIV course (teoreticke zaklady informacnych vied) at the FIIT STU faculty. The project is developed by Kostiantyn Zaitsev, a Ukrainian student; it provides a visual editor and simulator of finite automata in Elm for learning, experimentation, and DFA/NFA demonstrations.';
 					case 13:
 						var _v107 = _v0.a;
 						var _v108 = _v0.b;
@@ -9850,7 +9850,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['• Kliknutie na prázdne miesto pridá stav.', '• Kliknutie na stav ho vyberie; potiahnutím ho presuniete.', '• Dvojklik prepína akceptujúci stav.', '• Import/Export JSON vpravo.']));
+								['1) Práca s automatom na plátne', '• Režim \'Vytvoriť stavy\': kliknutie na prázdne miesto vytvorí stav.', '• Režim \'Vytvoriť prechody\': vyberte zdrojový stav, potom cieľový stav.', '• Režim \'Vybrať\': ťahajte stavy, vyberte stav alebo prechod na úpravu.', '• Dvojité kliknutie na stav prepína, či je akceptujúci.', '• Pre vybraný stav môžete: zmeniť názov, nastaviť/zrušiť počiatočný, nastaviť/zrušiť akceptujúci, odstrániť.', '• Pre vybraný prechod môžete: zmeniť označenie a odstrániť prechod.', '', '2) Typ automatu', '• Aplikácia zobrazuje, či je automat deterministický alebo nedeterministický.', '• Môžete otvoriť detaily a vidieť dôvody nedeterministickosti (napríklad duplikáty podmienok alebo λ-prechody).', '', '3) Prechodová funkcia (kód vľavo)', '• Import: aplikuje text prechodovej funkcie na aktuálny automat.', '• Export: vygeneruje text prechodovej funkcie z aktuálneho automatu.', '• Zvýraznenie chýb pomáha opraviť formát záznamov.', '', '4) Simulácia', '• Zadajte vstupný reťazec a nastavte oneskorenie (ms) medzi krokmi.', '• Start spustí simuláciu, Stop ju zastaví.', '• Krokovo sa zobrazujú aktuálne stavy a výsledok: prijaté / odmietnuté / slepá ulička / žiadny počiatočný stav.', '• Pre NKA pri nejednoznačnosti môžete manuálne vybrať ďalší prechod.', '', '5) Ukladanie a zdieľanie', '• Sekcia \'Uložiť\': uloženie automatu do slotu, načítanie, vymazanie, premenovanie slotov.', '• Sloty podporujú import/export súborov .fas.']));
 					case 11:
 						var _v93 = _v0.a;
 						var _v94 = _v0.b;
@@ -9858,7 +9858,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v101 = _v0.a;
 						var _v102 = _v0.b;
-						return 'Vzdelávací projekt: vizuálny editor a simulátor konečných automatov v Elme.';
+						return 'Vzdelávací projekt (bakalárska práca) pre predmet TZIV (teoreticke zaklady informacnych vied) na fakulte FIIT STU. Projekt vytvára Kostiantyn Zaitsev, ukrajinský študent; ide o vizuálny editor a simulátor konečných automatov v Elme na učenie, experimenty a demonštráciu DKA/NKA.';
 					case 13:
 						var _v109 = _v0.a;
 						var _v110 = _v0.b;
@@ -10289,7 +10289,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['• Клік по порожньому місцю — додати стан.', '• Клік по стану — виділити; перетягуйте для переміщення.', '• Подвійний клік — переключити приймаючий стан.', '• Імпорт/Експорт JSON — справа.']));
+								['1) Робота з автоматом на полотні', '• Режим \'Створити стани\': клік по порожньому місцю створює стан.', '• Режим \'Створити переходи\': виберіть стан-джерело, потім стан-призначення.', '• Режим \'Вибрати\': перетягуйте стани, вибирайте стан або перехід для редагування.', '• Подвійний клік по стану перемикає, чи є він приймаючим.', '• Для вибраного стану доступні: змінити назву, зробити/зняти як стартовий, зробити/зняти як приймаючий, видалити.', '• Для вибраного переходу доступні: змінити мітку і видалити перехід.', '', '2) Тип автомату', '• Додаток показує, чи є автомат детермінованим або недетермінованим.', '• Можна відкрити деталі і побачити причини недетермінованості (наприклад, дублікати умов або λ-переходи).', '', '3) Функція переходів (код ліворуч)', '• Імпорт: застосовує текст функції переходів до поточного автомату.', '• Експорт: формує текст функції переходів з поточного автомату.', '• Підсвітка помилок допомагає виправити формат записів.', '', '4) Симуляція', '• Введіть вхідний рядок і задайте затримку (мс) між кроками.', '• Старт запускає симуляцію, Стоп зупиняє її.', '• По кроках відображаються поточні стани та результат: прийнято / відхилено / тупик / немає стартового стану.', '• Для НКА при неоднозначності можна вибрати наступний перехід вручну.', '', '5) Збереження та обмін', '• Розділ \'Збереження\': збереження автомату в слот, завантаження, видалення, перейменування слотів.', '• Для слотів підтримується імпорт/експорт файлів .fas.']));
 					case 11:
 						var _v95 = _v0.a;
 						var _v96 = _v0.b;
@@ -10297,7 +10297,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v103 = _v0.a;
 						var _v104 = _v0.b;
-						return 'Навчальний проєкт для FIIT STU: візуальний редактор і симулятор кінцевих автоматів на Elm.';
+						return 'Навчальний проєкт (бакалаврська робота) для предмета TZIV (teoreticke zaklady informacnych vied) на факультеті FIIT STU. Проєкт розробляє Костянтин Зайцев, українець; це візуальний редактор і симулятор кінцевих автоматів на Elm для навчання, експериментів і демонстрації роботи ДКА/НКА.';
 					case 13:
 						var _v111 = _v0.a;
 						var _v112 = _v0.b;
