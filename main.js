@@ -11655,6 +11655,10 @@ var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$li = _VirtualDom_node('li');
 var $author$project$I18n$EditorAutomatonNonDetReasonDuplicate = 86;
 var $author$project$I18n$EditorAutomatonNonDetReasonLambda = 87;
+var $author$project$Pages$Editor$quotedStateNameById = F2(
+	function (states, stateId) {
+		return '\'' + (A2($author$project$Pages$Editor$stateNameById, states, stateId) + '\'');
+	});
 var $elm$core$String$replace = F3(
 	function (before, after, string) {
 		return A2(
@@ -11665,8 +11669,8 @@ var $elm$core$String$replace = F3(
 var $author$project$Pages$Editor$transitionLabelDisplay = function (label) {
 	return $author$project$Pages$Editor$isLambdaLabel(label) ? 'λ' : label;
 };
-var $author$project$Pages$Editor$nonDeterminismReasons = F2(
-	function (lang, transitions) {
+var $author$project$Pages$Editor$nonDeterminismReasons = F3(
+	function (lang, states, transitions) {
 		var replaceToken = F3(
 			function (key, value, template) {
 				return A3($elm$core$String$replace, '{' + (key + '}'), value, template);
@@ -11677,11 +11681,11 @@ var $author$project$Pages$Editor$nonDeterminismReasons = F2(
 				return A3(
 					replaceToken,
 					'to',
-					'q' + $elm$core$String$fromInt(transition.d),
+					A2($author$project$Pages$Editor$quotedStateNameById, states, transition.d),
 					A3(
 						replaceToken,
 						'from',
-						'q' + $elm$core$String$fromInt(transition.c),
+						A2($author$project$Pages$Editor$quotedStateNameById, states, transition.c),
 						A2($author$project$I18n$t, lang, 87)));
 			},
 			A2(
@@ -11716,7 +11720,7 @@ var $author$project$Pages$Editor$nonDeterminismReasons = F2(
 						A3(
 							replaceToken,
 							'state',
-							'q' + $elm$core$String$fromInt(fromState),
+							A2($author$project$Pages$Editor$quotedStateNameById, states, fromState),
 							A2($author$project$I18n$t, lang, 86)))) : $elm$core$Maybe$Nothing;
 			},
 			$elm$core$Dict$toList(
@@ -11736,7 +11740,7 @@ var $elm$html$Html$ul = _VirtualDom_node('ul');
 var $author$project$Pages$Editor$editorControlsPanel = F2(
 	function (ctx, model) {
 		var simulationLocked = model.R || (!_Utils_eq(model.H, $elm$core$Maybe$Nothing));
-		var reasons = A2($author$project$Pages$Editor$nonDeterminismReasons, ctx.j, model.b);
+		var reasons = A3($author$project$Pages$Editor$nonDeterminismReasons, ctx.j, model.a, model.b);
 		var modeButton = F2(
 			function (target, label) {
 				return A2(
@@ -12109,7 +12113,7 @@ var $author$project$Pages$Editor$editorControlsPanel = F2(
 															_List_fromArray(
 																[
 																	$elm$html$Html$text(
-																	A2($author$project$I18n$t, ctx.j, 64) + (': q' + ($elm$core$String$fromInt(tr.c) + (' → q' + $elm$core$String$fromInt(tr.d)))))
+																	A2($author$project$I18n$t, ctx.j, 64) + (': ' + (A2($author$project$Pages$Editor$quotedStateNameById, model.a, tr.c) + (' → ' + A2($author$project$Pages$Editor$quotedStateNameById, model.a, tr.d)))))
 																])),
 															A2(
 															$elm$html$Html$div,

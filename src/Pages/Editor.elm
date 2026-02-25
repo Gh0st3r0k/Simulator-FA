@@ -1361,8 +1361,8 @@ isDeterministic transitions =
     in
     (not hasDuplicate) && (not hasLambda)
 
-nonDeterminismReasons : Lang -> List Transition -> List String
-nonDeterminismReasons lang transitions =
+nonDeterminismReasons : Lang -> List State -> List Transition -> List String
+nonDeterminismReasons lang states transitions =
     let
         countByFromAndLabel transition counts =
             Dict.update ( transition.from, transition.label )
@@ -1380,7 +1380,7 @@ nonDeterminismReasons lang transitions =
                     (\(( fromState, label ), count) ->
                         if count > 1 then
                             t lang EditorAutomatonNonDetReasonDuplicate
-                                |> replaceToken "state" ("q" ++ String.fromInt fromState)
+                                |> replaceToken "state" (quotedStateNameById states fromState)
                                 |> replaceToken "label" (transitionLabelDisplay label)
                                 |> Just
 
@@ -1394,8 +1394,8 @@ nonDeterminismReasons lang transitions =
                 |> List.map
                     (\transition ->
                         t lang EditorAutomatonNonDetReasonLambda
-                            |> replaceToken "from" ("q" ++ String.fromInt transition.from)
-                            |> replaceToken "to" ("q" ++ String.fromInt transition.to)
+                            |> replaceToken "from" (quotedStateNameById states transition.from)
+                            |> replaceToken "to" (quotedStateNameById states transition.to)
                     )
     in
     duplicateReasons ++ lambdaReasons
@@ -1841,6 +1841,11 @@ stateNameById states stateId =
         Nothing ->
             String.fromInt stateId
 
+
+quotedStateNameById : List State -> Int -> String
+quotedStateNameById states stateId =
+    "'" ++ stateNameById states stateId ++ "'"
+    
 
 stateDisplayName : State -> String
 stateDisplayName state =
@@ -3272,7 +3277,7 @@ editorControlsPanel ctx model =
                 warningColor ctx.theme
 
         reasons =
-            nonDeterminismReasons ctx.lang model.transitions
+            nonDeterminismReasons ctx.lang model.states model.transitions
 
         modeButton target label =
             H.button
@@ -3406,7 +3411,7 @@ editorControlsPanel ctx model =
 
                                 Just tr ->
                                     div []
-                                        [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": q" ++ String.fromInt tr.from ++ " → q" ++ String.fromInt tr.to) ]
+                                        [ div [] [ H.text (t ctx.lang EditorSelectedTransition ++ ": " ++ quotedStateNameById model.states tr.from ++ " → " ++ quotedStateNameById model.states tr.to) ]
                                         , div [ HA.style "margin-top" "6px" ]
                                             [ H.text (t ctx.lang EditorTransitionLabel ++ ": ")
                                             , input
