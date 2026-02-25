@@ -126,6 +126,12 @@ type alias Flags =
 port saveAutomatonSlots : String -> Cmd msg
 
 
+port saveLang : String -> Cmd msg
+
+
+port saveTheme : String -> Cmd msg
+
+
 port exportAutomatonFile : Encode.Value -> Cmd msg
 
 
@@ -258,6 +264,16 @@ themeFromString s =
         _ -> Dark
 
 
+themeToString : Theme -> String
+themeToString theme =
+    case theme of
+        Dark ->
+            "dark"
+
+        Light ->
+            "light"
+
+
 -- UPDATE
 
 
@@ -276,10 +292,18 @@ update msg model =
             ( { model | url = url, route = Route.parseHash url.fragment }, Cmd.none )
 
         SetLang s ->
-            ( { model | lang = langFromString s }, Cmd.none )
+            let
+                nextLang =
+                    langFromString s
+            in
+            ( { model | lang = nextLang }, saveLang (langToString nextLang) )
 
         ToggleTheme ->
-            ( { model | theme = toggle model.theme }, Cmd.none )
+            let
+                nextTheme =
+                    toggle model.theme
+            in
+            ( { model | theme = nextTheme }, saveTheme (themeToString nextTheme) )
 
         GoTo r ->
             ( model, Nav.pushUrl model.key (Route.toHash r) )

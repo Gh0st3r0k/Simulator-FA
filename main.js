@@ -5937,6 +5937,18 @@ var $author$project$Pages$Editor$encodeSaveSlots = function (slots) {
 };
 var $author$project$Main$exportAutomatonFile = _Platform_outgoingPort('exportAutomatonFile', $elm$core$Basics$identity);
 var $author$project$Main$importAutomatonFile = _Platform_outgoingPort('importAutomatonFile', $elm$json$Json$Encode$int);
+var $author$project$I18n$langToString = function (l) {
+	switch (l) {
+		case 2:
+			return 'sk';
+		case 1:
+			return 'en';
+		case 0:
+			return 'ru';
+		default:
+			return 'ua';
+	}
+};
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $author$project$Main$OutlookProvider = 1;
 var $author$project$Main$mailProviderFromString = function (value) {
@@ -5963,6 +5975,15 @@ var $elm$core$Basics$not = _Basics_not;
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Main$saveAutomatonSlots = _Platform_outgoingPort('saveAutomatonSlots', $elm$json$Json$Encode$string);
+var $author$project$Main$saveLang = _Platform_outgoingPort('saveLang', $elm$json$Json$Encode$string);
+var $author$project$Main$saveTheme = _Platform_outgoingPort('saveTheme', $elm$json$Json$Encode$string);
+var $author$project$Main$themeToString = function (theme) {
+	if (theme === 1) {
+		return 'dark';
+	} else {
+		return 'light';
+	}
+};
 var $author$project$Route$toHash = function (route) {
 	switch (route) {
 		case 0:
@@ -8661,21 +8682,21 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 2:
 				var s = msg.a;
+				var nextLang = $author$project$I18n$langFromString(s);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							d: $author$project$I18n$langFromString(s)
-						}),
-					$elm$core$Platform$Cmd$none);
+						{d: nextLang}),
+					$author$project$Main$saveLang(
+						$author$project$I18n$langToString(nextLang)));
 			case 3:
+				var nextTheme = $author$project$Theme$toggle(model.b);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							b: $author$project$Theme$toggle(model.b)
-						}),
-					$elm$core$Platform$Cmd$none);
+						{b: nextTheme}),
+					$author$project$Main$saveTheme(
+						$author$project$Main$themeToString(nextTheme)));
 			case 4:
 				var r = msg.a;
 				return _Utils_Tuple2(
@@ -11986,18 +12007,6 @@ var $author$project$Design$control = F2(
 	});
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $author$project$Theme$interactiveBorder = $author$project$Theme$panelBorder;
-var $author$project$I18n$langToString = function (l) {
-	switch (l) {
-		case 2:
-			return 'sk';
-		case 1:
-			return 'en';
-		case 0:
-			return 'ru';
-		default:
-			return 'ua';
-	}
-};
 var $author$project$Main$topBar = function (model) {
 	var w = model.aR;
 	var tk = $author$project$Design$tokens(model.aN);
