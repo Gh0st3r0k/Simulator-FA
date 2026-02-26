@@ -14371,8 +14371,14 @@ var $author$project$Pages$Editor$simulationPanel = F2(
 									A2($elm$html$Html$Attributes$style, 'box-sizing', 'border-box'),
 									A2($elm$html$Html$Attributes$style, 'resize', 'none'),
 									A2($elm$html$Html$Attributes$style, 'overflow-y', 'auto'),
-									A2($elm$html$Html$Attributes$style, 'background', '#161b22'),
-									A2($elm$html$Html$Attributes$style, 'color', '#e6edf3'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'background',
+									$author$project$Theme$interactiveBg(ctx.b)),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'color',
+									$author$project$Theme$textColor(ctx.b)),
 									A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
 									A2(
 									$elm$html$Html$Attributes$style,
@@ -15556,6 +15562,7 @@ var $author$project$Pages$Editor$view = F2(
 					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
 					A2($elm$html$Html$Attributes$style, 'gap', '8px'),
 					A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+					A2($elm$html$Html$Attributes$style, 'outline', 'none'),
 					$elm$html$Html$Attributes$tabindex(0),
 					$author$project$Pages$Editor$shortcutEvent
 				]),

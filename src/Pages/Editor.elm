@@ -2543,7 +2543,7 @@ view ctx model =
                 , editorControlsPanel ctx model
                 ]
     in
-    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative", HA.tabindex 0, shortcutEvent ]
+    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative", HA.style "outline" "none", HA.tabindex 0, shortcutEvent ]
         [ content
         , simulationPanel ctx model
         , if model.saveModalOpen then
@@ -3927,8 +3927,8 @@ simulationPanel ctx model =
                 , HA.style "box-sizing" "border-box"
                 , HA.style "resize" "none"
                 , HA.style "overflow-y" "auto"
-                , HA.style "background" "#161b22"
-                , HA.style "color" "#e6edf3"
+                , HA.style "background" (interactiveBg ctx.theme)
+                , HA.style "color" (textColor ctx.theme)
                 , HA.style "font-size" "16px"
                 , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
                 , HA.style "border-radius" "8px"
