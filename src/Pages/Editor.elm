@@ -1,6 +1,7 @@
 module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
 
 import Dict
+import Browser.Dom as Dom
 import Html as H exposing (Html, button, div, input, textarea, text)
 import Html.Attributes as HA exposing (..)
 import Html.Events exposing (custom, on, onBlur, onClick, onFocus, onInput, stopPropagationOn)
@@ -246,7 +247,16 @@ type Msg
     | ToggleAutomatonTypeDetails
     | AutomatonTypeAnimationFinished Int
     | DismissGlobalNotice Int
+    | HandleShortcut ShortcutEvent
     | NoOp
+
+
+type alias ShortcutEvent =
+    { code : String
+    , shiftKey : Bool
+    , altKey : Bool
+    , targetEditable : Bool
+    }
 
 
 -- UPDATE
@@ -375,6 +385,9 @@ update msg model =
                 else
                     ( model, Cmd.none )
             
+            HandleShortcut shortcut ->
+                handleShortcut shortcut model
+                
             _ ->
                 ( model, Cmd.none )
 
@@ -1068,6 +1081,9 @@ update msg model =
                 else
                     ( model, Cmd.none )
                     
+            HandleShortcut shortcut ->
+                handleShortcut shortcut model
+                
             NoOp ->
                 ( model, Cmd.none )
 
@@ -2527,7 +2543,7 @@ view ctx model =
                 , editorControlsPanel ctx model
                 ]
     in
-    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative" ]
+    div [ HA.style "height" "100%", HA.style "overflow" "hidden", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "8px", HA.style "position" "relative", HA.tabindex 0, shortcutEvent ]
         [ content
         , simulationPanel ctx model
         , if model.saveModalOpen then
@@ -2572,6 +2588,126 @@ showGlobalNotice key model =
     , Process.sleep 5000 |> Task.perform (\_ -> DismissGlobalNotice nextNonce)
     )
 
+
+handleShortcut : ShortcutEvent -> Model -> ( Model, Cmd Msg )
+handleShortcut shortcut model =
+    if shortcut.targetEditable then
+        ( model, Cmd.none )
+
+    else
+        case ( shortcut.shiftKey, shortcut.altKey, shortcut.code ) of
+            ( True, False, "Digit1" ) ->
+                update (SetMode AddState) model
+
+            ( True, False, "Digit2" ) ->
+                update (SetMode AddTransition) model
+
+            ( True, False, "Digit3" ) ->
+                update (SetMode MoveState) model
+
+            ( True, False, "KeyS" ) ->
+                case model.selected of
+                    Just sid ->
+                        update (ToggleStart sid) model
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            ( True, False, "KeyE" ) ->
+                case model.selected of
+                    Just sid ->
+                        update (ToggleAccepting sid) model
+
+                    Nothing ->
+                        ( model, Cmd.none )
+
+            ( True, False, "KeyN" ) ->
+                case ( model.selected, model.selectedTransition ) of
+                    ( Just _, _ ) ->
+                        ( model, Dom.focus "selected-state-name-input" |> Task.attempt (always NoOp) )
+
+                    ( Nothing, Just _ ) ->
+                        ( model, Dom.focus "selected-transition-label-input" |> Task.attempt (always NoOp) )
+
+                    _ ->
+                        if model.mode == AddTransition then
+                            ( model, Dom.focus "transition-create-label-input" |> Task.attempt (always NoOp) )
+
+                        else
+                            ( model, Cmd.none )
+
+            ( True, False, "KeyQ" ) ->
+                update CenterOnStartState model
+
+            ( True, False, "KeyT" ) ->
+                ( model, Dom.focus "transition-function-editor" |> Task.attempt (always NoOp) )
+
+            ( True, True, "KeyS" ) ->
+                ( model, Dom.focus "simulation-input-field" |> Task.attempt (always NoOp) )
+
+            ( True, True, "Enter" ) ->
+                if model.simulationRunning || (model.simulationChoice /= Nothing) then
+                    update StopSimulation model
+
+                else
+                    update StartSimulation model
+
+            ( True, True, "KeyN" ) ->
+                update ToggleAutomatonTypeDetails model
+
+            ( False, False, "Delete" ) ->
+                case ( model.selected, model.selectedTransition ) of
+                    ( Just sid, _ ) ->
+                        update (DeleteState sid) model
+
+                    ( Nothing, Just tid ) ->
+                        update (DeleteTransition tid) model
+
+                    _ ->
+                        ( model, Cmd.none )
+
+            _ ->
+                ( model, Cmd.none )
+
+
+shortcutEvent : H.Attribute Msg
+shortcutEvent =
+    custom "keydown"
+        (Decode.map
+            (\event ->
+                let
+                    hasShortcut =
+                        ((event.shiftKey && (not event.altKey) && List.member event.code [ "Digit1", "Digit2", "Digit3", "KeyS", "KeyE", "KeyN", "KeyQ", "KeyT" ])
+                            || (event.shiftKey && event.altKey && List.member event.code [ "KeyS", "Enter", "KeyN" ])
+                            || ((not event.shiftKey) && (not event.altKey) && event.code == "Delete")
+                        )
+                            && (not event.targetEditable)
+                in
+                { message = HandleShortcut event
+                , stopPropagation = hasShortcut
+                , preventDefault = hasShortcut
+                }
+            )
+            (Decode.map4 ShortcutEvent
+                (Decode.field "code" Decode.string)
+                (Decode.field "shiftKey" Decode.bool)
+                (Decode.field "altKey" Decode.bool)
+                (Decode.oneOf
+                    [ Decode.at [ "target", "isContentEditable" ] Decode.bool
+                    , Decode.map
+                        (\tag ->
+                            let
+                                normalized =
+                                    String.toLower tag
+                            in
+                            normalized == "input" || normalized == "textarea" || normalized == "select"
+                        )
+                        (Decode.at [ "target", "tagName" ] Decode.string)
+                    ]
+                )
+            )
+        )
+        
 
 codeEditorScrollEvent : H.Attribute Msg
 codeEditorScrollEvent =
@@ -3458,6 +3594,7 @@ editorControlsPanel ctx model =
                             [ HA.type_ "text"
                             , size 12
                             , placeholder "λ"
+                            , HA.id "transition-create-label-input"
                             , value model.transitionLabel
                             , onInput SetTransitionLabel
                             ]
@@ -3491,6 +3628,7 @@ editorControlsPanel ctx model =
                                             [ H.text (t ctx.lang EditorStateName ++ ": ")
                                             , input
                                                 [ HA.type_ "text"
+                                                , HA.id "selected-state-name-input"
                                                 , placeholder (String.fromInt s.id)
                                                 , value s.name
                                                 , onInput SetSelectedStateName
@@ -3537,6 +3675,7 @@ editorControlsPanel ctx model =
                                             [ H.text (t ctx.lang EditorTransitionLabel ++ ": ")
                                             , input
                                                 [ HA.type_ "text"
+                                                , HA.id "selected-transition-label-input"
                                                 , placeholder "λ"
                                                 , value model.selectedTransitionLabelDraft
                                                 , onInput SetSelectedTransitionLabel
@@ -3717,6 +3856,7 @@ transitionFunctionPanel ctx model =
                 , onBlur (SetCodeEditorFocused False)
                 , onInput CodeEdited
                 , value transitionFunctionValue
+                , HA.id "transition-function-editor"
                 , HA.style "position" "relative"
                 , HA.style "z-index" "1"
                 , codeEditorScrollEvent
@@ -3771,6 +3911,7 @@ simulationPanel ctx model =
             [ H.h2 [ HA.style "margin" "0", HA.style "font-size" "20px", HA.style "min-width" "130px" ] [ H.text (t ctx.lang EditorSimulation) ]
             , textarea
                 [ rows 1
+                , HA.id "simulation-input-field"
                 , placeholder (t ctx.lang EditorSimulationInput)
                 , value model.simulationInput
                 , onInput SetSimulationInput
