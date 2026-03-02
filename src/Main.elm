@@ -187,7 +187,7 @@ defaultSenderEmail =
 
 googleFormUrl : String
 googleFormUrl =
-    "https://forms.gle/your-form-id"
+    "https://forms.gle/RekbknkXV3jQcfyy8"
 
 
 currentFasJson : Model -> String

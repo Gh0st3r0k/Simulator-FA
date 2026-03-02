@@ -11239,7 +11239,7 @@ var $author$project$Main$feedbackWebMailLink = function (model) {
 };
 var $elm$html$Html$form = _VirtualDom_node('form');
 var $author$project$Main$formspreeEndpoint = 'https://formspree.io/f/mjgejzrq';
-var $author$project$Main$googleFormUrl = 'https://forms.gle/your-form-id';
+var $author$project$Main$googleFormUrl = 'https://forms.gle/RekbknkXV3jQcfyy8';
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $author$project$Theme$panelBorder = function (th) {
 	if (!th) {
