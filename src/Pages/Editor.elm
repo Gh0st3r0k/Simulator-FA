@@ -2596,16 +2596,16 @@ handleShortcut shortcut model =
 
     else
         case ( shortcut.shiftKey, shortcut.altKey, shortcut.code ) of
-            ( True, False, "Digit1" ) ->
+            ( False, True, "Digit1" ) ->
                 update (SetMode AddState) model
 
-            ( True, False, "Digit2" ) ->
+            ( False, True, "Digit2" ) ->
                 update (SetMode AddTransition) model
 
-            ( True, False, "Digit3" ) ->
+            ( False, True, "Digit3" ) ->
                 update (SetMode MoveState) model
 
-            ( True, False, "KeyS" ) ->
+            ( False, True, "KeyS" ) ->
                 case model.selected of
                     Just sid ->
                         update (ToggleStart sid) model
@@ -2613,7 +2613,7 @@ handleShortcut shortcut model =
                     Nothing ->
                         ( model, Cmd.none )
 
-            ( True, False, "KeyE" ) ->
+            ( False, True, "KeyE" ) ->
                 case model.selected of
                     Just sid ->
                         update (ToggleAccepting sid) model
@@ -2621,7 +2621,7 @@ handleShortcut shortcut model =
                     Nothing ->
                         ( model, Cmd.none )
 
-            ( True, False, "KeyN" ) ->
+            ( False, True, "KeyN" ) ->
                 case ( model.selected, model.selectedTransition ) of
                     ( Just _, _ ) ->
                         ( model, Dom.focus "selected-state-name-input" |> Task.attempt (always NoOp) )
@@ -2636,10 +2636,10 @@ handleShortcut shortcut model =
                         else
                             ( model, Cmd.none )
 
-            ( True, False, "KeyQ" ) ->
+            ( False, True, "KeyQ" ) ->
                 update CenterOnStartState model
 
-            ( True, False, "KeyT" ) ->
+            ( False, True, "KeyT" ) ->
                 ( model, Dom.focus "transition-function-editor" |> Task.attempt (always NoOp) )
 
             ( True, True, "KeyS" ) ->

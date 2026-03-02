@@ -7609,7 +7609,27 @@ var $author$project$Pages$Editor$handleShortcut = F2(
 			_v41$12:
 			while (true) {
 				if (_v41.a) {
-					if (!_v41.b) {
+					if (_v41.b) {
+						switch (_v41.c) {
+							case 'KeyS':
+								return _Utils_Tuple2(
+									model,
+									A2(
+										$elm$core$Task$attempt,
+										$elm$core$Basics$always($author$project$Pages$Editor$NoOp),
+										$elm$browser$Browser$Dom$focus('simulation-input-field')));
+							case 'Enter':
+								return (model.K || (!_Utils_eq(model.D, $elm$core$Maybe$Nothing))) ? A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$StopSimulation, model) : A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$StartSimulation, model);
+							case 'KeyN':
+								return A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$ToggleAutomatonTypeDetails, model);
+							default:
+								break _v41$12;
+						}
+					} else {
+						break _v41$12;
+					}
+				} else {
+					if (_v41.b) {
 						switch (_v41.c) {
 							case 'Digit1':
 								return A2(
@@ -7688,45 +7708,29 @@ var $author$project$Pages$Editor$handleShortcut = F2(
 								break _v41$12;
 						}
 					} else {
-						switch (_v41.c) {
-							case 'KeyS':
-								return _Utils_Tuple2(
-									model,
-									A2(
-										$elm$core$Task$attempt,
-										$elm$core$Basics$always($author$project$Pages$Editor$NoOp),
-										$elm$browser$Browser$Dom$focus('simulation-input-field')));
-							case 'Enter':
-								return (model.K || (!_Utils_eq(model.D, $elm$core$Maybe$Nothing))) ? A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$StopSimulation, model) : A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$StartSimulation, model);
-							case 'KeyN':
-								return A2($author$project$Pages$Editor$update, $author$project$Pages$Editor$ToggleAutomatonTypeDetails, model);
-							default:
-								break _v41$12;
-						}
-					}
-				} else {
-					if ((!_v41.b) && (_v41.c === 'Delete')) {
-						var _v46 = _Utils_Tuple2(model.h, model.p);
-						if (!_v46.a.$) {
-							var sid = _v46.a.a;
-							return A2(
-								$author$project$Pages$Editor$update,
-								$author$project$Pages$Editor$DeleteState(sid),
-								model);
-						} else {
-							if (!_v46.b.$) {
-								var _v47 = _v46.a;
-								var tid = _v46.b.a;
+						if (_v41.c === 'Delete') {
+							var _v46 = _Utils_Tuple2(model.h, model.p);
+							if (!_v46.a.$) {
+								var sid = _v46.a.a;
 								return A2(
 									$author$project$Pages$Editor$update,
-									$author$project$Pages$Editor$DeleteTransition(tid),
+									$author$project$Pages$Editor$DeleteState(sid),
 									model);
 							} else {
-								return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+								if (!_v46.b.$) {
+									var _v47 = _v46.a;
+									var tid = _v46.b.a;
+									return A2(
+										$author$project$Pages$Editor$update,
+										$author$project$Pages$Editor$DeleteTransition(tid),
+										model);
+								} else {
+									return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+								}
 							}
+						} else {
+							break _v41$12;
 						}
-					} else {
-						break _v41$12;
 					}
 				}
 			}
@@ -9159,7 +9163,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['1) Работа с автоматом на холсте', '• Режим «Создать состояния»: клик по пустому месту создаёт состояние.', '• Режим «Создать переходы»: выберите состояние-источник, затем состояние-назначение.', '• Режим «Выбрать»: перетаскивайте состояния, выбирайте состояние или переход для редактирования.', '• Двойной клик по состоянию переключает принимающее состояние.', '• Для выбранного состояния доступны: изменить название, сделать/убрать стартовым, сделать/убрать принимающим, удалить.', '• Для выбранного перехода доступны: изменить метку и удалить переход.', '', '2) Тип автомата', '• Приложение показывает, является ли автомат детерминированным или недетерминированным.', '• Можно открыть детали и посмотреть причины недетерминированности (например, дубликаты условий или λ-переходы).', '', '3) Функция переходов (код слева)', '• Импорт: применяет текст функции переходов к текущему автомату.', '• Экспорт: формирует текст функции переходов из текущего автомата.', '• Подсветка ошибок помогает исправить формат записей.', '• Текущий формат записи перехода: (состояние, символ) => состояние_назначения.', '• Примеры: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-переход).', '', '4) Симуляция', '• Введите входную строку и задайте задержку (мс) между шагами.', '• Старт запускает симуляцию, Стоп останавливает.', '• Пошагово отображаются текущие состояния и результат: принято / отклонено / тупик / нет стартового состояния.', '• Для НКА при неоднозначности можно выбрать следующий переход вручную.', '', '5) Сохранение и обмен', '• Раздел «Сохранение»: сохранение автомата в слот, загрузка, удаление, переименование слотов.', '• Для слотов поддерживается импорт/экспорт .fas.', '', '6) Горячие клавиши', '• Shift+1 — режим «Создать состояния».', '• Shift+2 — режим «Создать переходы».', '• Shift+3 — режим «Выбрать / перемещать состояния».', '• Shift+S — сделать/убрать выбранное состояние стартовым.', '• Shift+E — сделать/убрать выбранное состояние принимающим.', '• Shift+N — фокус на поле имени/метки выбранного объекта.', '• Shift+Q — центрировать холст на стартовом состоянии.', '• Shift+T — фокус на редакторе функции переходов.', '• Shift+Alt+S — фокус на поле входной строки симуляции.', '• Shift+Alt+Enter — старт/стоп симуляции.', '• Shift+Alt+N — показать/скрыть детали типа автомата.', '• Delete — удалить выбранное состояние или переход.']));
+								['1) Работа с автоматом на холсте', '• Режим «Создать состояния»: клик по пустому месту создаёт состояние.', '• Режим «Создать переходы»: выберите состояние-источник, затем состояние-назначение.', '• Режим «Выбрать»: перетаскивайте состояния, выбирайте состояние или переход для редактирования.', '• Двойной клик по состоянию переключает принимающее состояние.', '• Для выбранного состояния доступны: изменить название, сделать/убрать стартовым, сделать/убрать принимающим, удалить.', '• Для выбранного перехода доступны: изменить метку и удалить переход.', '', '2) Тип автомата', '• Приложение показывает, является ли автомат детерминированным или недетерминированным.', '• Можно открыть детали и посмотреть причины недетерминированности (например, дубликаты условий или λ-переходы).', '', '3) Функция переходов (код слева)', '• Импорт: применяет текст функции переходов к текущему автомату.', '• Экспорт: формирует текст функции переходов из текущего автомата.', '• Подсветка ошибок помогает исправить формат записей.', '• Текущий формат записи перехода: (состояние, символ) => состояние_назначения.', '• Примеры: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-переход).', '', '4) Симуляция', '• Введите входную строку и задайте задержку (мс) между шагами.', '• Старт запускает симуляцию, Стоп останавливает.', '• Пошагово отображаются текущие состояния и результат: принято / отклонено / тупик / нет стартового состояния.', '• Для НКА при неоднозначности можно выбрать следующий переход вручную.', '', '5) Сохранение и обмен', '• Раздел «Сохранение»: сохранение автомата в слот, загрузка, удаление, переименование слотов.', '• Для слотов поддерживается импорт/экспорт .fas.', '⚠️ При ошибке попробуйте обновить страницу через Ctrl+F5. Если ошибка сохраняется — напишите мне через форму обратной связи справа снизу.', '', '6) Горячие клавиши', '• Alt+1 — режим «Создать состояния».', '• Alt+2 — режим «Создать переходы».', '• Alt+3 — режим «Выбрать / перемещать состояния».', '• Alt+S — сделать/убрать выбранное состояние стартовым.', '• Alt+E — сделать/убрать выбранное состояние принимающим.', '• Alt+N — фокус на поле имени/метки выбранного объекта.', '• Alt+Q — центрировать холст на стартовом состоянии.', '• Alt+T — фокус на редакторе функции переходов.', '• Shift+Alt+S — фокус на поле входной строки симуляции.', '• Shift+Alt+Enter — старт/стоп симуляции.', '• Shift+Alt+N — показать/скрыть детали типа автомата.', '• Delete — удалить выбранное состояние или переход.']));
 					case 11:
 						var _v89 = _v0.a;
 						var _v90 = _v0.b;
@@ -9598,7 +9602,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['1) Working with the automaton on the canvas', '• \'Create states\' mode: click on empty space to create a state.', '• \'Create transitions\' mode: select the source state, then the destination state.', '• \'Select\' mode: drag states, select a state or a transition to edit.', '• Double-clicking a state toggles its accepting flag.', '• For the selected state you can: rename it, set/unset start, set/unset accepting, delete.', '• For the selected transition you can: change the label and delete the transition.', '', '2) Automaton type', '• The app shows whether the automaton is deterministic or non-deterministic.', '• You can open details and see reasons for non-determinism (for example, duplicate conditions or λ-transitions).', '', '3) Transition function (code on the left)', '• Import: applies the transition function text to the current automaton.', '• Export: generates the transition function text from the current automaton.', '• Error highlighting helps to fix formatting issues in entries.', '• The expected format for a transition entry is: (state, symbol) => target_state.', '• Examples: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ is a lambda transition).', '', '4) Simulation', '• Enter the input string and set the delay (ms) between steps.', '• Start begins the simulation, Stop stops it.', '• The simulation shows current states step-by-step and the result: accepted / rejected / dead end / no start state.', '• For NFAs, when ambiguous, you can choose the next transition manually.', '', '5) Saving and sharing', '• \'Save\' section: save the automaton to a slot, load, delete, rename slots.', '• Slots support importing/exporting .fas files.', '', '6) Keyboard shortcuts', '• Shift+1 — \'Create states\' mode.', '• Shift+2 — \'Create transitions\' mode.', '• Shift+3 — \'Select / move states\' mode.', '• Shift+S — set/unset the selected state as start.', '• Shift+E — set/unset the selected state as accepting.', '• Shift+N — focus the name/label field of the selected item.', '• Shift+Q — center the canvas on the start state.', '• Shift+T — focus the transition function editor.', '• Shift+Alt+S — focus the simulation input field.', '• Shift+Alt+Enter — start/stop simulation.', '• Shift+Alt+N — show/hide automaton type details.', '• Delete — delete the selected state or transition.']));
+								['1) Working with the automaton on the canvas', '• \'Create states\' mode: click on empty space to create a state.', '• \'Create transitions\' mode: select the source state, then the destination state.', '• \'Select\' mode: drag states, select a state or a transition to edit.', '• Double-clicking a state toggles its accepting flag.', '• For the selected state you can: rename it, set/unset start, set/unset accepting, delete.', '• For the selected transition you can: change the label and delete the transition.', '', '2) Automaton type', '• The app shows whether the automaton is deterministic or non-deterministic.', '• You can open details and see reasons for non-determinism (for example, duplicate conditions or λ-transitions).', '', '3) Transition function (code on the left)', '• Import: applies the transition function text to the current automaton.', '• Export: generates the transition function text from the current automaton.', '• Error highlighting helps to fix formatting issues in entries.', '• The expected format for a transition entry is: (state, symbol) => target_state.', '• Examples: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ is a lambda transition).', '', '4) Simulation', '• Enter the input string and set the delay (ms) between steps.', '• Start begins the simulation, Stop stops it.', '• The simulation shows current states step-by-step and the result: accepted / rejected / dead end / no start state.', '• For NFAs, when ambiguous, you can choose the next transition manually.', '', '5) Saving and sharing', '• \'Save\' section: save the automaton to a slot, load, delete, rename slots.', '• Slots support importing/exporting .fas files.', '⚠️ If an error occurs, try hard-refreshing the page with Ctrl+F5. If the error remains, contact me via the feedback form in the bottom-right corner.', '', '6) Keyboard shortcuts', '• Alt+1 — \'Create states\' mode.', '• Alt+2 — \'Create transitions\' mode.', '• Alt+3 — \'Select / move states\' mode.', '• Alt+S — set/unset the selected state as start.', '• Alt+E — set/unset the selected state as accepting.', '• Alt+N — focus the name/label field of the selected item.', '• Alt+Q — center the canvas on the start state.', '• Alt+T — focus the transition function editor.', '• Shift+Alt+S — focus the simulation input field.', '• Shift+Alt+Enter — start/stop simulation.', '• Shift+Alt+N — show/hide automaton type details.', '• Delete — delete the selected state or transition.']));
 					case 11:
 						var _v91 = _v0.a;
 						var _v92 = _v0.b;
@@ -10037,7 +10041,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['1) Práca s automatom na plátne', '• Režim \'Vytvoriť stavy\': kliknutie na prázdne miesto vytvorí stav.', '• Režim \'Vytvoriť prechody\': vyberte zdrojový stav, potom cieľový stav.', '• Režim \'Vybrať\': ťahajte stavy, vyberte stav alebo prechod na úpravu.', '• Dvojité kliknutie na stav prepína, či je akceptujúci.', '• Pre vybraný stav môžete: zmeniť názov, nastaviť/zrušiť počiatočný, nastaviť/zrušiť akceptujúci, odstrániť.', '• Pre vybraný prechod môžete: zmeniť označenie a odstrániť prechod.', '', '2) Typ automatu', '• Aplikácia zobrazuje, či je automat deterministický alebo nedeterministický.', '• Môžete otvoriť detaily a vidieť dôvody nedeterministickosti (napríklad duplikáty podmienok alebo λ-prechody).', '', '3) Prechodová funkcia (kód vľavo)', '• Import: aplikuje text prechodovej funkcie na aktuálny automat.', '• Export: vygeneruje text prechodovej funkcie z aktuálneho automatu.', '• Zvýraznenie chýb pomáha opraviť formát záznamov.', '• Očekávaný formát záznamu přechodu je: (stav, symbol) => stav_cíle.', '• Příklady: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ je lambda přechod).', '', '4) Simulácia', '• Zadajte vstupný reťazec a nastavte oneskorenie (ms) medzi krokmi.', '• Start spustí simuláciu, Stop ju zastaví.', '• Krokovo sa zobrazujú aktuálne stavy a výsledok: prijaté / odmietnuté / slepá ulička / žiadny počiatočný stav.', '• Pre NKA pri nejednoznačnosti môžete manuálne vybrať ďalší prechod.', '', '5) Ukladanie a zdieľanie', '• Sekcia \'Uložiť\': uloženie automatu do slotu, načítanie, vymazanie, premenovanie slotov.', '• Sloty podporujú import/export súborov .fas.', '', '6) Klávesové skratky', '• Shift+1 — režim \'Vytvoriť stavy\'.', '• Shift+2 — režim \'Vytvoriť prechody\'.', '• Shift+3 — režim \'Vybrať / presúvať stavy\'.', '• Shift+S — nastaviť/zrušiť vybraný stav ako počiatočný.', '• Shift+E — nastaviť/zrušiť vybraný stav ako akceptujúci.', '• Shift+N — fokus na poli názvu/označenia vybraného objektu.', '• Shift+Q — vycentrovať plátno na počiatočný stav.', '• Shift+T — fokus na editor prechodovej funkcie.', '• Shift+Alt+S — fokus na pole vstupu simulácie.', '• Shift+Alt+Enter — spustiť/zastaviť simuláciu.', '• Shift+Alt+N — zobraziť/skryť detaily typu automatu.', '• Delete — odstrániť vybraný stav alebo prechod.']));
+								['1) Práca s automatom na plátne', '• Režim \'Vytvoriť stavy\': kliknutie na prázdne miesto vytvorí stav.', '• Režim \'Vytvoriť prechody\': vyberte zdrojový stav, potom cieľový stav.', '• Režim \'Vybrať\': ťahajte stavy, vyberte stav alebo prechod na úpravu.', '• Dvojité kliknutie na stav prepína, či je akceptujúci.', '• Pre vybraný stav môžete: zmeniť názov, nastaviť/zrušiť počiatočný, nastaviť/zrušiť akceptujúci, odstrániť.', '• Pre vybraný prechod môžete: zmeniť označenie a odstrániť prechod.', '', '2) Typ automatu', '• Aplikácia zobrazuje, či je automat deterministický alebo nedeterministický.', '• Môžete otvoriť detaily a vidieť dôvody nedeterministickosti (napríklad duplikáty podmienok alebo λ-prechody).', '', '3) Prechodová funkcia (kód vľavo)', '• Import: aplikuje text prechodovej funkcie na aktuálny automat.', '• Export: vygeneruje text prechodovej funkcie z aktuálneho automatu.', '• Zvýraznenie chýb pomáha opraviť formát záznamov.', '• Očekávaný formát záznamu přechodu je: (stav, symbol) => stav_cíle.', '• Příklady: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ je lambda přechod).', '', '4) Simulácia', '• Zadajte vstupný reťazec a nastavte oneskorenie (ms) medzi krokmi.', '• Start spustí simuláciu, Stop ju zastaví.', '• Krokovo sa zobrazujú aktuálne stavy a výsledok: prijaté / odmietnuté / slepá ulička / žiadny počiatočný stav.', '• Pre NKA pri nejednoznačnosti môžete manuálne vybrať ďalší prechod.', '', '5) Ukladanie a zdieľanie', '• Sekcia \'Uložiť\': uloženie automatu do slotu, načítanie, vymazanie, premenovanie slotov.', '• Sloty podporujú import/export súborov .fas.', '⚠️ Ak sa vyskytne chyba, skúste tvrdé obnovenie stránky cez Ctrl+F5. Ak chyba pretrváva, napíšte mi cez formulár spätnej väzby vpravo dole.', '', '6) Klávesové skratky', '• Alt+1 — režim \'Vytvoriť stavy\'.', '• Alt+2 — režim \'Vytvoriť prechody\'.', '• Alt+3 — režim \'Vybrať / presúvať stavy\'.', '• Alt+S — nastaviť/zrušiť vybraný stav ako počiatočný.', '• Alt+E — nastaviť/zrušiť vybraný stav ako akceptujúci.', '• Alt+N — fokus na poli názvu/označenia vybraného objektu.', '• Alt+Q — vycentrovať plátno na počiatočný stav.', '• Alt+T — fokus na editor prechodovej funkcie.', '• Shift+Alt+S — fokus na pole vstupu simulácie.', '• Shift+Alt+Enter — spustiť/zastaviť simuláciu.', '• Shift+Alt+N — zobraziť/skryť detaily typu automatu.', '• Delete — odstrániť vybraný stav alebo prechod.']));
 					case 11:
 						var _v93 = _v0.a;
 						var _v94 = _v0.b;
@@ -10045,7 +10049,7 @@ var $author$project$I18n$t = F2(
 					case 12:
 						var _v101 = _v0.a;
 						var _v102 = _v0.b;
-						return 'Bakalárska práca pre predmet TZIV (teoreticke zaklady informacnych vied) na fakulte FIIT STU. Projekt vytvára Kostiantyn Zaitsev, ukrajinský študent; ide o vizuálny editor a simulátor konečných automatov v Elme na učenie, experimenty a demonštráciu DKA/NKA. Plán je přidat více typů automatů (jako zásobníkové automaty a další), ale pouze pokud se ukáže, že je web populární.';
+						return 'Bakalárska práca pre predmet TZIV (teoreticke zaklady informacnych vied) na fakulte FIIT STU. Projekt vytvára Kostiantyn Zaitsev, ukrajinský študent; ide o vizuálny editor a simulátor konečných automatov v Elme na učenie, experimenty a demonštráciu DKA/NKA. V pláne je pridať aj iné typy automatov (napríklad so zásobníkovou pamäťou a iné), ale len v prípade, že bude o ne záujem.';
 					case 13:
 						var _v109 = _v0.a;
 						var _v110 = _v0.b;
@@ -10476,7 +10480,7 @@ var $author$project$I18n$t = F2(
 							$elm$core$String$join,
 							'\n',
 							_List_fromArray(
-								['1) Робота з автоматом на полотні', '• Режим \'Створити стани\': клік по порожньому місцю створює стан.', '• Режим \'Створити переходи\': виберіть стан-джерело, потім стан-призначення.', '• Режим \'Вибрати\': перетягуйте стани, вибирайте стан або перехід для редагування.', '• Подвійний клік по стану перемикає, чи є він приймаючим.', '• Для вибраного стану доступні: змінити назву, зробити/зняти як стартовий, зробити/зняти як приймаючий, видалити.', '• Для вибраного переходу доступні: змінити мітку і видалити перехід.', '', '2) Тип автомату', '• Додаток показує, чи є автомат детермінованим або недетермінованим.', '• Можна відкрити деталі і побачити причини недетермінованості (наприклад, дублікати умов або λ-переходи).', '', '3) Функція переходів (код ліворуч)', '• Імпорт: застосовує текст функції переходів до поточного автомату.', '• Експорт: формує текст функції переходів з поточного автомату.', '• Підсвітка помилок допомагає виправити формат записів.', '• Поточний формат запису переходу: (стан, символ) => стан_призначення.', '• Приклади: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-перехід).', '', '4) Симуляція', '• Введіть вхідний рядок і задайте затримку (мс) між кроками.', '• Старт запускає симуляцію, Стоп зупиняє її.', '• По кроках відображаються поточні стани та результат: прийнято / відхилено / тупик / немає стартового стану.', '• Для НКА при неоднозначності можна вибрати наступний перехід вручну.', '', '5) Збереження та обмін', '• Розділ \'Збереження\': збереження автомату в слот, завантаження, видалення, перейменування слотів.', '• Для слотів підтримується імпорт/експорт файлів .fas.', '', '6) Гарячі клавіші', '• Shift+1 — режим \'Створити стани\'.', '• Shift+2 — режим \'Створити переходи\'.', '• Shift+3 — режим \'Вибрати / переміщувати стани\'.', '• Shift+S — зробити/зняти вибраний стан як стартовий.', '• Shift+E — зробити/зняти вибраний стан як приймаючий.', '• Shift+N — фокус на полі назви/мітки вибраного об\'єкта.', '• Shift+Q — центрувати полотно на стартовому стані.', '• Shift+T — фокус на редакторі функції переходів.', '• Shift+Alt+S — фокус на полі вхідного рядка симуляції.', '• Shift+Alt+Enter — старт/стоп симуляції.', '• Shift+Alt+N — показати/приховати деталі типу автомату.', '• Delete — видалити вибраний стан або перехід.']));
+								['1) Робота з автоматом на полотні', '• Режим \'Створити стани\': клік по порожньому місцю створює стан.', '• Режим \'Створити переходи\': виберіть стан-джерело, потім стан-призначення.', '• Режим \'Вибрати\': перетягуйте стани, вибирайте стан або перехід для редагування.', '• Подвійний клік по стану перемикає, чи є він приймаючим.', '• Для вибраного стану доступні: змінити назву, зробити/зняти як стартовий, зробити/зняти як приймаючий, видалити.', '• Для вибраного переходу доступні: змінити мітку і видалити перехід.', '', '2) Тип автомату', '• Додаток показує, чи є автомат детермінованим або недетермінованим.', '• Можна відкрити деталі і побачити причини недетермінованості (наприклад, дублікати умов або λ-переходи).', '', '3) Функція переходів (код ліворуч)', '• Імпорт: застосовує текст функції переходів до поточного автомату.', '• Експорт: формує текст функції переходів з поточного автомату.', '• Підсвітка помилок допомагає виправити формат записів.', '• Поточний формат запису переходу: (стан, символ) => стан_призначення.', '• Приклади: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-перехід).', '', '4) Симуляція', '• Введіть вхідний рядок і задайте затримку (мс) між кроками.', '• Старт запускає симуляцію, Стоп зупиняє її.', '• По кроках відображаються поточні стани та результат: прийнято / відхилено / тупик / немає стартового стану.', '• Для НКА при неоднозначності можна вибрати наступний перехід вручну.', '', '5) Збереження та обмін', '• Розділ \'Збереження\': збереження автомату в слот, завантаження, видалення, перейменування слотів.', '• Для слотів підтримується імпорт/експорт файлів .fas.', '⚠️ Якщо сталася помилка, спробуйте примусово оновити сторінку через Ctrl+F5. Якщо помилка не зникає — напишіть мені через форму зворотного зв\'язку праворуч унизу.', '', '6) Гарячі клавіші', '• Alt+1 — режим \'Створити стани\'.', '• Alt+2 — режим \'Створити переходи\'.', '• Alt+3 — режим \'Вибрати / переміщувати стани\'.', '• Alt+S — зробити/зняти вибраний стан як стартовий.', '• Alt+E — зробити/зняти вибраний стан як приймаючий.', '• Alt+N — фокус на полі назви/мітки вибраного об\'єкта.', '• Alt+Q — центрувати полотно на стартовому стані.', '• Alt+T — фокус на редакторі функції переходів.', '• Shift+Alt+S — фокус на полі вхідного рядка симуляції.', '• Shift+Alt+Enter — старт/стоп симуляції.', '• Shift+Alt+N — показати/приховати деталі типу автомату.', '• Delete — видалити вибраний стан або перехід.']));
 					case 11:
 						var _v95 = _v0.a;
 						var _v96 = _v0.b;
@@ -15638,6 +15642,20 @@ var $author$project$Pages$Instructions$viewInstructionLine = function (line) {
 		_List_fromArray(
 			[
 				$elm$html$Html$text(line)
+			])) : (A2($elm$core$String$startsWith, '⚠️', line) ? A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'margin', '8px 0'),
+				A2($elm$html$Html$Attributes$style, 'padding', '10px 12px'),
+				A2($elm$html$Html$Attributes$style, 'background', 'rgba(255, 193, 7, 0.14)'),
+				A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(255, 193, 7, 0.45)'),
+				A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+				A2($elm$html$Html$Attributes$style, 'font-weight', '600')
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(line)
 			])) : (A2($elm$core$String$startsWith, '• ', line) ? A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -15654,7 +15672,7 @@ var $author$project$Pages$Instructions$viewInstructionLine = function (line) {
 		_List_fromArray(
 			[
 				$elm$html$Html$text(line)
-			]))));
+			])))));
 };
 var $author$project$Pages$Instructions$view = F2(
 	function (ctx, _v0) {

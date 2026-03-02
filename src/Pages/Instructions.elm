@@ -74,6 +74,17 @@ viewInstructionLine line =
             ]
             [ text line ]
 
+    else if String.startsWith "⚠️" line then
+        div
+            [ HA.style "margin" "8px 0"
+            , HA.style "padding" "10px 12px"
+            , HA.style "background" "rgba(255, 193, 7, 0.14)"
+            , HA.style "border" "1px solid rgba(255, 193, 7, 0.45)"
+            , HA.style "border-radius" "8px"
+            , HA.style "font-weight" "600"
+            ]
+            [ text line ]
+            
     else if String.startsWith "• " line then
         div
             [ HA.style "padding-left" "10px"
