@@ -37,9 +37,13 @@ langFromString s =
 type Key
     = AppTitle
     | MenuEditor
+    | MenuAutomatonFinite
+    | MenuAutomatonStack
     | MenuInstructions
     | MenuAbout
     | Greeting
+    | AutomatonMenuTitle
+    | EditorStackVisual
     | ThemeLight
     | ThemeDark
     | Language
@@ -61,6 +65,10 @@ type Key
     | EditorCodeValidationConditionSingle
     | EditorCodeValidationTwoParts
     | EditorCodeValidationArrowLine
+    | EditorCodeValidationStackLeftThreeParts
+    | EditorCodeValidationStackRightTwoParts
+    | EditorCodeValidationStackInputSingle
+    | EditorCodeValidationStackZMustBeReturned
     | EditorImport
     | EditorExport
     | EditorSave
@@ -86,6 +94,8 @@ type Key
     | EditorModeConfigureTransition
     | EditorTransitions
     | EditorTransitionLabel
+    | EditorTransitionStackInput
+    | EditorTransitionStackOutput
     | EditorTransitionSelectStart
     | EditorTransitionSelectForEdit
     | EditorTransitionFrom
@@ -153,10 +163,20 @@ t lang key =
         ( SK, AppTitle ) -> "Simulátor konečného automatu (Elm)"
         ( UA, AppTitle ) -> "Симулятор кінцевого автомата (Elm)"
 
-        ( RU, MenuEditor ) -> "Конечный автомат"
+        ( RU, MenuEditor ) -> "Автомат"
         ( EN, MenuEditor ) -> "Automaton"
         ( SK, MenuEditor ) -> "Automat"
-        ( UA, MenuEditor ) -> "Кінцевий автомат"
+        ( UA, MenuEditor ) -> "Автомат"
+
+        ( RU, MenuAutomatonFinite ) -> "Конечный автомат"
+        ( EN, MenuAutomatonFinite ) -> "Finite automaton"
+        ( SK, MenuAutomatonFinite ) -> "Konečný automat"
+        ( UA, MenuAutomatonFinite ) -> "Кінцевий автомат"
+
+        ( RU, MenuAutomatonStack ) -> "Стековый автомат"
+        ( EN, MenuAutomatonStack ) -> "Stack automaton"
+        ( SK, MenuAutomatonStack ) -> "Zásobníkový automat"
+        ( UA, MenuAutomatonStack ) -> "Стековий автомат"
 
         ( RU, MenuInstructions ) -> "Инструкции"
         ( EN, MenuInstructions ) -> "Instructions"
@@ -172,6 +192,16 @@ t lang key =
         ( EN, Greeting ) -> "Choose a section below"
         ( SK, Greeting ) -> "Vyberte sekciu nižšie"
         ( UA, Greeting ) -> "Оберіть розділ нижче"
+
+        ( RU, AutomatonMenuTitle ) -> "Выберите тип автомата"
+        ( EN, AutomatonMenuTitle ) -> "Choose automaton type"
+        ( SK, AutomatonMenuTitle ) -> "Vyberte typ automatu"
+        ( UA, AutomatonMenuTitle ) -> "Оберіть тип автомата"
+
+        ( RU, EditorStackVisual ) -> "Стек"
+        ( EN, EditorStackVisual ) -> "Stack"
+        ( SK, EditorStackVisual ) -> "Zásobník"
+        ( UA, EditorStackVisual ) -> "Стек"
 
         ( RU, ThemeLight ) -> "Светлая"
         ( EN, ThemeLight ) -> "Light"
@@ -461,6 +491,26 @@ t lang key =
         ( SK, EditorCodeValidationArrowLine ) -> "Očakáva sa šípka => a jeden záznam na riadok"
         ( UA, EditorCodeValidationArrowLine ) -> "Очікується стрілка => і один запис на рядок"
 
+        ( RU, EditorCodeValidationStackLeftThreeParts ) -> "Слева ожидается 3 элемента: (став_откуда, входной_символ, вход_стека)"
+        ( EN, EditorCodeValidationStackLeftThreeParts ) -> "Left side must contain 3 items: (from_state, input_symbol, input_stack)"
+        ( SK, EditorCodeValidationStackLeftThreeParts ) -> "Ľavá strana musí mať 3 položky: (z_stavu, vstupný_symbol, vstup_zásobníka)"
+        ( UA, EditorCodeValidationStackLeftThreeParts ) -> "Ліва частина має містити 3 елементи: (стан_звідки, вхідний_символ, вхід_стека)"
+
+        ( RU, EditorCodeValidationStackRightTwoParts ) -> "Справа ожидается 2 элемента: (став_куда, выход_стека)"
+        ( EN, EditorCodeValidationStackRightTwoParts ) -> "Right side must contain 2 items: (to_state, output_stack)"
+        ( SK, EditorCodeValidationStackRightTwoParts ) -> "Pravá strana musí mať 2 položky: (do_stavu, výstup_zásobníka)"
+        ( UA, EditorCodeValidationStackRightTwoParts ) -> "Права частина має містити 2 елементи: (стан_куди, вихід_стека)"
+
+        ( RU, EditorCodeValidationStackInputSingle ) -> "Вход стека должен быть одним символом или λ"
+        ( EN, EditorCodeValidationStackInputSingle ) -> "Input stack must be a single symbol or λ"
+        ( SK, EditorCodeValidationStackInputSingle ) -> "Vstup zásobníka musí byť jeden symbol alebo λ"
+        ( UA, EditorCodeValidationStackInputSingle ) -> "Вхід стека має бути одним символом або λ"
+
+        ( RU, EditorCodeValidationStackZMustBeReturned ) -> "Если вход стека = Z, то в выходе стека символ Z должен быть в конце"
+        ( EN, EditorCodeValidationStackZMustBeReturned ) -> "If input stack is Z, output stack must end with Z"
+        ( SK, EditorCodeValidationStackZMustBeReturned ) -> "Ak je vstup zásobníka Z, výstup zásobníka musí končiť na Z"
+        ( UA, EditorCodeValidationStackZMustBeReturned ) -> "Якщо вхід стека = Z, то вихід стека має закінчуватися на Z"
+
         ( RU, EditorImport ) -> "Импорт"
         ( EN, EditorImport ) -> "Import"
         ( SK, EditorImport ) -> "Import"
@@ -585,6 +635,16 @@ t lang key =
         ( EN, EditorTransitionLabel ) -> "Label"
         ( SK, EditorTransitionLabel ) -> "Označenie"
         ( UA, EditorTransitionLabel ) -> "Мітка"
+
+        ( RU, EditorTransitionStackInput ) -> "Вход стека"
+        ( EN, EditorTransitionStackInput ) -> "Input stack"
+        ( SK, EditorTransitionStackInput ) -> "Vstup zásobníka"
+        ( UA, EditorTransitionStackInput ) -> "Вхід стека"
+
+        ( RU, EditorTransitionStackOutput ) -> "Выход стека"
+        ( EN, EditorTransitionStackOutput ) -> "Output stack"
+        ( SK, EditorTransitionStackOutput ) -> "Výstup zásobníka"
+        ( UA, EditorTransitionStackOutput ) -> "Вихід стека"
 
         ( RU, EditorTransitionSelectStart ) -> "Выберите состояние как начальный узел"
         ( EN, EditorTransitionSelectStart ) -> "Select a state as the start node"

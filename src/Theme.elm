@@ -15,6 +15,9 @@ module Theme
         , successColor
         , warningColor
         , errorColor
+        , stackEmptyBg
+        , stackFillBg
+        , stackBorder
         )
 
 type Theme
@@ -124,3 +127,24 @@ errorColor th =
     case th of
         Light -> "#c0392b"
         Dark -> "#ff7666"
+
+
+stackEmptyBg : Theme -> String
+stackEmptyBg th =
+    case th of
+        Light -> "#f6f8fc"
+        Dark -> "#1b2130"
+
+
+stackFillBg : Theme -> String
+stackFillBg th =
+    case th of
+        Light -> "#8fb3ff"
+        Dark -> "#5c86ff"
+
+
+stackBorder : Theme -> String
+stackBorder th =
+    case th of
+        Light -> "#9db0d4"
+        Dark -> "#3b4f77"

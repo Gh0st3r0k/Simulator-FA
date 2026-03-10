@@ -40,6 +40,7 @@ import Design
         , px
         )
 import Pages.Editor as Editor
+import Pages.EditorStack as EditorStack
 import Pages.Instructions as Instructions
 import Pages.About as About
 
@@ -54,6 +55,7 @@ type alias Model =
     , theme : Theme
     , scale : Scale
     , editor : Editor.Model
+    , editorStack : EditorStack.Model
     , instructions : Instructions.Model
     , about : About.Model
     , hover : Maybe Route
@@ -100,6 +102,7 @@ type Msg
     | GoTo Route
     | SetHover (Maybe Route)
     | EditorMsg Editor.Msg
+    | EditorStackMsg EditorStack.Msg
     | InstructionsMsg Instructions.Msg
     | AboutMsg About.Msg
     | ViewportChanged Int Int
@@ -161,6 +164,7 @@ init flags url key =
       , theme = themeFromString flags.theme
       , scale = Large
       , editor = Editor.initWithSlots (Editor.decodeSaveSlots flags.automatonSlots)
+      , editorStack = EditorStack.initWithSlots (EditorStack.decodeSaveSlots flags.automatonSlots)
       , instructions = Instructions.init
       , about = About.init
       , hover = Nothing
@@ -347,28 +351,90 @@ update msg model =
             in
             ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
 
+        EditorStackMsg sub ->
+            let
+                ( subModel, subCmd ) =
+                    EditorStack.update sub model.editorStack
+
+                persistCmd =
+                    if model.editorStack.saveSlots /= subModel.saveSlots then
+                        saveAutomatonSlots (EditorStack.encodeSaveSlots subModel.saveSlots)
+
+                    else
+                        Cmd.none
+
+                maybeExportCmd =
+                    case sub of
+                        EditorStack.ExportSlot slotId ->
+                            subModel.saveSlots
+                                |> List.filter (\slot -> slot.id == slotId && not (String.isEmpty slot.automatonJson))
+                                |> List.head
+                                |> Maybe.map
+                                    (\slot ->
+                                        exportAutomatonFile
+                                            (Encode.object
+                                                [ ( "fileName", Encode.string (if String.isEmpty slot.name then "slot-" ++ String.fromInt slot.id else slot.name) )
+                                                , ( "content", Encode.string slot.automatonJson )
+                                                ]
+                                            )
+                                    )
+                                |> Maybe.withDefault Cmd.none
+
+                        EditorStack.ImportSlot slotId ->
+                            importAutomatonFile slotId
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | editorStack = subModel }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
+
         GotImportAutomatonFile value ->
             case Decode.decodeValue decodeImportFileResult value of
                 Ok ( slotId, content ) ->
-                    let
-                        ( editorModel, editorCmd ) =
-                            Editor.update (Editor.ApplyImportedSlot slotId content) model.editor
+                    case model.route of
+                        EditorStack ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorStack.update (EditorStack.ApplyImportedSlot slotId content) model.editorStack
 
-                        persistCmd =
-                            if model.editor.saveSlots /= editorModel.saveSlots then
-                                saveAutomatonSlots (Editor.encodeSaveSlots editorModel.saveSlots)
+                                persistCmd =
+                                    if model.editorStack.saveSlots /= editorModel.saveSlots then
+                                        saveAutomatonSlots (EditorStack.encodeSaveSlots editorModel.saveSlots)
 
-                            else
-                                Cmd.none
-                    in
-                    ( { model | editor = editorModel }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
+                                    else
+                                        Cmd.none
+                            in
+                            ( { model | editorStack = editorModel }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
+
+                        _ ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    Editor.update (Editor.ApplyImportedSlot slotId content) model.editor
+
+                                persistCmd =
+                                    if model.editor.saveSlots /= editorModel.saveSlots then
+                                        saveAutomatonSlots (Editor.encodeSaveSlots editorModel.saveSlots)
+
+                                    else
+                                        Cmd.none
+                            in
+                            ( { model | editor = editorModel }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
 
                 Err _ ->
-                    let
-                        ( editorModel, editorCmd ) =
-                            Editor.update Editor.ImportSlotFailed model.editor
-                    in
-                    ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
+                    case model.route of
+                        EditorStack ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorStack.update EditorStack.ImportSlotFailed model.editorStack
+                            in
+                            ( { model | editorStack = editorModel }, Cmd.map EditorStackMsg editorCmd )
+
+                        _ ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    Editor.update Editor.ImportSlotFailed model.editor
+                            in
+                            ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
 
         InstructionsMsg sub ->
             let (subModel, subCmd) = Instructions.update sub model.instructions
@@ -382,9 +448,12 @@ update msg model =
             let
                 ( editorModel, editorCmd ) =
                     Editor.update (Editor.SetViewport w h) model.editor
+
+                ( editorStackModel, editorStackCmd ) =
+                    EditorStack.update (EditorStack.SetViewport w h) model.editorStack
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel }
-            , Cmd.map EditorMsg editorCmd
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
             )
 
         GotViewport (Ok vp) ->
@@ -393,9 +462,12 @@ update msg model =
                 h = round vp.viewport.height
                 ( editorModel, editorCmd ) =
                     Editor.update (Editor.SetViewport w h) model.editor
+
+                ( editorStackModel, editorStackCmd ) =
+                    EditorStack.update (EditorStack.SetViewport w h) model.editorStack
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel }
-            , Cmd.map EditorMsg editorCmd
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
             )
 
         GotViewport (Err _) ->
@@ -472,6 +544,15 @@ view model =
                         ]
                         [ homeView model ]
 
+                AutomatonMenu ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "justify-content" "center"
+                        ]
+                        [ automatonTypeHomeView model ]
+                        
                 Editor ->
                     div
                         [ HA.style "flex" "1"
@@ -486,6 +567,23 @@ view model =
                                 , viewportHeight = model.vpH
                                 }
                                 model.editor
+                            )
+                        ]
+
+                EditorStack ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "min-height" "0"
+                        , HA.style "overflow" "hidden"
+                        ]
+                        [ H.map EditorStackMsg
+                            (EditorStack.view
+                                { lang = model.lang
+                                , theme = model.theme
+                                , viewportWidth = model.vpW
+                                , viewportHeight = model.vpH
+                                }
+                                model.editorStack
                             )
                         ]
 
@@ -792,12 +890,30 @@ topBar model =
 
         viewEditorGoToStart : Html Msg
         viewEditorGoToStart =
-            button (onClick (EditorMsg Editor.CenterOnStartState) :: baseControlStyles)
+            button
+                (onClick
+                    (if model.route == EditorStack then
+                        EditorStackMsg EditorStack.CenterOnStartState
+
+                     else
+                        EditorMsg Editor.CenterOnStartState
+                    )
+                    :: baseControlStyles
+                )
                 [ text (t model.lang EditorGoToStartState) ]
 
         viewEditorSave : Html Msg
         viewEditorSave =
-            button (onClick (EditorMsg Editor.OpenSaveModal) :: baseControlStyles)
+            button
+                (onClick
+                    (if model.route == EditorStack then
+                        EditorStackMsg EditorStack.OpenSaveModal
+
+                     else
+                        EditorMsg Editor.OpenSaveModal
+                    )
+                    :: baseControlStyles
+                )
                 [ text (t model.lang EditorSave) ]
                 
         viewLang : Html Msg
@@ -843,7 +959,7 @@ topBar model =
             else
                 let
                     editorActions =
-                        if model.route == Editor then
+                        if (model.route == Editor) || (model.route == EditorStack) then
                             [ viewEditorGoToStart, viewEditorSave ]
                         else
                             []
@@ -943,7 +1059,7 @@ homeView model =
             , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
             , HA.style "padding" ("0 " ++ px tk.spacing.s)
             ]
-            [ menuCard model (t model.lang MenuEditor) Editor
+            [ menuCard model (t model.lang MenuEditor) AutomatonMenu
             , menuCard model (t model.lang MenuInstructions) Instructions
             , menuCard model (t model.lang MenuAbout) About
             ]
@@ -951,7 +1067,38 @@ homeView model =
 
 
 
+automatonTypeHomeView : Model -> Html Msg
+automatonTypeHomeView model =
+    let
+        tk = tokens model.scale
+    in
+    div
+        [ HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
+        , HA.style "align-items" "center"
+        , HA.style "gap" (px tk.spacing.m)
+        ]
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.font.h2)
+            ]
+            [ text (t model.lang AutomatonMenuTitle) ]
+        , div
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
+            , HA.style "gap" (px tk.spacing.m)
+            , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
+            , HA.style "padding" ("0 " ++ px tk.spacing.s)
+            ]
+            [ menuCard model (t model.lang MenuAutomatonFinite) Editor
+            , menuCard model (t model.lang MenuAutomatonStack) EditorStack
+            ]
+        ]
 
+
+
+
+        
 
 menuCard : Model -> String -> Route -> Html Msg
 menuCard model label routeTarget =
