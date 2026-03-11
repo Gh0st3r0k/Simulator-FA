@@ -3982,10 +3982,10 @@ editorControlsPanel ctx model =
             )
             [ div
                 [ HA.style "display" "flex"
-                , HA.style "align-items" "flex-end"
-                , HA.style "justify-content" "space-between"
-                , HA.style "gap" "10px"
+                , HA.style "align-items" "center"
+                , HA.style "justify-content" "center"
                 , HA.style "min-height" "32px"
+                , HA.style "position" "relative"
                 ]
                 [ if deterministic then
                     text ""
@@ -3996,11 +3996,13 @@ editorControlsPanel ctx model =
                             ++ [ onClick ToggleAutomatonTypeDetails
                                , HA.style "padding" "2px 8px"
                                , HA.style "font-size" "16px"
+                               , HA.style "position" "absolute"
+                               , HA.style "right" "0"
                                , title (t ctx.lang EditorAutomatonTypeDetailsToggle)
                                ]
                         )
                         [ H.text (if automatonDetailsExpanded then "▾" else "▴") ]
-                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor, HA.style "text-align" "center" ] [ H.text automatonLabel ]
+                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor, HA.style "text-align" "center", HA.style "width" "100%" ] [ H.text automatonLabel ]
                 ]
             , div
                 [ HA.style "display" "flex"
@@ -4042,17 +4044,11 @@ stackSidePanel ctx model =
 
 stackCellsFromStack : List String -> List (Maybe String)
 stackCellsFromStack stack =
-    let
-        maxCells =
-            14
+    if List.isEmpty stack then
+        [ Nothing ]
 
-        shownStack =
-            List.take maxCells stack
-
-        empties =
-            maxCells - List.length shownStack
-    in
-    List.repeat empties Nothing ++ List.map Just shownStack
+    else
+        List.map Just stack
 
 
 stackVisual : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
@@ -4083,7 +4079,20 @@ stackVisual ctx model =
         , HA.style "gap" "6px"
         ]
         [ H.div [ HA.style "font-size" "14px", HA.style "font-weight" "700", HA.style "text-align" "center" ] [ H.text (t ctx.lang EditorStackVisual) ]
-        , div [ HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "justify-content" "flex-end", HA.style "gap" "4px", HA.style "height" "100%" ] (List.map cellView cells)
+        , div
+            [ HA.style "height" "100%"
+            , HA.style "min-height" "0"
+            , HA.style "overflow-y" "auto"
+            ]
+            [ div
+                [ HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "justify-content" "flex-end"
+                , HA.style "gap" "4px"
+                , HA.style "min-height" "100%"
+                ]
+                (List.map cellView cells)
+            ]
         ]
 
 
