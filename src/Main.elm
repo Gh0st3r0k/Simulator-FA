@@ -351,12 +351,26 @@ update msg model =
                 ( subModel, subCmd ) =
                     Editor.update sub model.editor
 
+                slotsChanged =
+                    model.editor.saveSlots /= subModel.saveSlots
+
                 persistCmd =
-                    if model.editor.saveSlots /= subModel.saveSlots then
+                    if slotsChanged then
                         saveAutomatonSlots (Editor.encodeSaveSlots subModel.saveSlots)
 
                     else
                         Cmd.none
+
+                syncedEditorStack =
+                    let
+                        editorStackModel =
+                            model.editorStack
+                    in
+                    if slotsChanged then
+                        { editorStackModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorStackModel
 
                 maybeExportCmd =
                     case sub of
@@ -381,19 +395,33 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
+            ( { model | editor = subModel, editorStack = syncedEditorStack }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
 
         EditorStackMsg sub ->
             let
                 ( subModel, subCmd ) =
                     EditorStack.update sub model.editorStack
 
+                slotsChanged =
+                    model.editorStack.saveSlots /= subModel.saveSlots
+
                 persistCmd =
-                    if model.editorStack.saveSlots /= subModel.saveSlots then
+                    if slotsChanged then
                         saveAutomatonSlots (EditorStack.encodeSaveSlots subModel.saveSlots)
 
                     else
                         Cmd.none
+
+                syncedEditor =
+                    let
+                        editorModel =
+                            model.editor
+                    in
+                    if slotsChanged then
+                        { editorModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorModel
 
                 maybeExportCmd =
                     case sub of
@@ -418,7 +446,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | editorStack = subModel }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
+            ( { model | editor = syncedEditor, editorStack = subModel }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
 
         GotImportAutomatonFile value ->
             case Decode.decodeValue decodeImportFileResult value of
@@ -435,8 +463,11 @@ update msg model =
 
                                     else
                                         Cmd.none
+
+                                currentEditor =
+                                    model.editor
                             in
-                            ( { model | editorStack = editorModel }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
+                             ( { model | editor = { currentEditor | saveSlots = editorModel.saveSlots }, editorStack = editorModel }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
 
                         _ ->
                             let
@@ -449,8 +480,11 @@ update msg model =
 
                                     else
                                         Cmd.none
+
+                                currentEditorStack =
+                                    model.editorStack
                             in
-                            ( { model | editor = editorModel }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
+                            ( { model | editor = editorModel, editorStack = { currentEditorStack | saveSlots = editorModel.saveSlots } }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
 
                 Err _ ->
                     case model.route of
