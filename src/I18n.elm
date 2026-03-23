@@ -79,6 +79,7 @@ type Key
     | EditorImportFas
     | EditorExportFas
     | EditorImportError
+    | EditorAutomatonTypeMismatch
     | EditorRenameSlot
     | EditorConfirmRename
     | EditorSaved
@@ -561,6 +562,11 @@ t lang key =
         ( SK, EditorImportError ) -> "Chyba pri importe"
         ( UA, EditorImportError ) -> "Помилка імпорту"
 
+        ( RU, EditorAutomatonTypeMismatch ) -> "Этот автомат другого типа и не может быть загружен в текущем редакторе"
+        ( EN, EditorAutomatonTypeMismatch ) -> "This automaton type cannot be loaded in the current editor"
+        ( SK, EditorAutomatonTypeMismatch ) -> "Tento typ automatu sa nedá načítať v aktuálnom editore"
+        ( UA, EditorAutomatonTypeMismatch ) -> "Цей тип автомату не можна завантажити в поточному редакторі"
+        
         ( RU, EditorRenameSlot ) -> "Переименовать"
         ( EN, EditorRenameSlot ) -> "Rename"
         ( SK, EditorRenameSlot ) -> "Premenovať"

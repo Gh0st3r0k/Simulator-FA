@@ -1,6 +1,7 @@
 module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
 
 import Dict
+import AutomatonFormat exposing (AutomatonType(..), decodeAutomatonDocument, encodeAutomatonDocument)
 import Browser.Dom as Dom
 import Html as H exposing (Html, button, div, input, textarea, text)
 import Html.Attributes as HA exposing (..)
@@ -58,6 +59,7 @@ type alias Model =
     , animatingSavedSlot : Maybe Int
     , animatingDeletedSlot : Maybe Int
     , slotImportError : Bool
+    , slotTypeMismatchError : Bool
     , viewportWidth : Int
     , viewportHeight : Int
     , automatonTypeExpanded : Bool
@@ -106,6 +108,7 @@ type alias SaveSlot =
     { id : Int
     , name : String
     , automatonJson : String
+    , automatonType : Maybe AutomatonType
     }
 
 
@@ -183,6 +186,7 @@ initWithSlots slots =
     , animatingSavedSlot = Nothing
     , animatingDeletedSlot = Nothing
     , slotImportError = False
+    , slotTypeMismatchError = False
     , viewportWidth = 1200
     , viewportHeight = 800
     , automatonTypeExpanded = False
@@ -857,19 +861,19 @@ update msg model =
                 ( stopSimulation Idle model, Cmd.none )
 
             OpenSaveModal ->
-                ( { model | saveModalOpen = True, slotImportError = False }, Cmd.none )
+                ( { model | saveModalOpen = True, slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
 
             CloseSaveModal ->
-                ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "", slotImportError = False }, Cmd.none )
+                ( { model | saveModalOpen = False, renamingSlot = Nothing, renameDraft = "", slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
 
             SaveToSlot slotId ->
                 let
                     automatonJson =
-                        Encode.encode 0 (encodeAutomaton model.states model.transitions)
+                        Encode.encode 0 (encodeAutomatonDocument currentAutomatonType (encodeAutomaton model.states model.transitions))
 
                     updateSlot slot =
                         if slot.id == slotId then
-                            { slot | automatonJson = automatonJson }
+                            { slot | automatonJson = automatonJson, automatonType = Just currentAutomatonType }
 
                         else
                             slot
@@ -879,6 +883,7 @@ update msg model =
                     , recentlySavedSlot = Just slotId
                     , animatingSavedSlot = Just slotId
                     , slotImportError = False
+                    , slotTypeMismatchError = False
                   }
                 , Cmd.batch
                     [ Process.sleep 2000
@@ -902,46 +907,59 @@ update msg model =
                             ( model, Cmd.none )
 
                         else
-                            case Decode.decodeString decodeAutomaton slot.automatonJson of
-                                Ok ( ss, ts ) ->
-                                    if hasDuplicateStateNames ss then
-                                        ( { model | stateNameConflict = True }, Cmd.none )
+                            if slotTypeMismatch slot.automatonType then
+                                showGlobalNotice EditorAutomatonTypeMismatch { model | slotImportError = False, slotTypeMismatchError = True }
 
-                                    else
-                                        let
-                                            normalizedStates =
-                                                enforceSingleStartFlag ss
+                            else
+                                case Decode.decodeString (decodeAutomatonDocument currentAutomatonType decodeAutomaton) slot.automatonJson of
+                                    Ok document ->
+                                        if document.automatonType /= currentAutomatonType then
+                                            showGlobalNotice EditorAutomatonTypeMismatch { model | slotImportError = False, slotTypeMismatchError = True }
 
-                                            normalizedAutomaton =
-                                                normalizeAutomatonIds normalizedStates ts
-                                        in
-                                        ( { model
-                                            | states = normalizedAutomaton.states
-                                            , transitions = normalizedAutomaton.transitions
-                                            , nextStateId = normalizedAutomaton.nextStateId
-                                            , nextTransitionId = normalizedAutomaton.nextTransitionId
-                                            , selected = Nothing
-                                            , selectedTransition = Nothing
-                                            , dragging = Nothing
-                                            , transitionFrom = Nothing
-                                            , simulationRunning = False
-                                            , simulationQueue = []
-                                            , simulationCurrent = Nothing
-                                            , simulationResult = Idle
-                                            , simulationChoice = Nothing
-                                            , stateNameConflict = False
-                                          }
-                                        , Cmd.none
-                                        )
+                                        else
+                                            let
+                                                ( ss, ts ) =
+                                                    document.automaton
+                                            in
+                                            if hasDuplicateStateNames ss then
+                                                ( { model | stateNameConflict = True }, Cmd.none )
 
-                                Err _ ->
-                                    ( model, Cmd.none )
+                                            else
+                                                let
+                                                    normalizedStates =
+                                                        enforceSingleStartFlag ss
+
+                                                    normalizedAutomaton =
+                                                        normalizeAutomatonIds normalizedStates ts
+                                                in
+                                                ( { model
+                                                    | states = normalizedAutomaton.states
+                                                    , transitions = normalizedAutomaton.transitions
+                                                    , nextStateId = normalizedAutomaton.nextStateId
+                                                    , nextTransitionId = normalizedAutomaton.nextTransitionId
+                                                    , selected = Nothing
+                                                    , selectedTransition = Nothing
+                                                    , dragging = Nothing
+                                                    , transitionFrom = Nothing
+                                                    , simulationRunning = False
+                                                    , simulationQueue = []
+                                                    , simulationCurrent = Nothing
+                                                    , simulationResult = Idle
+                                                    , simulationChoice = Nothing
+                                                    , stateNameConflict = False
+                                                    , slotTypeMismatchError = False
+                                                  }
+                                                , Cmd.none
+                                                )
+
+                                    Err _ ->
+                                        ( model, Cmd.none )
 
             DeleteFromSlot slotId ->
                 let
                     updateSlot slot =
                         if slot.id == slotId then
-                            { slot | automatonJson = "", name = "" }
+                            { slot | automatonJson = "", name = "", automatonType = Nothing }
 
                         else
                             slot
@@ -952,6 +970,7 @@ update msg model =
                     , renamingSlot = if model.renamingSlot == Just slotId then Nothing else model.renamingSlot
                     , renameDraft = if model.renamingSlot == Just slotId then "" else model.renameDraft
                     , slotImportError = False
+                    , slotTypeMismatchError = False
                   }
                 , Process.sleep 420
                     |> Task.perform (\_ -> ClearDeletedSlotAnimation slotId)
@@ -966,10 +985,10 @@ update msg model =
                             |> Maybe.map .name
                             |> Maybe.withDefault ""
                 in
-                ( { model | renamingSlot = Just slotId, renameDraft = currentName }, Cmd.none )
+                ( { model | renamingSlot = Just slotId, renameDraft = currentName, slotTypeMismatchError = False }, Cmd.none )
 
             UpdateRenameDraft slotName ->
-                ( { model | renameDraft = slotName }, Cmd.none )
+                ( { model | renameDraft = slotName, slotTypeMismatchError = False }, Cmd.none )
 
             ConfirmRenameSlot slotId ->
                 let
@@ -983,7 +1002,7 @@ update msg model =
                         else
                             slot
                 in
-                ( { model | saveSlots = List.map updateSlot model.saveSlots, renamingSlot = Nothing, renameDraft = "" }, Cmd.none )
+                ( { model | saveSlots = List.map updateSlot model.saveSlots, renamingSlot = Nothing, renameDraft = "", slotTypeMismatchError = False }, Cmd.none )
 
             ClearRecentlySavedSlot slotId ->
                 if model.recentlySavedSlot == Just slotId then
@@ -1007,21 +1026,24 @@ update msg model =
                     ( model, Cmd.none )
                     
             ExportSlot _ ->
-                ( { model | slotImportError = False }, Cmd.none )
+                ( { model | slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
 
             ImportSlot _ ->
-                ( { model | slotImportError = False }, Cmd.none )
+                ( { model | slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
 
             ApplyImportedSlot slotId importedJson ->
-                case Decode.decodeString decodeAutomaton importedJson of
-                    Ok ( importedStates, importedTransitions ) ->
+                case Decode.decodeString (decodeAutomatonDocument currentAutomatonType decodeAutomaton) importedJson of
+                    Ok document ->
                         let
+                            ( importedStates, importedTransitions ) =
+                                document.automaton
+
                             minifiedAutomatonJson =
-                                Encode.encode 0 (encodeAutomaton importedStates importedTransitions)
+                                Encode.encode 0 (encodeAutomatonDocument document.automatonType (encodeAutomaton importedStates importedTransitions))
 
                             updateSlot slot =
                                 if slot.id == slotId then
-                                    { slot | automatonJson = minifiedAutomatonJson }
+                                    { slot | automatonJson = minifiedAutomatonJson, automatonType = Just document.automatonType }
 
                                 else
                                     slot
@@ -1031,6 +1053,7 @@ update msg model =
                             , recentlySavedSlot = Just slotId
                             , animatingSavedSlot = Just slotId
                             , slotImportError = False
+                            , slotTypeMismatchError = False
                           }
                         , Cmd.batch
                             [ Process.sleep 2000
@@ -1041,17 +1064,17 @@ update msg model =
                         )
 
                     Err _ ->
-                        ( { model | slotImportError = True }
+                        ( { model | slotImportError = True, slotTypeMismatchError = False }
                         , Process.sleep 3000 |> Task.perform (\_ -> ClearSlotImportError)
                         )
 
             ImportSlotFailed ->
-                ( { model | slotImportError = True }
+                ( { model | slotImportError = True, slotTypeMismatchError = False }
                 , Process.sleep 3000 |> Task.perform (\_ -> ClearSlotImportError)
                 )
 
             ClearSlotImportError ->
-                ( { model | slotImportError = False }, Cmd.none )
+                ( { model | slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
             
             ToggleAutomatonTypeDetails ->
                 let
@@ -1766,7 +1789,7 @@ stepSimulation model =
 defaultSaveSlots : Int -> List SaveSlot
 defaultSaveSlots count =
     List.range 1 count
-        |> List.map (\slotId -> { id = slotId, name = "", automatonJson = "" })
+        |> List.map (\slotId -> { id = slotId, name = "", automatonJson = "", automatonType = Nothing })
 
 
 ensureSlotCount : Int -> List SaveSlot -> List SaveSlot
@@ -1774,14 +1797,39 @@ ensureSlotCount count slots =
     let
         byId sid =
             List.head (List.filter (\slot -> slot.id == sid) slots)
-                |> Maybe.withDefault { id = sid, name = "", automatonJson = "" }
+                |> Maybe.withDefault { id = sid, name = "", automatonJson = "", automatonType = Nothing }
     in
     List.range 1 count |> List.map byId
 
 
+currentAutomatonType : AutomatonType
+currentAutomatonType =
+    FiniteAutomaton
+
+
+maybeAutomatonTypeValue : Maybe AutomatonType -> Encode.Value
+maybeAutomatonTypeValue maybeAutomatonType =
+    case maybeAutomatonType of
+        Just automatonType ->
+            AutomatonFormat.encodeAutomatonType automatonType
+
+        Nothing ->
+            Encode.null
+
+
+slotTypeMismatch : Maybe AutomatonType -> Bool
+slotTypeMismatch maybeAutomatonType =
+    case maybeAutomatonType of
+        Just automatonType ->
+            automatonType /= currentAutomatonType
+
+        Nothing ->
+            False
+
+
 exportAutomatonJson : Model -> String
 exportAutomatonJson model =
-    Encode.encode 0 (encodeAutomaton model.states model.transitions)
+    Encode.encode 0 (encodeAutomatonDocument currentAutomatonType (encodeAutomaton model.states model.transitions))
 
 
 exportRuntimeSnapshotJson : Model -> String
@@ -1812,6 +1860,7 @@ exportRuntimeSnapshotJson model =
                 [ ( "id", Encode.int slot.id )
                 , ( "name", Encode.string slot.name )
                 , ( "automatonJson", Encode.string slot.automatonJson )
+                , ( "automatonType", maybeAutomatonTypeValue slot.automatonType )
                 ]
 
         simulationChoiceValue =
@@ -1857,7 +1906,8 @@ exportRuntimeSnapshotJson model =
                     Encode.string "missing-start"
     in
     Encode.object
-        [ ( "automaton", encodeAutomaton model.states model.transitions )
+        [ ( "automatonType", Encode.int 1 )
+        , ( "automaton", encodeAutomaton model.states model.transitions )
         , ( "nextStateId", Encode.int model.nextStateId )
         , ( "nextTransitionId", Encode.int model.nextTransitionId )
         , ( "panX", Encode.float model.panX )
@@ -1889,6 +1939,7 @@ exportRuntimeSnapshotJson model =
         , ( "animatingSavedSlot", maybeInt model.animatingSavedSlot )
         , ( "animatingDeletedSlot", maybeInt model.animatingDeletedSlot )
         , ( "slotImportError", Encode.bool model.slotImportError )
+        , ( "slotTypeMismatchError", Encode.bool model.slotTypeMismatchError )
         , ( "viewportWidth", Encode.int model.viewportWidth )
         , ( "viewportHeight", Encode.int model.viewportHeight )
         , ( "automatonTypeExpanded", Encode.bool model.automatonTypeExpanded )
@@ -1909,6 +1960,7 @@ encodeSaveSlots slots =
                     [ ( "id", Encode.int slot.id )
                     , ( "name", Encode.string slot.name )
                     , ( "automatonJson", Encode.string slot.automatonJson )
+                    , ( "automatonType", maybeAutomatonTypeValue slot.automatonType )
                     ]
             )
         |> Encode.encode 0
@@ -1926,13 +1978,14 @@ decodeSaveSlots raw =
 
 decodeSaveSlot : Decode.Decoder SaveSlot
 decodeSaveSlot =
-    Decode.map3
-        (\id name automatonJson ->
-            { id = id, name = name, automatonJson = automatonJson }
+    Decode.map4
+        (\id name automatonJson automatonType ->
+            { id = id, name = name, automatonJson = automatonJson, automatonType = automatonType }
         )
         (Decode.field "id" Decode.int)
         (Decode.field "name" Decode.string)
         (Decode.field "automatonJson" Decode.string)
+        (Decode.maybe (Decode.field "automatonType" AutomatonFormat.decodeAutomatonType))
 
 type alias ParsedTransition =
     { fromName : String
@@ -2677,7 +2730,7 @@ shortcutEvent =
             (\event ->
                 let
                     hasShortcut =
-                        ((event.shiftKey && (not event.altKey) && List.member event.code [ "Digit1", "Digit2", "Digit3", "KeyS", "KeyE", "KeyN", "KeyQ", "KeyT" ])
+                        (((not event.shiftKey) && event.altKey && List.member event.code [ "Digit1", "Digit2", "Digit3", "KeyS", "KeyE", "KeyN", "KeyQ", "KeyT" ])
                             || (event.shiftKey && event.altKey && List.member event.code [ "KeyS", "Enter", "KeyN" ])
                             || ((not event.shiftKey) && (not event.altKey) && event.code == "Delete")
                         )
@@ -3401,6 +3454,35 @@ saveModal ctx model =
 
                 renameInputWidth =
                     String.fromInt (Basics.max 10 (String.length model.renameDraft + 2)) ++ "ch"
+
+                slotTypeBadge =
+                    case slot.automatonType of
+                        Just FiniteAutomaton ->
+                            H.div
+                                [ HA.style "padding" "2px 8px"
+                                , HA.style "border-radius" "999px"
+                                , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+                                , HA.style "background" (interactiveBg ctx.theme)
+                                , HA.style "font-size" "12px"
+                                , HA.style "font-weight" "600"
+                                , HA.style "white-space" "nowrap"
+                                ]
+                                [ H.text (t ctx.lang MenuAutomatonFinite) ]
+
+                        Just StackAutomaton ->
+                            H.div
+                                [ HA.style "padding" "2px 8px"
+                                , HA.style "border-radius" "999px"
+                                , HA.style "border" ("1px solid " ++ interactiveBorder ctx.theme)
+                                , HA.style "background" (interactiveBg ctx.theme)
+                                , HA.style "font-size" "12px"
+                                , HA.style "font-weight" "600"
+                                , HA.style "white-space" "nowrap"
+                                ]
+                                [ H.text (t ctx.lang MenuAutomatonStack) ]
+
+                        Nothing ->
+                            text ""
             in
             div
                 [ HA.style "border" ("1px solid " ++ panelBorder ctx.theme)
@@ -3430,6 +3512,7 @@ saveModal ctx model =
 
                       else
                         H.button (editorButtonStyles ctx.theme ++ [ onClick (StartRenameSlot slot.id), title (t ctx.lang EditorRenameSlot) ]) [ H.text "✎" ]
+                    , slotTypeBadge
                     , if model.recentlySavedSlot == Just slot.id then
                         H.div [ HA.style "color" (successColor ctx.theme), HA.style "font-weight" "bold" ] [ H.text (t ctx.lang EditorSaved) ]
 
@@ -3479,7 +3562,10 @@ saveModal ctx model =
             ]
             [ div [ HA.style "display" "flex", HA.style "justify-content" "space-between", HA.style "align-items" "center", HA.style "margin-bottom" "10px", HA.style "min-height" "32px", HA.style "gap" "12px" ]
                 [ H.h2 [ HA.style "margin" "0" ] [ H.text (t ctx.lang EditorSaveModalTitle) ]
-                , if model.slotImportError then
+                , if model.slotTypeMismatchError then
+                    H.div [ HA.style "color" "#e74c3c", HA.style "font-weight" "600", HA.style "margin-left" "auto", HA.style "text-align" "right", HA.style "max-width" "420px" ] [ H.text (t ctx.lang EditorAutomatonTypeMismatch) ]
+
+                  else if model.slotImportError then
                     H.div [ HA.style "color" "#e74c3c", HA.style "font-weight" "600", HA.style "margin-left" "auto", HA.style "text-align" "right" ] [ H.text (t ctx.lang EditorImportError) ]
 
                   else

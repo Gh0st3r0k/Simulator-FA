@@ -1,5 +1,6 @@
 port module Main exposing (main)
 
+import AutomatonFormat exposing (AutomatonType(..), typeToStorageLabel)
 import Browser
 import Browser.Navigation as Nav
 import Browser.Events
@@ -196,12 +197,22 @@ googleFormUrl =
 
 currentFasJson : Model -> String
 currentFasJson model =
-    Editor.exportAutomatonJson model.editor
+    case model.route of
+        EditorStack ->
+            EditorStack.exportAutomatonJson model.editorStack
+
+        _ ->
+            Editor.exportAutomatonJson model.editor
 
 
 currentRuntimeModelJson : Model -> String
 currentRuntimeModelJson model =
-    Editor.exportRuntimeSnapshotJson model.editor
+    case model.route of
+        EditorStack ->
+            EditorStack.exportRuntimeSnapshotJson model.editorStack
+
+        _ ->
+            Editor.exportRuntimeSnapshotJson model.editor
 
 
 indentBlock : String -> String
@@ -258,7 +269,28 @@ feedbackWebMailLink model =
             "https://outlook.live.com/mail/0/deeplink/compose?to=" ++ to ++ "&subject=" ++ subject ++ "&body=" ++ body
 
 
+exportFileName : Int -> String -> Maybe AutomatonType -> String
+exportFileName slotId slotName maybeAutomatonType =
+    let
+        baseName =
+            if String.isEmpty slotName then
+                "slot-" ++ String.fromInt slotId
 
+            else
+                slotName
+
+        suffix =
+            case maybeAutomatonType of
+                Just automatonType ->
+                    "-" ++ typeToStorageLabel automatonType
+
+                Nothing ->
+                    ""
+    in
+    baseName ++ suffix
+
+
+    
 themeFromString : String -> Theme
 themeFromString s =
     case String.toLower s of
@@ -336,7 +368,7 @@ update msg model =
                                     (\slot ->
                                         exportAutomatonFile
                                             (Encode.object
-                                                [ ( "fileName", Encode.string (if String.isEmpty slot.name then "slot-" ++ String.fromInt slot.id else slot.name) )
+                                                [ ( "fileName", Encode.string (exportFileName slot.id slot.name slot.automatonType) )
                                                 , ( "content", Encode.string slot.automatonJson )
                                                 ]
                                             )
@@ -373,7 +405,7 @@ update msg model =
                                     (\slot ->
                                         exportAutomatonFile
                                             (Encode.object
-                                                [ ( "fileName", Encode.string (if String.isEmpty slot.name then "slot-" ++ String.fromInt slot.id else slot.name) )
+                                                [ ( "fileName", Encode.string (exportFileName slot.id slot.name slot.automatonType) )
                                                 , ( "content", Encode.string slot.automatonJson )
                                                 ]
                                             )
