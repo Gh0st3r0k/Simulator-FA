@@ -21613,8 +21613,8 @@ var $author$project$Pages$EditorStack$editorControlsPanel = F2(
 									A2($elm$html$Html$Attributes$style, 'display', 'flex'),
 									A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
 									A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
-									A2($elm$html$Html$Attributes$style, 'min-height', '32px'),
-									A2($elm$html$Html$Attributes$style, 'position', 'relative')
+									A2($elm$html$Html$Attributes$style, 'gap', '8px'),
+									A2($elm$html$Html$Attributes$style, 'min-height', '32px')
 								]),
 							_List_fromArray(
 								[
@@ -21627,8 +21627,6 @@ var $author$project$Pages$EditorStack$editorControlsPanel = F2(
 												$elm$html$Html$Events$onClick($author$project$Pages$EditorStack$ToggleAutomatonTypeDetails),
 												A2($elm$html$Html$Attributes$style, 'padding', '2px 8px'),
 												A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
-												A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-												A2($elm$html$Html$Attributes$style, 'right', '0'),
 												$elm$html$Html$Attributes$title(
 												A2($author$project$I18n$t, ctx.b, 111))
 											])),
@@ -21644,8 +21642,7 @@ var $author$project$Pages$EditorStack$editorControlsPanel = F2(
 											A2($elm$html$Html$Attributes$style, 'font-size', '16px'),
 											A2($elm$html$Html$Attributes$style, 'font-weight', '700'),
 											A2($elm$html$Html$Attributes$style, 'color', automatonColor),
-											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-											A2($elm$html$Html$Attributes$style, 'width', '100%')
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center')
 										]),
 									_List_fromArray(
 										[
@@ -24275,67 +24272,264 @@ var $author$project$Main$welcomeModal = function (model) {
 				_List_fromArray(
 					[
 						A2($elm$html$Html$Attributes$style, 'width', 'min(620px, 94vw)'),
+						$elm$html$Html$Attributes$class('welcome-animated-border'),
 						A2(
 						$elm$html$Html$Attributes$style,
-						'background',
-						$author$project$Theme$panelBg(model.a)),
+						'--welcome-border-a',
+						$author$project$Theme$panelBorder(model.a)),
 						A2(
 						$elm$html$Html$Attributes$style,
-						'border',
-						'1px solid ' + $author$project$Theme$panelBorder(model.a)),
+						'--welcome-border-b',
+						$author$project$Theme$hoverBorder(model.a)),
+						A2($elm$html$Html$Attributes$style, 'padding', '1px'),
 						A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
-						A2($elm$html$Html$Attributes$style, 'padding', '18px'),
-						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
-						A2($elm$html$Html$Attributes$style, 'gap', '10px')
+						A2($elm$html$Html$Attributes$style, 'box-shadow', '0 18px 44px rgba(0, 0, 0, 0.32)')
 					]),
 				_List_fromArray(
 					[
 						A2(
-						$elm$html$Html$h2,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'margin', '0')
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								A2($author$project$I18n$t, model.b, 15))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								A2($author$project$I18n$t, model.b, 16))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								A2($author$project$I18n$t, model.b, 17))
-							])),
-						A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
+								A2(
+								$elm$html$Html$Attributes$style,
+								'background',
+								$author$project$Theme$panelBg(model.a)),
+								A2(
+								$elm$html$Html$Attributes$style,
+								'border',
+								'1px solid ' + $author$project$Theme$panelBorder(model.a)),
+								A2($elm$html$Html$Attributes$style, 'border-radius', '15px'),
+								A2($elm$html$Html$Attributes$style, 'padding', '18px'),
 								A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-								A2($elm$html$Html$Attributes$style, 'gap', '12px'),
-								A2($elm$html$Html$Attributes$style, 'align-items', 'stretch')
+								A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
+								A2($elm$html$Html$Attributes$style, 'gap', '10px')
 							]),
 						_List_fromArray(
 							[
 								A2(
+								$elm$html$Html$h2,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'margin', '0')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										A2($author$project$I18n$t, model.b, 15))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										A2($author$project$I18n$t, model.b, 16))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										A2($author$project$I18n$t, model.b, 17))
+									])),
+								A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										A2($elm$html$Html$Attributes$style, 'flex', '1'),
+										A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+										A2($elm$html$Html$Attributes$style, 'gap', '12px'),
+										A2($elm$html$Html$Attributes$style, 'align-items', 'stretch')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'flex', '1'),
+												A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+												A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
+												A2($elm$html$Html$Attributes$style, 'gap', '6px')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$label,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														A2($author$project$I18n$t, model.b, 12))
+													])),
+												A2(
+												$elm$html$Html$select,
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onInput($author$project$Main$SetLang),
+														$elm$html$Html$Attributes$value(
+														$author$project$I18n$langToString(model.b)),
+														A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+														A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'border',
+														'1px solid ' + $author$project$Theme$panelBorder(model.a)),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'background',
+														$author$project$Theme$interactiveBg(model.a)),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'color',
+														$author$project$Theme$textColor(model.a)),
+														A2($elm$html$Html$Attributes$style, 'width', '100%')
+													]),
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$option,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$value('sk'),
+																$elm$html$Html$Attributes$selected(model.b === 2)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('SK')
+															])),
+														A2(
+														$elm$html$Html$option,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$value('en'),
+																$elm$html$Html$Attributes$selected(model.b === 1)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('EN')
+															])),
+														A2(
+														$elm$html$Html$option,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$value('ru'),
+																$elm$html$Html$Attributes$selected(!model.b)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('RU')
+															])),
+														A2(
+														$elm$html$Html$option,
+														_List_fromArray(
+															[
+																$elm$html$Html$Attributes$value('ua'),
+																$elm$html$Html$Attributes$selected(model.b === 3)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('UA')
+															]))
+													]))
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'flex', '2'),
+												A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+												A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
+												A2($elm$html$Html$Attributes$style, 'gap', '6px')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$label,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														A2($author$project$I18n$t, model.b, 11))
+													])),
+												A2(
+												$elm$html$Html$button,
+												_List_fromArray(
+													[
+														$elm$html$Html$Events$onClick($author$project$Main$ToggleTheme),
+														A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+														A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'border',
+														'1px solid ' + $author$project$Theme$panelBorder(model.a)),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'background',
+														$author$project$Theme$interactiveBg(model.a)),
+														A2(
+														$elm$html$Html$Attributes$style,
+														'color',
+														$author$project$Theme$textColor(model.a)),
+														A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
+														A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+														A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between'),
+														A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
+														A2($elm$html$Html$Attributes$style, 'width', '100%')
+													]),
+												_List_fromArray(
+													[
+														$elm$html$Html$text(
+														function () {
+															var _v0 = model.a;
+															if (!_v0) {
+																return A2($author$project$I18n$t, model.b, 9);
+															} else {
+																return A2($author$project$I18n$t, model.b, 10);
+															}
+														}()),
+														A2(
+														$elm$html$Html$span,
+														_List_fromArray(
+															[
+																A2($elm$html$Html$Attributes$style, 'font-size', '18px'),
+																A2($elm$html$Html$Attributes$style, 'line-height', '1'),
+																A2(
+																$elm$html$Html$Attributes$style,
+																'color',
+																function () {
+																	var _v1 = model.a;
+																	if (_v1 === 1) {
+																		return '#ffffff';
+																	} else {
+																		return $author$project$Theme$hoverBorder(model.a);
+																	}
+																}())
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text(
+																function () {
+																	var _v2 = model.a;
+																	if (!_v2) {
+																		return '☀';
+																	} else {
+																		return '☾';
+																	}
+																}())
+															]))
+													]))
+											]))
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
 										A2($elm$html$Html$Attributes$style, 'display', 'flex'),
 										A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
-										A2($elm$html$Html$Attributes$style, 'gap', '6px')
+										A2($elm$html$Html$Attributes$style, 'gap', '6px'),
+										A2($elm$html$Html$Attributes$style, 'margin-top', '6px')
 									]),
 								_List_fromArray(
 									[
@@ -24345,15 +24539,16 @@ var $author$project$Main$welcomeModal = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												A2($author$project$I18n$t, model.b, 12))
+												A2($author$project$I18n$t, model.b, 19))
 											])),
 										A2(
 										$elm$html$Html$select,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onInput($author$project$Main$SetLang),
+												$elm$html$Html$Events$onInput($author$project$Main$SetStartPage),
 												$elm$html$Html$Attributes$value(
-												$author$project$I18n$langToString(model.b)),
+												$elm$core$String$fromInt(
+													$author$project$Main$startPageToInt(model.Q))),
 												A2($elm$html$Html$Attributes$style, 'padding', '8px'),
 												A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
 												A2(
@@ -24367,230 +24562,66 @@ var $author$project$Main$welcomeModal = function (model) {
 												A2(
 												$elm$html$Html$Attributes$style,
 												'color',
-												$author$project$Theme$textColor(model.a)),
-												A2($elm$html$Html$Attributes$style, 'width', '100%')
+												$author$project$Theme$textColor(model.a))
 											]),
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$option,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$value('sk'),
-														$elm$html$Html$Attributes$selected(model.b === 2)
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('SK')
-													])),
-												A2(
-												$elm$html$Html$option,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$value('en'),
-														$elm$html$Html$Attributes$selected(model.b === 1)
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('EN')
-													])),
-												A2(
-												$elm$html$Html$option,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$value('ru'),
-														$elm$html$Html$Attributes$selected(!model.b)
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('RU')
-													])),
-												A2(
-												$elm$html$Html$option,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$value('ua'),
-														$elm$html$Html$Attributes$selected(model.b === 3)
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text('UA')
-													]))
-											]))
+										$author$project$Main$startPageOptions(model))
 									])),
 								A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										A2($elm$html$Html$Attributes$style, 'flex', '2'),
 										A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-										A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
-										A2($elm$html$Html$Attributes$style, 'gap', '6px')
+										A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 									]),
 								_List_fromArray(
 									[
-										A2(
-										$elm$html$Html$label,
-										_List_Nil,
-										_List_fromArray(
-											[
-												$elm$html$Html$text(
-												A2($author$project$I18n$t, model.b, 11))
-											])),
 										A2(
 										$elm$html$Html$button,
 										_List_fromArray(
 											[
-												$elm$html$Html$Events$onClick($author$project$Main$ToggleTheme),
-												A2($elm$html$Html$Attributes$style, 'padding', '10px'),
+												$elm$html$Html$Events$onClick($author$project$Main$CloseWelcomeModal),
+												A2($elm$html$Html$Attributes$style, 'padding', '10px 14px'),
 												A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
-												A2(
-												$elm$html$Html$Attributes$style,
-												'border',
-												'1px solid ' + $author$project$Theme$panelBorder(model.a)),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
 												A2(
 												$elm$html$Html$Attributes$style,
 												'background',
-												$author$project$Theme$interactiveBg(model.a)),
+												$author$project$Theme$hoverBg(model.a)),
 												A2(
 												$elm$html$Html$Attributes$style,
 												'color',
 												$author$project$Theme$textColor(model.a)),
-												A2($elm$html$Html$Attributes$style, 'cursor', 'pointer'),
-												A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-												A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between'),
-												A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
-												A2($elm$html$Html$Attributes$style, 'width', '100%')
+												A2($elm$html$Html$Attributes$style, 'cursor', 'pointer')
 											]),
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												function () {
-													var _v0 = model.a;
-													if (!_v0) {
-														return A2($author$project$I18n$t, model.b, 9);
-													} else {
-														return A2($author$project$I18n$t, model.b, 10);
-													}
-												}()),
-												A2(
-												$elm$html$Html$span,
-												_List_fromArray(
-													[
-														A2($elm$html$Html$Attributes$style, 'font-size', '18px'),
-														A2($elm$html$Html$Attributes$style, 'line-height', '1'),
-														A2(
-														$elm$html$Html$Attributes$style,
-														'color',
-														function () {
-															var _v1 = model.a;
-															if (_v1 === 1) {
-																return '#ffffff';
-															} else {
-																return $author$project$Theme$hoverBorder(model.a);
-															}
-														}())
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														function () {
-															var _v2 = model.a;
-															if (!_v2) {
-																return '☀';
-															} else {
-																return '☾';
-															}
-														}())
-													]))
+												A2($author$project$I18n$t, model.b, 18))
 											]))
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-								A2($elm$html$Html$Attributes$style, 'flex-direction', 'column'),
-								A2($elm$html$Html$Attributes$style, 'gap', '6px'),
-								A2($elm$html$Html$Attributes$style, 'margin-top', '6px')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$label,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$elm$html$Html$text(
-										A2($author$project$I18n$t, model.b, 19))
-									])),
-								A2(
-								$elm$html$Html$select,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onInput($author$project$Main$SetStartPage),
-										$elm$html$Html$Attributes$value(
-										$elm$core$String$fromInt(
-											$author$project$Main$startPageToInt(model.Q))),
-										A2($elm$html$Html$Attributes$style, 'padding', '8px'),
-										A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'border',
-										'1px solid ' + $author$project$Theme$panelBorder(model.a)),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'background',
-										$author$project$Theme$interactiveBg(model.a)),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'color',
-										$author$project$Theme$textColor(model.a))
-									]),
-								$author$project$Main$startPageOptions(model))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-								A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$button,
-								_List_fromArray(
-									[
-										$elm$html$Html$Events$onClick($author$project$Main$CloseWelcomeModal),
-										A2($elm$html$Html$Attributes$style, 'padding', '10px 14px'),
-										A2($elm$html$Html$Attributes$style, 'border-radius', '10px'),
-										A2($elm$html$Html$Attributes$style, 'border', 'none'),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'background',
-										$author$project$Theme$hoverBg(model.a)),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'color',
-										$author$project$Theme$textColor(model.a)),
-										A2($elm$html$Html$Attributes$style, 'cursor', 'pointer')
-									]),
-								_List_fromArray(
-									[
-										$elm$html$Html$text(
-										A2($author$project$I18n$t, model.b, 18))
 									]))
 							]))
 					]))
 			]));
 };
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $author$project$Main$welcomeModalAnimationStyles = A3(
+	$elm$html$Html$node,
+	'style',
+	_List_Nil,
+	_List_fromArray(
+		[
+			$elm$html$Html$text('\n        .welcome-animated-border {\n            animation: welcomeBorderFlow 8s ease-in-out infinite;\n        }\n\n        @keyframes welcomeBorderFlow {\n            0% {\n                border-color: var(--welcome-border-a);\n                box-shadow: 0 0 0 1px var(--welcome-border-a),\n                            0 18px 44px rgba(0, 0, 0, 0.32);\n            }\n            50% {\n                border-color: var(--welcome-border-b);\n                box-shadow: 0 0 0 1px var(--welcome-border-b),\n                            0 18px 44px rgba(0, 0, 0, 0.32);\n            }\n            100% {\n                border-color: var(--welcome-border-a);\n                box-shadow: 0 0 0 1px var(--welcome-border-a),\n                            0 18px 44px rgba(0, 0, 0, 0.32);\n            }\n        }\n        ')
+		]));
 var $author$project$Main$view = function (model) {
 	var tk = $author$project$Design$tokens(model.aT);
 	return {
 		cD: _List_fromArray(
 			[
+				$author$project$Main$welcomeModalAnimationStyles,
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(

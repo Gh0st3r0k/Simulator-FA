@@ -4552,8 +4552,8 @@ editorControlsPanel ctx model =
                 [ HA.style "display" "flex"
                 , HA.style "align-items" "center"
                 , HA.style "justify-content" "center"
+                , HA.style "gap" "8px"
                 , HA.style "min-height" "32px"
-                , HA.style "position" "relative"
                 ]
                 [ if deterministic then
                     text ""
@@ -4564,13 +4564,11 @@ editorControlsPanel ctx model =
                             ++ [ onClick ToggleAutomatonTypeDetails
                                , HA.style "padding" "2px 8px"
                                , HA.style "font-size" "16px"
-                               , HA.style "position" "absolute"
-                               , HA.style "right" "0"
                                , title (t ctx.lang EditorAutomatonTypeDetailsToggle)
                                ]
                         )
                         [ H.text (if automatonDetailsExpanded then "▾" else "▴") ]
-                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor, HA.style "text-align" "center", HA.style "width" "100%" ] [ H.text automatonLabel ]
+                , H.div [ HA.style "font-size" "16px", HA.style "font-weight" "700", HA.style "color" automatonColor, HA.style "text-align" "center" ] [ H.text automatonLabel ]
                 ]
             , div
                 [ HA.style "display" "flex"
