@@ -3206,7 +3206,7 @@ canvasIconButtonAttrs =
     , HA.style "font-size" "18px"
     ]
 
-    
+
 simulationChoiceOverlay : { a | lang : Lang, theme : Theme } -> Model -> Html Msg
 simulationChoiceOverlay ctx model =
     case model.simulationChoice of
@@ -3455,6 +3455,20 @@ viewTransition ctx model transitionGroup =
                 curveOffset = 42
                 rightX = -uy
                 rightY = ux
+                labelLift = 18
+                labelNormalX =
+                    if rightY <= 0 then
+                        rightX
+
+                    else
+                        -rightX
+
+                labelNormalY =
+                    if rightY <= 0 then
+                        rightY
+
+                    else
+                        -rightY
                 controlX =
                     ((startX + endX) / 2)
                         + rightX * curveOffset
@@ -3506,7 +3520,7 @@ viewTransition ctx model transitionGroup =
                             ++ " "
                             ++ String.fromFloat endY
 
-                labelX =
+                baseLabelX =
                     if selfLoop then
                         a.x + 2
 
@@ -3514,9 +3528,9 @@ viewTransition ctx model transitionGroup =
                         0.25 * startX + 0.5 * controlX + 0.25 * endX + rightX * 14
 
                     else
-                        ((startX + endX) / 2) + 6
+                        (startX + endX) / 2
 
-                labelY =
+                baseLabelY =
                     if selfLoop then
                         a.y - 72
 
@@ -3524,7 +3538,48 @@ viewTransition ctx model transitionGroup =
                         0.25 * startY + 0.5 * controlY + 0.25 * endY + rightY * 14
 
                     else
-                        ((startY + endY) / 2) - 6
+                        (startY + endY) / 2
+
+                labelX =
+                    if selfLoop then
+                        baseLabelX
+
+                    else
+                        baseLabelX + labelNormalX * labelLift
+
+                labelY =
+                    if selfLoop then
+                        baseLabelY
+
+                    else
+                        baseLabelY + labelNormalY * labelLift
+
+                lineAngleDeg =
+                    if selfLoop then
+                        -25
+
+                    else
+                        let
+                            rawAngleDeg =
+                                atan2 dy dx * 180 / pi
+                        in
+                        if rawAngleDeg > 90 then
+                            rawAngleDeg - 180
+
+                        else if rawAngleDeg < -90 then
+                            rawAngleDeg + 180
+
+                        else
+                            rawAngleDeg
+
+                labelRotation =
+                    "rotate("
+                        ++ String.fromFloat lineAngleDeg
+                        ++ " "
+                        ++ String.fromFloat labelX
+                        ++ " "
+                        ++ String.fromFloat labelY
+                        ++ ")"
 
                 shownLabel = transitionLabelsToText transitionGroup.labels
 
@@ -3601,20 +3656,24 @@ viewTransition ctx model transitionGroup =
                     ]
                     []
                 , S.rect
-                    [ SA.x (String.fromFloat (labelX - 4))
-                    , SA.y (String.fromFloat (labelY - hitHeight + 2))
+                    [ SA.x (String.fromFloat (labelX - (hitWidth / 2)))
+                    , SA.y (String.fromFloat (labelY - (toFloat hitHeight / 2)))
                     , SA.width (String.fromFloat hitWidth)
                     , SA.height (String.fromFloat hitHeight)
                     , SA.fill labelBackground
                     , SA.stroke "none"
+                    , SA.transform labelRotation
                     , selectTransitionOnClick
                     ]
                     []
                 , S.text_
                     [ SA.x (String.fromFloat labelX)
                     , SA.y (String.fromFloat labelY)
+                    , SA.textAnchor "middle"
+                    , SA.dominantBaseline "middle"
                     , SA.fontSize "12"
                     , SA.fill transitionStrokeColor
+                    , SA.transform labelRotation
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
@@ -4394,21 +4453,9 @@ transitionFunctionPanel ctx model =
                 , HA.style "border-radius" "8px"
                 , HA.style "border-color" (if hasCodeValidationErrors model then errorColor ctx.theme else "")
                 , HA.style "outline" "none"
-                , HA.style "color"
-                    (if model.codeEditorFocused || hasCodeValidationErrors model then
-                        textColor ctx.theme
-
-                     else
-                        "transparent"
-                    )
+                , HA.style "color" "transparent"
                 , HA.style "caret-color" (textColor ctx.theme)
-                , HA.style "text-shadow"
-                    (if model.codeEditorFocused || hasCodeValidationErrors model then
-                        "none"
-
-                     else
-                        "0 0 0 transparent"
-                    )
+                , HA.style "text-shadow" "0 0 0 transparent"
                 ]
                 []
             ]
