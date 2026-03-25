@@ -303,10 +303,10 @@ themeToString : Theme -> String
 themeToString theme =
     case theme of
         Dark ->
-            "light"
+            "dark"
 
         Light ->
-            "dark"
+            "light"
 
 
 -- UPDATE
@@ -986,10 +986,10 @@ topBar model =
         viewLang =
             select
                 (onInput SetLang :: HA.value (langToString model.lang) :: baseControlStyles)
-                [ option [ HA.value "sk" ] [ text "SK" ]
-                , option [ HA.value "en" ] [ text "EN" ]
-                , option [ HA.value "ru" ] [ text "RU" ]
-                , option [ HA.value "ua" ] [ text "UA" ]
+                [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
+                , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
+                , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
+                , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
                 ]
 
         viewTheme : Html Msg

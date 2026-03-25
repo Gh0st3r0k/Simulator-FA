@@ -301,6 +301,7 @@ type alias ShortcutEvent =
     { code : String
     , shiftKey : Bool
     , altKey : Bool
+    , metaKey : Bool
     , targetEditable : Bool
     }
 
@@ -3221,6 +3222,21 @@ handleShortcut shortcut model =
                     _ ->
                         ( model, Cmd.none )
 
+            ( False, False, "Backspace" ) ->
+                if shortcut.metaKey then
+                    case ( model.selected, model.selectedTransition ) of
+                        ( Just sid, _ ) ->
+                            update (DeleteState sid) model
+
+                        ( Nothing, Just tid ) ->
+                            update (DeleteTransition tid) model
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                else
+                    ( model, Cmd.none )
+
             _ ->
                 ( model, Cmd.none )
 
@@ -3235,6 +3251,7 @@ shortcutEvent =
                         (((not event.shiftKey) && event.altKey && List.member event.code [ "Digit1", "Digit2", "Digit3", "KeyS", "KeyE", "KeyN", "KeyQ", "KeyT", "Comma", "Period" ])
                             || (event.shiftKey && event.altKey && List.member event.code [ "KeyS", "Enter", "KeyN" ])
                             || ((not event.shiftKey) && (not event.altKey) && event.code == "Delete")
+                            || ((not event.shiftKey) && (not event.altKey) && event.metaKey && event.code == "Backspace")
                         )
                             && (not event.targetEditable)
                 in
@@ -3243,10 +3260,11 @@ shortcutEvent =
                 , preventDefault = hasShortcut
                 }
             )
-            (Decode.map4 ShortcutEvent
+            (Decode.map5 ShortcutEvent
                 (Decode.field "code" Decode.string)
                 (Decode.field "shiftKey" Decode.bool)
                 (Decode.field "altKey" Decode.bool)
+                (Decode.field "metaKey" Decode.bool)
                 (Decode.oneOf
                     [ Decode.at [ "target", "isContentEditable" ] Decode.bool
                     , Decode.map
