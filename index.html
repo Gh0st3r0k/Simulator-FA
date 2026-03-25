@@ -43,7 +43,7 @@
 
     <script>
       (function () {
-        function normalizeLang(value) {
+        function supportedLang(value) {
           const normalized = (value || "").toLowerCase();
 
           if (normalized.startsWith("sk")) return "sk";
@@ -51,29 +51,47 @@
           if (normalized.startsWith("uk") || normalized.startsWith("ua")) return "ua";
           if (normalized.startsWith("en")) return "en";
 
-          return "en";
+          return null;
+        }
+
+        function normalizeLang(value) {
+          return supportedLang(value) || "en";
         }
 
         const STORAGE_KEYS = {
           lang: "fas.lang",
           theme: "fas.theme",
-          automatonSlots: "fas.automatonSlots"
+          automatonSlots: "fas.automatonSlots",
+          startPage: "fas.startPage"
         };
 
         function getStorageValue(ls, primaryKey, legacyKey) {
           return ls.getItem(primaryKey) || ls.getItem(legacyKey);
         }
 
-        function resolveInitialLang(ls) {
-          const stored = getStorageValue(ls, STORAGE_KEYS.lang, "lang");
-          if (stored) return normalizeLang(stored);
+        function detectBrowserLang() {
+          const nav = window.navigator || {};
+          const preferred = Array.isArray(nav.languages) && nav.languages.length
+            ? nav.languages[0]
+            : nav.language;
+          return normalizeLang(preferred);
+        }
 
-          return normalizeLang(window.navigator && window.navigator.language);
+        function resolveInitialLang(ls) {
+          if (ls) {
+            const stored = getStorageValue(ls, STORAGE_KEYS.lang, "lang");
+            const parsedStored = supportedLang(stored);
+            if (parsedStored) return parsedStored;
+          }
+
+          return detectBrowserLang();
         }
 
         function resolveInitialTheme(ls) {
-          const storedTheme = getStorageValue(ls, STORAGE_KEYS.theme, "theme");
-          if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+          if (ls) {
+            const storedTheme = getStorageValue(ls, STORAGE_KEYS.theme, "theme");
+            if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+          }
 
           const prefersDark =
             window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -95,13 +113,20 @@
           let lang = resolveInitialLang(ls);
           let theme = resolveInitialTheme(ls);
           let automatonSlots = getStorageValue(ls, STORAGE_KEYS.automatonSlots, "automatonSlots") || "[]";
+          let startPageRaw = getStorageValue(ls, STORAGE_KEYS.startPage, "startPage");
+          let startPage = Number.parseInt(startPageRaw || "0", 10);
+          if (![0, 1, 2, 3].includes(startPage)) startPage = 0;
 
           document.documentElement.lang = lang;
           applyDocumentTheme(theme);
 
-          window.__APP_FLAGS__ = { lang, theme, automatonSlots };
+          window.__APP_FLAGS__ = { lang, theme, automatonSlots, startPage };
         } catch (e) {
-          window.__APP_FLAGS__ = { lang: "en", theme: "dark", automatonSlots: "[]" };
+          const lang = resolveInitialLang(null);
+          const theme = resolveInitialTheme(null);
+          document.documentElement.lang = lang;
+          applyDocumentTheme(theme);
+          window.__APP_FLAGS__ = { lang, theme, automatonSlots: "[]", startPage: 0 };
         }
       })();
     </script>
@@ -112,10 +137,11 @@
       const STORAGE_KEYS = {
         lang: "fas.lang",
         theme: "fas.theme",
-        automatonSlots: "fas.automatonSlots"
+        automatonSlots: "fas.automatonSlots",
+        startPage: "fas.startPage"
       };
 
-      function normalizeLang(value) {
+      function supportedLang(value) {
         const normalized = (value || "").toLowerCase();
 
         if (normalized.startsWith("sk")) return "sk";
@@ -123,7 +149,11 @@
         if (normalized.startsWith("uk") || normalized.startsWith("ua")) return "ua";
         if (normalized.startsWith("en")) return "en";
 
-        return "en";
+        return null;
+      }
+
+      function normalizeLang(value) {
+        return supportedLang(value) || "en";
       }
 
       function applyDocumentTheme(theme) {
@@ -169,6 +199,19 @@
             window.localStorage.setItem("theme", theme);
             window.localStorage.setItem(STORAGE_KEYS.theme, theme);
             applyDocumentTheme(theme)
+          } catch (e) {
+            // ignore storage write errors
+          }
+        });
+      }
+
+      if (app.ports && app.ports.saveStartPage) {
+        app.ports.saveStartPage.subscribe(function (payload) {
+          try {
+            const raw = Number.parseInt(String(payload), 10);
+            const startPage = [0, 1, 2, 3].includes(raw) ? raw : 0;
+            window.localStorage.setItem("startPage", String(startPage));
+            window.localStorage.setItem(STORAGE_KEYS.startPage, String(startPage));
           } catch (e) {
             // ignore storage write errors
           }

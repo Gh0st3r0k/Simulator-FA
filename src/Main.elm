@@ -67,6 +67,9 @@ type alias Model =
     , feedbackText : String
     , feedbackEmailInput : String
     , feedbackMailProvider : MailProvider
+    , settingsModalOpen : Bool
+    , welcomeModalOpen : Bool
+    , startPage : StartPage
     }
 
 
@@ -96,6 +99,66 @@ mailProviderFromString value =
             GmailProvider
             
 
+type StartPage
+    = StartPageWelcome
+    | StartPageHome
+    | StartPageFinite
+    | StartPageStack
+
+
+startPageFromInt : Int -> StartPage
+startPageFromInt value =
+    case value of
+        1 ->
+            StartPageHome
+
+        2 ->
+            StartPageFinite
+
+        3 ->
+            StartPageStack
+
+        _ ->
+            StartPageHome
+
+
+startPageToInt : StartPage -> Int
+startPageToInt startPage =
+    case startPage of
+        StartPageWelcome ->
+            1
+
+        StartPageHome ->
+            1
+
+        StartPageFinite ->
+            2
+
+        StartPageStack ->
+            3
+
+
+startPageFromString : String -> StartPage
+startPageFromString rawValue =
+    rawValue
+        |> String.toInt
+        |> Maybe.withDefault 0
+        |> startPageFromInt
+
+
+defaultRouteForStartPage : StartPage -> Route
+defaultRouteForStartPage startPage =
+    case startPage of
+        StartPageFinite ->
+            Editor
+
+        StartPageStack ->
+            EditorStack
+
+        _ ->
+            Home
+            
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
@@ -112,6 +175,10 @@ type Msg
     | GotImportAutomatonFile Decode.Value
     | OpenFeedbackModal
     | CloseFeedbackModal
+    | OpenSettingsModal
+    | CloseSettingsModal
+    | CloseWelcomeModal
+    | SetStartPage String
     | UpdateFeedbackText String
     | UpdateFeedbackEmailInput String
     | UpdateFeedbackMailProvider String
@@ -124,6 +191,7 @@ type alias Flags =
     { lang : String
     , theme : String
     , automatonSlots : String
+    , startPage : Int
     }
     
 
@@ -134,6 +202,9 @@ port saveLang : String -> Cmd msg
 
 
 port saveTheme : String -> Cmd msg
+
+
+port saveStartPage : String -> Cmd msg
 
 
 port exportAutomatonFile : Encode.Value -> Cmd msg
@@ -159,9 +230,30 @@ main =
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
+    let
+        startPage =
+            startPageFromInt flags.startPage
+
+        parsedRoute =
+            Route.parseHash url.fragment
+
+        initialRoute =
+            case url.fragment of
+                Nothing ->
+                    defaultRouteForStartPage startPage
+
+                Just "" ->
+                    defaultRouteForStartPage startPage
+
+                Just "/" ->
+                    defaultRouteForStartPage startPage
+
+                _ ->
+                    parsedRoute
+    in
     ( { key = key
       , url = url
-      , route = Route.parseHash url.fragment
+      , route = initialRoute
       , lang = langFromString flags.lang
       , theme = themeFromString flags.theme
       , scale = Large
@@ -176,6 +268,9 @@ init flags url key =
       , feedbackText = ""
       , feedbackEmailInput = ""
       , feedbackMailProvider = GmailProvider
+      , settingsModalOpen = False
+      , welcomeModalOpen = flags.startPage == 0
+      , startPage = startPage
       }
     , Task.attempt GotViewport Dom.getViewport
     )
@@ -304,10 +399,10 @@ themeToString : Theme -> String
 themeToString theme =
     case theme of
         Dark ->
-            "light"
+            "dark"
 
         Light ->
-            "dark"
+            "light"
 
 
 -- UPDATE
@@ -546,6 +641,35 @@ update msg model =
         CloseFeedbackModal ->
             ( { model | feedbackModalOpen = False }, Cmd.none )
 
+        OpenSettingsModal ->
+            ( { model | settingsModalOpen = True }, Cmd.none )
+
+        CloseSettingsModal ->
+            ( { model | settingsModalOpen = False }, Cmd.none )
+
+        CloseWelcomeModal ->
+            let
+                normalizedStartPage =
+                    case model.startPage of
+                        StartPageWelcome ->
+                            StartPageHome
+
+                        _ ->
+                            model.startPage
+            in
+            ( { model | welcomeModalOpen = False, startPage = normalizedStartPage }
+            , saveStartPage (String.fromInt (startPageToInt normalizedStartPage))
+            )
+
+        SetStartPage value ->
+            let
+                nextStartPage =
+                    startPageFromString value
+            in
+            ( { model | startPage = nextStartPage }
+            , saveStartPage (String.fromInt (startPageToInt nextStartPage))
+            )
+
         UpdateFeedbackText value ->
             ( { model | feedbackText = value }, Cmd.none )
 
@@ -667,6 +791,8 @@ view model =
             ]
         , feedbackButton model
         , feedbackModal model
+        , settingsModal model
+        , welcomeModal model
         ]
     }
 
@@ -902,6 +1028,308 @@ feedbackModal model =
             ]
             
 
+startPageOptions : Model -> List (Html Msg)
+startPageOptions model =
+    [ option [ HA.value "1", HA.selected (model.startPage == StartPageHome) ] [ text (t model.lang StartPageHomeOption) ]
+    , option [ HA.value "2", HA.selected (model.startPage == StartPageFinite) ] [ text (t model.lang StartPageFiniteOption) ]
+    , option [ HA.value "3", HA.selected (model.startPage == StartPageStack) ] [ text (t model.lang StartPageStackOption) ]
+    ]
+
+
+settingsForm : Model -> Html Msg
+settingsForm model =
+    div
+        [ HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
+        , HA.style "gap" "14px"
+        ]
+        [ div
+            [ HA.style "display" "flex"
+            , HA.style "gap" "12px"
+            , HA.style "align-items" "stretch"
+            ]
+            [ div
+                [ HA.style "flex" "1"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "6px"
+                ]
+                [ H.label [] [ text (t model.lang Language) ]
+                , select
+                    [ onInput SetLang
+                    , HA.value (langToString model.lang)
+                    , HA.style "padding" "8px"
+                    , HA.style "border-radius" "10px"
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "background" (interactiveBg model.theme)
+                    , HA.style "color" (textColor model.theme)
+                    , HA.style "width" "100%"
+                    ]
+                    [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
+                    , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
+                    , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
+                    , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
+                    ]
+                ]
+            , div
+                [ HA.style "flex" "2"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "6px"
+                ]
+                [ H.label [] [ text (t model.lang ThemeLabel) ]
+                , button
+                    [ onClick ToggleTheme
+                    , HA.style "padding" "10px"
+                    , HA.style "border-radius" "10px"
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "background" (interactiveBg model.theme)
+                    , HA.style "color" (textColor model.theme)
+                    , HA.style "cursor" "pointer"
+                    , HA.style "display" "flex"
+                    , HA.style "justify-content" "space-between"
+                    , HA.style "align-items" "center"
+                    , HA.style "width" "100%"
+                    ]
+                    [ text <|
+                        case model.theme of
+                            Light ->
+                                t model.lang ThemeLight
+
+                            Dark ->
+                                t model.lang ThemeDark
+                    , H.span
+                        [ HA.style "font-size" "18px"
+                        , HA.style "line-height" "1"
+                        , HA.style "color" <|
+                            case model.theme of
+                                Dark ->
+                                    "#ffffff"
+
+                                Light ->
+                                    hoverBorder model.theme
+                        ]
+                        [ text <|
+                            case model.theme of
+                                Light ->
+                                    "☀"
+
+                                Dark ->
+                                    "☾"
+                        ]
+                    ]
+                ]
+            ]
+        , div
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
+            , HA.style "gap" "6px"
+            ]
+            [ H.label [] [ text (t model.lang StartPageLabel) ]
+            , select
+                [ onInput SetStartPage
+                , HA.value (String.fromInt (startPageToInt model.startPage))
+                , HA.style "padding" "8px"
+                , HA.style "border-radius" "10px"
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "background" (interactiveBg model.theme)
+                , HA.style "color" (textColor model.theme)
+                ]
+                (startPageOptions model)
+            ]
+        ]
+
+
+settingsModal : Model -> Html Msg
+settingsModal model =
+    if not model.settingsModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.55)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1200"
+            , onClick CloseSettingsModal
+            ]
+            [ div
+                [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                , HA.style "width" "min(520px, 92vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "16px"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "12px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang SettingsTitle) ]
+                , settingsForm model
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "justify-content" "flex-end"
+                    ]
+                    [ button
+                        [ onClick CloseSettingsModal
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                        , HA.style "background" (interactiveBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang EditorClose) ]
+                    ]
+                ]
+            ]
+
+
+welcomeModal : Model -> Html Msg
+welcomeModal model =
+    if not model.welcomeModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.60)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1300"
+            ]
+            [ div
+                [ HA.style "width" "min(620px, 94vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "18px"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "10px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang WelcomeTitle) ]
+                , div [] [ text (t model.lang WelcomeSummary) ]
+                , div [] [ text (t model.lang WelcomeTech) ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "gap" "12px"
+                    , HA.style "align-items" "stretch"
+                    ]
+                    [ div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        ]
+                        [ H.label [] [ text (t model.lang Language) ]
+                        , select
+                            [ onInput SetLang
+                            , HA.value (langToString model.lang)
+                            , HA.style "padding" "8px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (interactiveBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "width" "100%"
+                            ]
+                            [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
+                            , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
+                            , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
+                            , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
+                            ]
+                        ]
+                    , div
+                        [ HA.style "flex" "2"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        ]
+                        [ H.label [] [ text (t model.lang ThemeLabel) ]
+                        , button
+                            [ onClick ToggleTheme
+                            , HA.style "padding" "10px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (interactiveBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            , HA.style "display" "flex"
+                            , HA.style "justify-content" "space-between"
+                            , HA.style "align-items" "center"
+                            , HA.style "width" "100%"
+                            ]
+                            [ text <|
+                                case model.theme of
+                                    Light ->
+                                        t model.lang ThemeLight
+
+                                    Dark ->
+                                        t model.lang ThemeDark
+                            , H.span
+                                [ HA.style "font-size" "18px"
+                                , HA.style "line-height" "1"
+                                , HA.style "color" <|
+                                    case model.theme of
+                                        Dark ->
+                                            "#ffffff"
+
+                                        Light ->
+                                            hoverBorder model.theme
+                                ]
+                                [ text <|
+                                    case model.theme of
+                                        Light ->
+                                            "☀"
+
+                                        Dark ->
+                                            "☾"
+                                ]
+                            ]
+                        ]
+                    ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "6px"
+                    , HA.style "margin-top" "6px"
+                    ]
+                    [ H.label [] [ text (t model.lang StartPageLabel) ]
+                    , select
+                        [ onInput SetStartPage
+                        , HA.value (String.fromInt (startPageToInt model.startPage))
+                        , HA.style "padding" "8px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                        , HA.style "background" (interactiveBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        ]
+                        (startPageOptions model)
+                    ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "justify-content" "flex-end"
+                    ]
+                    [ button
+                        [ onClick CloseWelcomeModal
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" "none"
+                        , HA.style "background" (hoverBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang WelcomeContinue) ]
+                    ]
+                ]
+            ]
+
+
 topBar : Model -> Html Msg
 topBar model =
     let
@@ -983,24 +1411,10 @@ topBar model =
                 )
                 [ text (t model.lang EditorSave) ]
                 
-        viewLang : Html Msg
-        viewLang =
-            select
-                (onInput SetLang :: HA.value (langToString model.lang) :: baseControlStyles)
-                [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
-                , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
-                , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
-                , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
-                ]
-
-        viewTheme : Html Msg
-        viewTheme =
-            button (onClick ToggleTheme :: baseControlStyles)
-                [ text <|
-                    case model.theme of
-                        Light -> t model.lang ThemeDark
-                        Dark  -> t model.lang ThemeLight
-                ]
+        viewSettings : Html Msg
+        viewSettings =
+            button (onClick OpenSettingsModal :: baseControlStyles)
+                [ text (t model.lang SettingsButton) ]
 
         -- правая часть: всегда справа; при <500 две строки
         rightContainerAttrs : List (H.Attribute Msg)
@@ -1022,7 +1436,7 @@ topBar model =
                     , HA.style "justify-content" "flex-end"
                     , HA.style "align-items" "center"
                     ]
-                    [ viewLang, viewTheme ]
+                    [ viewSettings ]
             else
                 let
                     editorActions =
@@ -1032,7 +1446,7 @@ topBar model =
                             []
 
                     commonActions =
-                        (if onHome then [] else [ viewHome ]) ++ [ viewLang, viewTheme ]
+                        (if onHome then [] else [ viewHome ]) ++ [ viewSettings ]
                 in
                 div
                     [ HA.style "display" "flex"

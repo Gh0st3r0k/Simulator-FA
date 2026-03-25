@@ -46,7 +46,19 @@ type Key
     | EditorStackVisual
     | ThemeLight
     | ThemeDark
+    | ThemeLabel
     | Language
+    | SettingsButton
+    | SettingsTitle
+    | WelcomeTitle
+    | WelcomeSummary
+    | WelcomeTech
+    | WelcomeContinue
+    | StartPageLabel
+    | StartPageWelcomeOption
+    | StartPageHomeOption
+    | StartPageFiniteOption
+    | StartPageStackOption
     | BackHome
     | InstructionsTitle
     | InstructionsBody
@@ -218,10 +230,70 @@ t lang key =
         ( SK, ThemeDark ) -> "Tmavá"
         ( UA, ThemeDark ) -> "Темна"
 
+        ( RU, ThemeLabel ) -> "Тема"
+        ( EN, ThemeLabel ) -> "Theme"
+        ( SK, ThemeLabel ) -> "Téma"
+        ( UA, ThemeLabel ) -> "Тема"
+
         ( RU, Language ) -> "Язык"
         ( EN, Language ) -> "Language"
         ( SK, Language ) -> "Jazyk"
         ( UA, Language ) -> "Мова"
+
+        ( RU, SettingsButton ) -> "Настройки"
+        ( EN, SettingsButton ) -> "Settings"
+        ( SK, SettingsButton ) -> "Nastavenia"
+        ( UA, SettingsButton ) -> "Налаштування"
+
+        ( RU, SettingsTitle ) -> "Настройки"
+        ( EN, SettingsTitle ) -> "Settings"
+        ( SK, SettingsTitle ) -> "Nastavenia"
+        ( UA, SettingsTitle ) -> "Налаштування"
+
+        ( RU, WelcomeTitle ) -> "Добро пожаловать!"
+        ( EN, WelcomeTitle ) -> "Welcome!"
+        ( SK, WelcomeTitle ) -> "Vitajte!"
+        ( UA, WelcomeTitle ) -> "Ласкаво просимо!"
+
+        ( RU, WelcomeSummary ) -> "Это симулятор конечного и стекового автоматов: вы можете строить граф, редактировать переходы, запускать симуляцию и сохранять слоты."
+        ( EN, WelcomeSummary ) -> "This is a finite and stack automata simulator: you can build graphs, edit transitions, run simulations, and save slots."
+        ( SK, WelcomeSummary ) -> "Toto je simulátor konečných a zásobníkových automatov: môžete vytvárať graf, upravovať prechody, spúšťať simuláciu a ukladať sloty."
+        ( UA, WelcomeSummary ) -> "Це симулятор кінцевого та стекового автоматів: ви можете будувати граф, редагувати переходи, запускати симуляцію та зберігати слоти."
+
+        ( RU, WelcomeTech ) -> "Сайт построен как SPA на Elm: интерфейс, логика и состояние работают в браузере, а данные сохраняются в localStorage."
+        ( EN, WelcomeTech ) -> "The site is built as an Elm SPA: UI, logic, and state run in the browser, while data is persisted in localStorage."
+        ( SK, WelcomeTech ) -> "Stránka je vytvorená ako Elm SPA: rozhranie, logika aj stav bežia v prehliadači a dáta sa ukladajú do localStorage."
+        ( UA, WelcomeTech ) -> "Сайт побудовано як SPA на Elm: інтерфейс, логіка й стан працюють у браузері, а дані зберігаються в localStorage."
+
+        ( RU, WelcomeContinue ) -> "Продолжить"
+        ( EN, WelcomeContinue ) -> "Continue"
+        ( SK, WelcomeContinue ) -> "Pokračovať"
+        ( UA, WelcomeContinue ) -> "Продовжити"
+
+        ( RU, StartPageLabel ) -> "Стартовая страница"
+        ( EN, StartPageLabel ) -> "Start page"
+        ( SK, StartPageLabel ) -> "Úvodná stránka"
+        ( UA, StartPageLabel ) -> "Стартова сторінка"
+
+        ( RU, StartPageWelcomeOption ) -> "Показывать Welcome окно"
+        ( EN, StartPageWelcomeOption ) -> "Show Welcome modal"
+        ( SK, StartPageWelcomeOption ) -> "Zobraziť Welcome okno"
+        ( UA, StartPageWelcomeOption ) -> "Показувати Welcome вікно"
+
+        ( RU, StartPageHomeOption ) -> "Home"
+        ( EN, StartPageHomeOption ) -> "Home"
+        ( SK, StartPageHomeOption ) -> "Domov"
+        ( UA, StartPageHomeOption ) -> "Home"
+
+        ( RU, StartPageFiniteOption ) -> "Конечный автомат"
+        ( EN, StartPageFiniteOption ) -> "Finite automaton"
+        ( SK, StartPageFiniteOption ) -> "Konečný automat"
+        ( UA, StartPageFiniteOption ) -> "Кінцевий автомат"
+
+        ( RU, StartPageStackOption ) -> "Стековый автомат"
+        ( EN, StartPageStackOption ) -> "Stack automaton"
+        ( SK, StartPageStackOption ) -> "Zásobníkový automat"
+        ( UA, StartPageStackOption ) -> "Стековий автомат"
 
         ( RU, BackHome ) -> "← На главную"
         ( EN, BackHome ) -> "← Home"
