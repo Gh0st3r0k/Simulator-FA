@@ -7,6 +7,7 @@ module Theme
         , panelBg
         , panelBorder
         , interactiveBg
+        , inputBg
         , interactiveBorder
         , hoverBg
         , hoverBorder
@@ -68,6 +69,13 @@ interactiveBg =
     panelBg
 
 
+inputBg : Theme -> String
+inputBg th =
+    case th of
+        Light -> "#e6ebf3"
+        Dark -> "#1b2233"
+        
+        
 interactiveBorder : Theme -> String
 interactiveBorder =
     panelBorder

@@ -15,7 +15,7 @@ import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
 import Task
-import Theme exposing (Theme, errorColor, hoverBg, hoverBorder, interactiveBg, interactiveBorder, panelBg, panelBorder, stackBorder, stackEmptyBg, stackFillBg, successColor, textColor, warningColor)
+import Theme exposing (Theme, errorColor, hoverBg, hoverBorder, inputBg, interactiveBg, interactiveBorder, panelBg, panelBorder, stackBorder, stackEmptyBg, stackFillBg, successColor, textColor, warningColor)
 
 
 -- MODEL
@@ -4047,12 +4047,14 @@ saveModal ctx model =
                     [ H.div [] [ H.text (t ctx.lang EditorSlot ++ " " ++ String.fromInt slot.id ++ ":") ]
                     , if model.renamingSlot == Just slot.id then
                         input
-                            [ HA.type_ "text"
-                            , value model.renameDraft
-                            , placeholder (t ctx.lang EditorRenameSlot)
-                            , onInput UpdateRenameDraft
-                            , HA.style "width" renameInputWidth
-                            ]
+                            ([ HA.type_ "text"
+                             , value model.renameDraft
+                             , placeholder (t ctx.lang EditorRenameSlot)
+                             , onInput UpdateRenameDraft
+                             , HA.style "width" renameInputWidth
+                             ]
+                                ++ editorTextInputStyles ctx.theme
+                            )
                             []
 
                       else
@@ -4136,6 +4138,24 @@ editorButtonStyles theme =
     , HA.style "padding" "4px 8px"
     ]
 
+
+editorTextInputStyles : Theme -> List (H.Attribute msg)
+editorTextInputStyles theme =
+    [ HA.style "font-size" "14px"
+    , HA.style "line-height" "normal"
+    , HA.style "font-family" "inherit"
+    , HA.style "height" "32px"
+    , HA.style "min-height" "32px"
+    , HA.style "padding" "0 8px"
+    , HA.style "box-sizing" "border-box"
+    , HA.style "color" (textColor theme)
+    , HA.style "caret-color" (textColor theme)
+    , HA.style "background" (inputBg theme)
+    , HA.style "border" ("1px solid " ++ interactiveBorder theme)
+    , HA.style "border-radius" "6px"
+    , HA.style "vertical-align" "middle"
+    ]
+    
 
 editorControlsPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 editorControlsPanel ctx model =
@@ -4228,35 +4248,39 @@ editorControlsPanel ctx model =
                     , div [ HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "6px", HA.style "align-items" "stretch" ]
                         [ H.text (t ctx.lang EditorTransitionLabel ++ ":")
                         , input
-                            [ HA.type_ "text"
-                            , size 12
-                            , placeholder "λ"
-                            , HA.id "transition-create-label-input"
-                            , value model.transitionLabel
-                            , onInput SetTransitionLabel
-                            ]
+                            ([ HA.type_ "text"
+                             , size 12
+                             , placeholder "λ"
+                             , HA.id "transition-create-label-input"
+                             , value model.transitionLabel
+                             , onInput SetTransitionLabel
+                             ]
+                                ++ editorTextInputStyles ctx.theme
+                            )
                             []
                         , H.text (t ctx.lang EditorTransitionStackInput ++ ":")
                         , input
-                            [ HA.type_ "text"
-                            , size 12
-                            , placeholder "λ"
-                            , HA.id "transition-create-stack-input"
-                            , HA.style "color" (if String.isEmpty model.transitionStackInput then "#9aa0a6" else textColor ctx.theme)
-                            , value model.transitionStackInput
-                            , onInput SetTransitionStackInput
-                            ]
+                            ([ HA.type_ "text"
+                             , size 12
+                             , placeholder "λ"
+                             , HA.id "transition-create-stack-input"
+                             , value model.transitionStackInput
+                             , onInput SetTransitionStackInput
+                             ]
+                                ++ editorTextInputStyles ctx.theme
+                            )
                             []
                         , H.text (t ctx.lang EditorTransitionStackOutput ++ ":")
                         , input
-                            [ HA.type_ "text"
-                            , size 12
-                            , placeholder "λ"
-                            , HA.id "transition-create-stack-output"
-                            , HA.style "color" (if String.isEmpty model.transitionStackOutput then "#9aa0a6" else textColor ctx.theme)
-                            , value model.transitionStackOutput
-                            , onInput SetTransitionStackOutput
-                            ]
+                            ([ HA.type_ "text"
+                             , size 12
+                             , placeholder "λ"
+                             , HA.id "transition-create-stack-output"
+                             , value model.transitionStackOutput
+                             , onInput SetTransitionStackOutput
+                             ]
+                                ++ editorTextInputStyles ctx.theme
+                            )
                             []
                         ]
                     , (case model.transitionFrom of
@@ -4286,12 +4310,14 @@ editorControlsPanel ctx model =
                                         , div [ HA.style "margin-top" "6px" ]
                                             [ H.text (t ctx.lang EditorStateName ++ ": ")
                                             , input
-                                                [ HA.type_ "text"
-                                                , HA.id "selected-state-name-input"
-                                                , placeholder (String.fromInt s.id)
-                                                , value s.name
-                                                , onInput SetSelectedStateName
-                                                ]
+                                                ([ HA.type_ "text"
+                                                 , HA.id "selected-state-name-input"
+                                                 , placeholder (String.fromInt s.id)
+                                                 , value s.name
+                                                 , onInput SetSelectedStateName
+                                                 ]
+                                                    ++ editorTextInputStyles ctx.theme
+                                                )
                                                 []
                                             ]
                                         , if model.stateNameConflict then
@@ -4333,32 +4359,36 @@ editorControlsPanel ctx model =
                                         , div [ HA.style "margin-top" "6px", HA.style "display" "flex", HA.style "flex-direction" "column", HA.style "gap" "6px" ]
                                             [ H.text (t ctx.lang EditorTransitionLabel ++ ": ")
                                             , input
-                                                [ HA.type_ "text"
-                                                , HA.id "selected-transition-label-input"
-                                                , placeholder "λ"
-                                                , value model.selectedTransitionLabelDraft
-                                                , onInput SetSelectedTransitionLabel
-                                                ]
+                                                ([ HA.type_ "text"
+                                                 , HA.id "selected-transition-label-input"
+                                                 , placeholder "λ"
+                                                 , value model.selectedTransitionLabelDraft
+                                                 , onInput SetSelectedTransitionLabel
+                                                 ]
+                                                    ++ editorTextInputStyles ctx.theme
+                                                )
                                                 []
                                             , H.text (t ctx.lang EditorTransitionStackInput ++ ":")
                                             , input
-                                                [ HA.type_ "text"
-                                                , HA.id "selected-transition-stack-input"
-                                                , placeholder "λ"
-                                                , HA.style "color" (if String.isEmpty model.selectedTransitionStackInputDraft then "#9aa0a6" else textColor ctx.theme)
-                                                , value model.selectedTransitionStackInputDraft
-                                                , onInput SetSelectedTransitionStackInput
-                                                ]
+                                                ([ HA.type_ "text"
+                                                 , HA.id "selected-transition-stack-input"
+                                                 , placeholder "λ"
+                                                 , value model.selectedTransitionStackInputDraft
+                                                 , onInput SetSelectedTransitionStackInput
+                                                 ]
+                                                    ++ editorTextInputStyles ctx.theme
+                                                )
                                                 []
                                             , H.text (t ctx.lang EditorTransitionStackOutput ++ ":")
                                             , input
-                                                [ HA.type_ "text"
-                                                , HA.id "selected-transition-stack-output"
-                                                , placeholder "λ"
-                                                , HA.style "color" (if String.isEmpty model.selectedTransitionStackOutputDraft then "#9aa0a6" else textColor ctx.theme)
-                                                , value model.selectedTransitionStackOutputDraft
-                                                , onInput SetSelectedTransitionStackOutput
-                                                ]
+                                                ([ HA.type_ "text"
+                                                 , HA.id "selected-transition-stack-output"
+                                                 , placeholder "λ"
+                                                 , value model.selectedTransitionStackOutputDraft
+                                                 , onInput SetSelectedTransitionStackOutput
+                                                 ]
+                                                    ++ editorTextInputStyles ctx.theme
+                                                )
                                                 []
                                             ]
                                         , div [ HA.style "margin-top" "8px", HA.style "display" "flex", HA.style "gap" "8px" ]

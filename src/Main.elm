@@ -44,6 +44,7 @@ import Pages.Editor as Editor
 import Pages.EditorStack as EditorStack
 import Pages.Instructions as Instructions
 import Pages.About as About
+import Svg.Attributes exposing (d)
 
 
 -- MODEL
@@ -303,10 +304,10 @@ themeToString : Theme -> String
 themeToString theme =
     case theme of
         Dark ->
-            "dark"
+            "light"
 
         Light ->
-            "light"
+            "dark"
 
 
 -- UPDATE
