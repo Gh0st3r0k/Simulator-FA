@@ -52,6 +52,8 @@ type alias Model =
     , simulationInputIndex : Int
     , simulationResult : SimulationResult
     , simulationChoice : Maybe PendingChoice
+    , simulationRunMode : Maybe SimulationRunMode
+    , simulationHistory : List SimulationSnapshot
     , stateNameConflict : Bool
     , saveModalOpen : Bool
     , saveSlots : List SaveSlot
@@ -144,6 +146,22 @@ type SimulationResult
     | DeadEnd
     | MissingStart
 
+type SimulationRunMode
+    = AutoRun
+    | StepRun
+
+
+type alias SimulationSnapshot =
+    { simulationQueue : List Char
+    , simulationCurrent : Maybe Int
+    , simulationActiveTransition : Maybe Int
+    , simulationInputIndex : Int
+    , simulationResult : SimulationResult
+    , simulationChoice : Maybe PendingChoice
+    , selected : Maybe Int
+    }
+    
+    
 init : Model
 init =
     initWithSlots (defaultSaveSlots 5)
@@ -181,6 +199,8 @@ initWithSlots slots =
     , simulationInputIndex = 0
     , simulationResult = Idle
     , simulationChoice = Nothing
+    , simulationRunMode = Nothing
+    , simulationHistory = []
     , stateNameConflict = False
     , saveModalOpen = False
     , saveSlots = ensureSlotCount 5 slots
@@ -231,7 +251,10 @@ type Msg
     | SetSimulationDelay String
     | CenterOnStartState
     | StartSimulation
+    | StartStepSimulation
     | AdvanceSimulation
+    | StepForwardSimulation
+    | StepBackwardSimulation
     | ChooseSimulationTransition Int
     | WheelPan Float Float
     | SetViewport Int Int
@@ -272,7 +295,7 @@ type alias ShortcutEvent =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    if model.simulationRunning || (model.simulationChoice /= Nothing) then
+    if simulationSessionActive model then
         case msg of
             CanvasMouseDown _ button cx cy ->
                 if button == 1 then
@@ -314,6 +337,22 @@ update msg model =
             AdvanceSimulation ->
                 stepSimulation model
 
+            StepForwardSimulation ->
+                case model.simulationRunMode of
+                    Just StepRun ->
+                        stepSimulationWithHistory model
+
+                    _ ->
+                        ( model, Cmd.none )
+
+            StepBackwardSimulation ->
+                case model.simulationRunMode of
+                    Just StepRun ->
+                        stepSimulationBack model
+
+                    _ ->
+                        ( model, Cmd.none )
+                        
             ChooseSimulationTransition tid ->
                 case ( model.simulationChoice, model.simulationCurrent ) of
                     ( Just choice, Just _ ) ->
@@ -344,7 +383,7 @@ update msg model =
                 ( { model | viewportWidth = w, viewportHeight = h }, Cmd.none )
             
             StopSimulation ->
-                ( stopSimulation Idle model, Cmd.none )
+                showGlobalNotice EditorSimulationStopped (stopSimulation Idle model)
 
             SetCodeEditorFocused focused ->
                 if focused then
@@ -847,10 +886,23 @@ update msg model =
                     showGlobalNotice EditorSimulationBlockedByCodeErrors model
 
                 else
-                    startSimulation model
+                    startSimulation AutoRun model
+
+            StartStepSimulation ->
+                if hasCodeValidationErrors model then
+                    showGlobalNotice EditorSimulationBlockedByCodeErrors model
+
+                else
+                    startSimulation StepRun model
 
             AdvanceSimulation ->
                 stepSimulation model
+
+            StepForwardSimulation ->
+                ( model, Cmd.none )
+
+            StepBackwardSimulation ->
+                ( model, Cmd.none )
 
             ChooseSimulationTransition _ ->
                 ( model, Cmd.none )
@@ -862,7 +914,7 @@ update msg model =
                 ( { model | viewportWidth = w, viewportHeight = h }, Cmd.none )
 
             StopSimulation ->
-                ( stopSimulation Idle model, Cmd.none )
+                showGlobalNotice EditorSimulationStopped (stopSimulation Idle model)
 
             OpenSaveModal ->
                 ( { model | saveModalOpen = True, slotImportError = False, slotTypeMismatchError = False }, Cmd.none )
@@ -952,6 +1004,8 @@ update msg model =
                                                     , simulationInputIndex = 0
                                                     , simulationResult = Idle
                                                     , simulationChoice = Nothing
+                                                    , simulationRunMode = Nothing
+                                                    , simulationHistory = []
                                                     , stateNameConflict = False
                                                     , slotTypeMismatchError = False
                                                   }
@@ -1657,15 +1711,18 @@ simulationInputPreview theme model =
         maxShiftPx =
             Basics.max 0 (totalWidthPx - viewportWidthPx)
 
+        highlightedInputIndex =
+            model.simulationInputIndex - 1
+
         targetShiftPx =
-            Basics.max 0 ((model.simulationInputIndex - 5) * tileStepPx)
+            Basics.max 0 ((highlightedInputIndex - 5) * tileStepPx)
 
         shiftPx =
             Basics.min maxShiftPx targetShiftPx
 
         currentMarkerIndex =
-            if model.simulationCurrent /= Nothing then
-                model.simulationInputIndex
+            if model.simulationCurrent /= Nothing && (not (List.isEmpty model.simulationQueue)) then
+                highlightedInputIndex
 
             else
                 -1
@@ -1752,11 +1809,13 @@ stopSimulation result model =
         , simulationInputIndex = 0
         , simulationResult = result
         , simulationChoice = Nothing
+        , simulationRunMode = Nothing
+        , simulationHistory = []
     }
 
 
-startSimulation : Model -> ( Model, Cmd Msg )
-startSimulation model =
+startSimulation : SimulationRunMode -> Model -> ( Model, Cmd Msg )
+startSimulation runMode model =
     case findStartState model.states of
         Nothing ->
             showGlobalNotice I18n.EditorSimulationMissingStart { model | simulationResult = MissingStart }
@@ -1776,7 +1835,7 @@ startSimulation model =
                     else
                         Rejected
                 cmd =
-                    if willRun then
+                    if willRun && runMode == AutoRun then
                         Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
 
                     else
@@ -1785,7 +1844,7 @@ startSimulation model =
             let
                 nextModel =
                     { model
-                        | simulationRunning = willRun
+                        | simulationRunning = willRun && runMode == AutoRun
                         , simulationQueue = queue
                         , simulationCurrent = Just startState.id
                         , simulationActiveTransition = Nothing
@@ -1793,6 +1852,8 @@ startSimulation model =
                         , selected = Just startState.id
                         , simulationResult = initialResult
                         , simulationChoice = Nothing
+                        , simulationRunMode = Just runMode
+                        , simulationHistory = []
                     }
             in
             if willRun then
@@ -1822,7 +1883,7 @@ applySimulationTransition transition consumesInput rest queue model =
             (not (List.isEmpty nextQueue)) || hasLambdaFrom transition.to model.transitions
 
         cmd =
-            if willContinue then
+            if willContinue && model.simulationRunMode == Just AutoRun then
                 Process.sleep delay |> Task.perform (\_ -> AdvanceSimulation)
 
             else
@@ -1860,7 +1921,7 @@ applySimulationTransition transition consumesInput rest queue model =
                     else
                         model.simulationInputIndex
                 , selected = Just transition.to
-                , simulationRunning = willContinue
+                , simulationRunning = willContinue && model.simulationRunMode == Just AutoRun
                 , simulationChoice = Nothing
                 , simulationResult = nextResult
             }
@@ -2664,6 +2725,55 @@ screenToWorld model x y =
     ( x - model.panX, y - model.panY )
 
 
+simulationSessionActive : Model -> Bool
+simulationSessionActive model =
+    model.simulationRunMode /= Nothing
+
+
+snapshotSimulation : Model -> SimulationSnapshot
+snapshotSimulation model =
+    { simulationQueue = model.simulationQueue
+    , simulationCurrent = model.simulationCurrent
+    , simulationActiveTransition = model.simulationActiveTransition
+    , simulationInputIndex = model.simulationInputIndex
+    , simulationResult = model.simulationResult
+    , simulationChoice = model.simulationChoice
+    , selected = model.selected
+    }
+
+
+restoreSimulationSnapshot : SimulationSnapshot -> Model -> Model
+restoreSimulationSnapshot snapshot model =
+    { model
+        | simulationQueue = snapshot.simulationQueue
+        , simulationCurrent = snapshot.simulationCurrent
+        , simulationActiveTransition = snapshot.simulationActiveTransition
+        , simulationInputIndex = snapshot.simulationInputIndex
+        , simulationResult = snapshot.simulationResult
+        , simulationChoice = snapshot.simulationChoice
+        , selected = snapshot.selected
+    }
+
+
+stepSimulationWithHistory : Model -> ( Model, Cmd Msg )
+stepSimulationWithHistory model =
+    let
+        snapshot =
+            snapshotSimulation model
+    in
+    stepSimulation { model | simulationHistory = snapshot :: model.simulationHistory }
+
+
+stepSimulationBack : Model -> ( Model, Cmd Msg )
+stepSimulationBack model =
+    case model.simulationHistory of
+        previous :: rest ->
+            ( restoreSimulationSnapshot previous { model | simulationHistory = rest }, Cmd.none )
+
+        [] ->
+            ( model, Cmd.none )
+            
+
 simulationStatus : Lang -> SimulationResult -> Maybe ( String, String )
 simulationStatus lang result =
     case result of
@@ -2874,7 +2984,7 @@ handleShortcut shortcut model =
                 ( model, Dom.focus "simulation-input-field" |> Task.attempt (always NoOp) )
 
             ( True, True, "Enter" ) ->
-                if model.simulationRunning || (model.simulationChoice /= Nothing) then
+                if simulationSessionActive model then
                     update StopSimulation model
 
                 else
@@ -3796,7 +3906,7 @@ editorControlsPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 editorControlsPanel ctx model =
     let
         simulationLocked =
-            model.simulationRunning || (model.simulationChoice /= Nothing)
+            simulationSessionActive model
 
         deterministic =
             isDeterministic model.transitions
@@ -4213,7 +4323,7 @@ simulationPanel : { a | theme : Theme, lang : Lang } -> Model -> Html Msg
 simulationPanel ctx model =
     let
         simulationLocked =
-            model.simulationRunning || (model.simulationChoice /= Nothing) || hasCodeValidationErrors model
+            simulationSessionActive model || hasCodeValidationErrors model
 
         speedIndex =
             simulationSpeedIndexFromDelay model.simulationDelay
@@ -4277,22 +4387,62 @@ simulationPanel ctx model =
                 , div [ HA.style "font-size" "12px", HA.style "text-align" "center", HA.style "opacity" "0.85" ]
                     [ text (t ctx.lang EditorSimulationDelay ++ ": " ++ model.simulationDelay ++ " ms") ]
                 ]
-            , H.button
-                (editorButtonStyles ctx.theme
-                    ++ [ onClick StartSimulation
-                       , HA.disabled simulationLocked
-                       , HA.style "height" "36px"
-                       ]
-                )
-                [ H.text (t ctx.lang EditorSimulationStart) ]
-            , H.button
-                (editorButtonStyles ctx.theme
-                    ++ [ onClick StopSimulation
-                       , HA.disabled (not (model.simulationRunning || (model.simulationChoice /= Nothing)))
-                       , HA.style "height" "36px"
-                       ]
-                )
-                [ H.text (t ctx.lang EditorSimulationStop) ]
+            , case model.simulationRunMode of
+                Nothing ->
+                    div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
+                        [ H.button
+                            (editorButtonStyles ctx.theme
+                                ++ [ onClick StartSimulation
+                                   , HA.disabled simulationLocked
+                                   , HA.style "height" "36px"
+                                   ]
+                            )
+                            [ H.text (t ctx.lang EditorSimulationStart) ]
+                        , H.button
+                            (editorButtonStyles ctx.theme
+                                ++ [ onClick StartStepSimulation
+                                   , HA.disabled simulationLocked
+                                   , HA.style "height" "36px"
+                                   ]
+                            )
+                            [ H.text (t ctx.lang EditorSimulationStepStart) ]
+                        ]
+
+                Just AutoRun ->
+                    H.button
+                        (editorButtonStyles ctx.theme
+                            ++ [ onClick StopSimulation
+                               , HA.style "height" "36px"
+                               ]
+                        )
+                        [ H.text (t ctx.lang EditorSimulationStop) ]
+
+                Just StepRun ->
+                    div [ HA.style "display" "flex", HA.style "gap" "8px", HA.style "flex-wrap" "wrap" ]
+                        [ H.button
+                            (editorButtonStyles ctx.theme
+                                ++ [ onClick StopSimulation
+                                   , HA.style "height" "36px"
+                                   ]
+                            )
+                            [ H.text (t ctx.lang EditorSimulationStop) ]
+                        , H.button
+                            (editorButtonStyles ctx.theme
+                                ++ [ onClick StepForwardSimulation
+                                   , HA.disabled (model.simulationCurrent == Nothing)
+                                   , HA.style "height" "36px"
+                                   ]
+                            )
+                            [ H.text (t ctx.lang EditorSimulationStepForward) ]
+                        , H.button
+                            (editorButtonStyles ctx.theme
+                                ++ [ onClick StepBackwardSimulation
+                                   , HA.disabled (List.isEmpty model.simulationHistory)
+                                   , HA.style "height" "36px"
+                                   ]
+                            )
+                            [ H.text (t ctx.lang EditorSimulationStepBackward) ]
+                        ]
             , case simulationStatus ctx.lang model.simulationResult of
                 Nothing ->
                     text ""

@@ -121,7 +121,11 @@ type Key
     | EditorSimulationDelay
     | EditorGoToStartState
     | EditorSimulationStart
+    | EditorSimulationStepStart
     | EditorSimulationStop
+    | EditorSimulationStepForward
+    | EditorSimulationStepBackward
+    | EditorSimulationStopped
     | EditorSimulationRunning
     | EditorSimulationSuccess
     | EditorSimulationRejected
@@ -772,10 +776,30 @@ t lang key =
         ( SK, EditorSimulationStart ) -> "Spustiť simuláciu"
         ( UA, EditorSimulationStart ) -> "Запустити симуляцію"
 
+        ( RU, EditorSimulationStepStart ) -> "Начать пошаговую симуляцию"
+        ( EN, EditorSimulationStepStart ) -> "Start step-by-step simulation"
+        ( SK, EditorSimulationStepStart ) -> "Spustiť krokovú simuláciu"
+        ( UA, EditorSimulationStepStart ) -> "Почати покрокову симуляцію"
+
         ( RU, EditorSimulationStop ) -> "Стоп"
         ( EN, EditorSimulationStop ) -> "Stop"
         ( SK, EditorSimulationStop ) -> "Stop"
         ( UA, EditorSimulationStop ) -> "Стоп"
+
+        ( RU, EditorSimulationStepForward ) -> "Шаг вперед"
+        ( EN, EditorSimulationStepForward ) -> "Step forward"
+        ( SK, EditorSimulationStepForward ) -> "Krok vpred"
+        ( UA, EditorSimulationStepForward ) -> "Крок вперед"
+
+        ( RU, EditorSimulationStepBackward ) -> "Шаг назад"
+        ( EN, EditorSimulationStepBackward ) -> "Step back"
+        ( SK, EditorSimulationStepBackward ) -> "Krok späť"
+        ( UA, EditorSimulationStepBackward ) -> "Крок назад"
+
+        ( RU, EditorSimulationStopped ) -> "Stop"
+        ( EN, EditorSimulationStopped ) -> "Stop"
+        ( SK, EditorSimulationStopped ) -> "Stop"
+        ( UA, EditorSimulationStopped ) -> "Stop"
 
         ( RU, EditorSimulationRunning ) -> "Симуляция выполняется..."
         ( EN, EditorSimulationRunning ) -> "Simulation running..."
