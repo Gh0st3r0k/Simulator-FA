@@ -1441,7 +1441,7 @@ topBar model =
                 let
                     editorActions =
                         if (model.route == Editor) || (model.route == EditorStack) then
-                            [ viewEditorGoToStart, viewEditorSave ]
+                            [ viewEditorSave ]
                         else
                             []
 

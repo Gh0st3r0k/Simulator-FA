@@ -15,7 +15,7 @@ import Svg as S
 import Svg.Attributes as SA
 import Svg.Events as SE
 import Task
-import Theme exposing (Theme, errorColor, hoverBg, hoverBorder, inputBg, interactiveBg, interactiveBorder, panelBg, panelBorder, stackBorder, stackEmptyBg, stackFillBg, successColor, textColor, warningColor)
+import Theme exposing (Theme, errorColor, hoverBg, hoverBorder, hoverShadow, inputBg, interactiveBg, interactiveBorder, panelBg, panelBorder, stackBorder, stackEmptyBg, stackFillBg, successColor, textColor, warningColor)
 
 
 -- MODEL
@@ -30,6 +30,7 @@ type alias Model =
     , panning : Maybe PanState
     , panX : Float
     , panY : Float
+    , zoom : Float
     , selected : Maybe Int
     , selectedTransition : Maybe Int
     , selectedTransitionLabelDraft : String
@@ -183,6 +184,7 @@ initWithSlots slots =
     , panning = Nothing
     , panX = 0
     , panY = 0
+    , zoom = 1
     , selected = Nothing
     , selectedTransition = Nothing
     , selectedTransitionLabelDraft = ""
@@ -265,6 +267,8 @@ type Msg
     | SetSimulationInput String
     | SetSimulationDelay String
     | CenterOnStartState
+    | ZoomOut
+    | ZoomIn
     | StartSimulation
     | StartStepSimulation
     | AdvanceSimulation
@@ -434,6 +438,12 @@ update msg model =
             CenterOnStartState ->
                 ( centerOnPreferredStartState model, Cmd.none )
                 
+            ZoomOut ->
+                ( { model | zoom = clampZoom (model.zoom - 0.1) }, Cmd.none )
+
+            ZoomIn ->
+                ( { model | zoom = clampZoom (model.zoom + 0.1) }, Cmd.none )
+
             AutomatonTypeAnimationFinished nonce ->
                 if nonce == model.automatonTypeAnimationNonce then
                     ( { model | automatonTypeAnimationActive = False }, Cmd.none )
@@ -916,6 +926,12 @@ update msg model =
             CenterOnStartState ->
                 ( centerOnPreferredStartState model, Cmd.none )
                 
+            ZoomOut ->
+                ( { model | zoom = clampZoom (model.zoom - 0.1) }, Cmd.none )
+
+            ZoomIn ->
+                ( { model | zoom = clampZoom (model.zoom + 0.1) }, Cmd.none )
+
             StartSimulation ->
                 if hasCodeValidationErrors model then
                     showGlobalNotice EditorSimulationBlockedByCodeErrors model
@@ -1507,8 +1523,8 @@ centerOnPreferredStartState model =
                     editorLayout model
             in
             { model
-                | panX = toFloat layout.canvasWidth / 2 - state.x
-                , panY = toFloat layout.canvasHeight / 2 - state.y
+                | panX = toFloat layout.canvasWidth / 2 - (state.x * model.zoom)
+                , panY = toFloat layout.canvasHeight / 2 - (state.y * model.zoom)
                 , panning = Nothing
                 , dragging = Nothing
             }
@@ -2326,6 +2342,7 @@ exportRuntimeSnapshotJson model =
         , ( "nextTransitionId", Encode.int model.nextTransitionId )
         , ( "panX", Encode.float model.panX )
         , ( "panY", Encode.float model.panY )
+        , ( "zoom", Encode.float model.zoom )
         , ( "selected", maybeInt model.selected )
         , ( "selectedTransition", maybeInt model.selectedTransition )
         , ( "selectedTransitionLabelDraft", Encode.string model.selectedTransitionLabelDraft )
@@ -2903,7 +2920,12 @@ decodeTransition =
 
 screenToWorld : Model -> Float -> Float -> ( Float, Float )
 screenToWorld model x y =
-    ( x - model.panX, y - model.panY )
+    ( (x - model.panX) / model.zoom, (y - model.panY) / model.zoom )
+
+
+clampZoom : Float -> Float
+clampZoom value =
+    Basics.max 0.5 (Basics.min 2 value)
 
 
 simulationSessionActive : Model -> Bool
@@ -3355,7 +3377,7 @@ svgView ctx model _ _ =
             [ S.defs [] [ arrowMarker (textColor ctx.theme), startArrowMarker (textColor ctx.theme) ]
             , S.g
                 [ SA.transform
-                    ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ")")
+                    ("translate(" ++ String.fromFloat model.panX ++ "," ++ String.fromFloat model.panY ++ ") scale(" ++ String.fromFloat model.zoom ++ ")")
                 ]
                 (List.concat
                     [ List.map (viewTransition ctx model) (groupTransitionsForRender model.transitions)
@@ -3363,10 +3385,45 @@ svgView ctx model _ _ =
                     ]
                 )
             ]
+        , div
+            [ HA.style "position" "absolute"
+            , HA.style "top" "10px"
+            , HA.style "right" "10px"
+            , HA.style "display" "flex"
+            , HA.style "gap" "6px"
+            , HA.style "z-index" "11"
+            ]
+            [ button (canvasControlButtonAttrs ctx.theme ++ [ onClick CenterOnStartState ]) [ text (t ctx.lang I18n.EditorGoToStartState) ]
+            , button (canvasControlButtonAttrs ctx.theme ++ canvasIconButtonAttrs ++ [ onClick ZoomOut ]) [ text "-" ]
+            , button (canvasControlButtonAttrs ctx.theme ++ canvasIconButtonAttrs ++ [ onClick ZoomIn ]) [ text "+" ]
+            ]
         , simulationChoiceOverlay ctx model
         ]
 
 
+
+canvasControlButtonAttrs : Theme -> List (H.Attribute msg)
+canvasControlButtonAttrs theme =
+    [ HA.style "height" "34px"
+    , HA.style "padding" "0 12px"
+    , HA.style "border-radius" "8px"
+    , HA.style "border" ("1px solid " ++ interactiveBorder theme)
+    , HA.style "background" (interactiveBg theme)
+    , HA.style "color" (textColor theme)
+    , HA.style "font-size" "14px"
+    , HA.style "line-height" "1"
+    , HA.style "cursor" "pointer"
+    , HA.style "box-shadow" (hoverShadow theme)
+    ]
+
+
+canvasIconButtonAttrs : List (H.Attribute msg)
+canvasIconButtonAttrs =
+    [ HA.style "width" "34px"
+    , HA.style "padding" "0"
+    , HA.style "font-size" "18px"
+    ]
+    
 simulationChoiceOverlay : { a | lang : Lang, theme : Theme } -> Model -> Html Msg
 simulationChoiceOverlay ctx model =
     case model.simulationChoice of
@@ -3390,12 +3447,12 @@ simulationChoiceOverlay ctx model =
                             24
 
                         topPos =
-                            Basics.max 8 (Basics.min (toFloat layout.canvasHeight - 170) (state.y + model.panY - 30)) --92
+                            Basics.max 8 (Basics.min (toFloat layout.canvasHeight - 170) (state.y * model.zoom + model.panY - 30)) --92
 
                         leftPos =
                             let
                                 desiredLeft =
-                                    state.x + model.panX - toFloat popupWidth - toFloat popupGap - 60
+                                    state.x * model.zoom + model.panX - toFloat popupWidth - toFloat popupGap - 60
 
                                 maxCanvasLeft =
                                     toFloat layout.canvasWidth - toFloat popupWidth - 8
