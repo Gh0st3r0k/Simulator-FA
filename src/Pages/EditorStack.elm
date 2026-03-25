@@ -53,6 +53,8 @@ type alias Model =
     , simulationQueue : List Char
     , simulationStack : List String
     , simulationCurrent : Maybe Int
+    , simulationActiveTransition : Maybe Int
+    , simulationInputIndex : Int
     , simulationResult : SimulationResult
     , simulationChoice : Maybe PendingChoice
     , stateNameConflict : Bool
@@ -185,6 +187,8 @@ initWithSlots slots =
     , simulationQueue = []
     , simulationStack = [ "Z" ]
     , simulationCurrent = Nothing
+    , simulationActiveTransition = Nothing
+    , simulationInputIndex = 0
     , simulationResult = Idle
     , simulationChoice = Nothing
     , stateNameConflict = False
@@ -977,6 +981,8 @@ update msg model =
                                                     , simulationRunning = False
                                                     , simulationQueue = []
                                                     , simulationCurrent = Nothing
+                                                    , simulationActiveTransition = Nothing
+                                                    , simulationInputIndex = 0
                                                     , simulationResult = Idle
                                                     , simulationChoice = Nothing
                                                     , stateNameConflict = False
@@ -1661,6 +1667,164 @@ simulationInputWidthCh inputValue =
     clampInt 18 110 (String.length inputValue + 6)
 
 
+activeTransitionLine : Model -> Maybe Int
+activeTransitionLine model =
+    model.simulationActiveTransition
+        |> Maybe.andThen
+            (\activeId ->
+                activeTransitionLineFromIds activeId (model.transitions |> List.sortBy .id |> List.map .id) 1
+            )
+
+
+activeTransitionLineFromIds : Int -> List Int -> Int -> Maybe Int
+activeTransitionLineFromIds target ids currentLine =
+    case ids of
+        [] ->
+            Nothing
+
+        id_ :: rest ->
+            if id_ == target then
+                Just currentLine
+
+            else
+                activeTransitionLineFromIds target rest (currentLine + 1)
+
+
+activeSimulationHighlightFill : Theme -> String
+activeSimulationHighlightFill theme =
+    case theme of
+        Theme.Light ->
+            "#7aa2ff33"
+
+        Theme.Dark ->
+            "#f8e71c30"
+
+
+activeSimulationHighlightStroke : Theme -> String
+activeSimulationHighlightStroke theme =
+    case theme of
+        Theme.Light ->
+            "#245dff"
+
+        Theme.Dark ->
+            "#ffd54f"
+
+
+simulationInputPreview : Theme -> Model -> Html Msg
+simulationInputPreview theme model =
+    let
+        chars =
+            String.toList model.simulationInput
+
+        tileWidthPx =
+            36
+
+        tileGapPx =
+            6
+
+        tileStepPx =
+            tileWidthPx + tileGapPx
+
+        viewportTiles =
+            9
+
+        viewportWidthPx =
+            (viewportTiles * tileStepPx) - tileGapPx
+
+        contentChars =
+            Basics.max 1 (List.length chars)
+
+        totalWidthPx =
+            (contentChars * tileStepPx) - tileGapPx
+
+        maxShiftPx =
+            Basics.max 0 (totalWidthPx - viewportWidthPx)
+
+        targetShiftPx =
+            Basics.max 0 ((model.simulationInputIndex - 5) * tileStepPx)
+
+        shiftPx =
+            Basics.min maxShiftPx targetShiftPx
+
+        currentMarkerIndex =
+            if model.simulationCurrent /= Nothing then
+                model.simulationInputIndex
+
+            else
+                -1
+
+        viewChar idx char =
+            let
+                isConsumed =
+                    idx < model.simulationInputIndex
+
+                isCurrent =
+                    idx == currentMarkerIndex
+            in
+            H.span
+                [ HA.style "display" "inline-flex"
+                , HA.style "align-items" "center"
+                , HA.style "justify-content" "center"
+                , HA.style "width" (String.fromInt tileWidthPx ++ "px")
+                , HA.style "height" "24px"
+                , HA.style "border-radius" "6px"
+                , HA.style "border"
+                    ("1px solid "
+                        ++ (if isCurrent then
+                                activeSimulationHighlightStroke theme
+
+                            else
+                                interactiveBorder theme
+                           )
+                    )
+                , HA.style "background" (if isCurrent then activeSimulationHighlightFill theme else interactiveBg theme)
+                , HA.style "color" (if isCurrent then activeSimulationHighlightStroke theme else textColor theme)
+                , HA.style "opacity" (if isConsumed then "0.55" else "1")
+                , HA.style "font-weight" (if isCurrent then "700" else "500")
+                ]
+                [ H.text (String.fromChar char) ]
+    in
+    div
+        [ HA.style "margin-top" "12px"
+        , HA.style "overflow" "hidden"
+        , HA.style "white-space" "nowrap"
+        , HA.style "font-family" "monospace"
+        , HA.style "font-size" "15px"
+        , HA.style "line-height" "24px"
+        , HA.style "height" "34px"
+        , HA.style "border" ("1px solid " ++ interactiveBorder theme)
+        , HA.style "border-radius" "8px"
+        , HA.style "background" (interactiveBg theme)
+        , HA.style "padding" "4px 8px"
+        ]
+        (if List.isEmpty chars then
+            [ H.span
+                [ HA.style "display" "inline-flex"
+                , HA.style "align-items" "center"
+                , HA.style "justify-content" "center"
+                , HA.style "width" (String.fromInt tileWidthPx ++ "px")
+                , HA.style "height" "24px"
+                , HA.style "border-radius" "6px"
+                , HA.style "border" ("1px solid " ++ interactiveBorder theme)
+                , HA.style "background" (interactiveBg theme)
+                , HA.style "opacity" "0.7"
+                , HA.style "font-style" "italic"
+                ]
+                [ H.text "λ" ]
+            ]
+
+         else
+            [ H.div
+                [ HA.style "display" "inline-flex"
+                , HA.style "gap" (String.fromInt tileGapPx ++ "px")
+                , HA.style "transform" ("translateX(-" ++ String.fromInt shiftPx ++ "px)")
+                , HA.style "transition" "transform 220ms ease"
+                ]
+                (List.indexedMap viewChar chars)
+            ]
+        )
+
+
 stackAtBase : List String -> Bool
 stackAtBase stack =
     stack == [ "Z" ]
@@ -1727,6 +1891,8 @@ stopSimulation result model =
         | simulationRunning = False
         , simulationQueue = []
         , simulationCurrent = Nothing
+        , simulationActiveTransition = Nothing
+        , simulationInputIndex = 0
         , simulationResult = result
         , simulationChoice = Nothing
     }
@@ -1766,6 +1932,8 @@ startSimulation model =
                         , simulationQueue = queue
                         , simulationStack = [ "Z" ]
                         , simulationCurrent = Just startState.id
+                        , simulationActiveTransition = Nothing
+                        , simulationInputIndex = 0
                         , selected = Just startState.id
                         , simulationResult = initialResult
                         , simulationChoice = Nothing
@@ -1839,6 +2007,13 @@ applySimulationTransition transition rest queue model =
                 | simulationQueue = nextQueue
                 , simulationStack = nextStack
                 , simulationCurrent = Just transition.to
+                , simulationActiveTransition = Just transition.id
+                , simulationInputIndex =
+                    if consumesInput then
+                        model.simulationInputIndex + 1
+
+                    else
+                        model.simulationInputIndex
                 , selected = Just transition.to
                 , simulationRunning = willContinue
                 , simulationChoice = Nothing
@@ -3391,7 +3566,37 @@ viewTransition ctx model transitionGroup =
                         Just selectedId ->
                             List.member selectedId transitionGroup.transitionIds
 
-                strokeWidth = if isSelected then "4" else "2"
+                isActiveTransition =
+                    case model.simulationActiveTransition of
+                        Nothing ->
+                            False
+
+                        Just activeId ->
+                            List.member activeId transitionGroup.transitionIds
+
+                strokeWidth =
+                    if isSelected then
+                        "4"
+
+                    else if isActiveTransition then
+                        "3"
+
+                    else
+                        "2"
+
+                transitionStrokeColor =
+                    if isActiveTransition then
+                        activeSimulationHighlightStroke ctx.theme
+
+                    else
+                        textColor ctx.theme
+
+                labelBackground =
+                    if isActiveTransition then
+                        activeSimulationHighlightFill ctx.theme
+
+                    else
+                        "transparent"
                 selectTransitionOnClick =
                     stopPropagationOn "click"
                         (Decode.map
@@ -3416,7 +3621,7 @@ viewTransition ctx model transitionGroup =
                     []
                 , S.path
                     [ SA.d pathD
-                    , SA.stroke (textColor ctx.theme)
+                    , SA.stroke transitionStrokeColor
                     , SA.strokeWidth strokeWidth
                     , SA.markerEnd "url(#arrowhead)"
                     , SA.fill "none"
@@ -3428,7 +3633,7 @@ viewTransition ctx model transitionGroup =
                     , SA.y (String.fromFloat (labelY - hitHeight + 2))
                     , SA.width (String.fromFloat hitWidth)
                     , SA.height (String.fromFloat hitHeight)
-                    , SA.fill "transparent"
+                    , SA.fill labelBackground
                     , SA.stroke "none"
                     , selectTransitionOnClick
                     ]
@@ -3437,7 +3642,7 @@ viewTransition ctx model transitionGroup =
                     [ SA.x (String.fromFloat labelX)
                     , SA.y (String.fromFloat labelY)
                     , SA.fontSize "12"
-                    , SA.fill (textColor ctx.theme)
+                    , SA.fill transitionStrokeColor
                     , SA.style "user-select: none; -webkit-user-select: none; -moz-user-select: none;"
                     , SA.pointerEvents "none"
                     ]
@@ -4189,6 +4394,9 @@ transitionFunctionPanel ctx model =
 
             else
                 t ctx.lang EditorCodeDraftChanges
+
+        highlightedTransitionLine =
+            activeTransitionLine model
     in
     div
         [ HA.style "width" "251px"
@@ -4258,6 +4466,21 @@ transitionFunctionPanel ctx model =
                                     [ HA.style "text-decoration-line" (if List.member (idx + 1) errorLineNumbers then "underline" else "none")
                                     , HA.style "text-decoration-style" (if List.member (idx + 1) errorLineNumbers then "wavy" else "solid")
                                     , HA.style "text-decoration-color" (if List.member (idx + 1) errorLineNumbers then errorColor ctx.theme else "transparent")
+                                    , HA.style "background"
+                                        (if highlightedTransitionLine == Just (idx + 1) then
+                                            activeSimulationHighlightFill ctx.theme
+
+                                         else
+                                            "transparent"
+                                        )
+                                    , HA.style "color"
+                                        (if highlightedTransitionLine == Just (idx + 1) then
+                                            activeSimulationHighlightStroke ctx.theme
+
+                                         else
+                                            textColor ctx.theme
+                                        )
+                                    , HA.style "border-radius" "6px"
                                     ]
                                     [ H.text (if String.isEmpty lineText then " " else lineText) ]
                             )
@@ -4287,8 +4510,21 @@ transitionFunctionPanel ctx model =
                 , HA.style "border-radius" "8px"
                 , HA.style "border-color" (if hasCodeValidationErrors model then errorColor ctx.theme else "")
                 , HA.style "outline" "none"
-                , HA.style "color" (textColor ctx.theme)
+                , HA.style "color"
+                    (if model.codeEditorFocused || hasCodeValidationErrors model then
+                        textColor ctx.theme
+
+                     else
+                        "transparent"
+                    )
                 , HA.style "caret-color" (textColor ctx.theme)
+                , HA.style "text-shadow"
+                    (if model.codeEditorFocused || hasCodeValidationErrors model then
+                        "none"
+
+                     else
+                        "0 0 0 transparent"
+                    )
                 ]
                 []
             ]
@@ -4398,4 +4634,5 @@ simulationPanel ctx model =
                         ]
                         [ H.text msg ]
             ]
+        , simulationInputPreview ctx.theme model
         ]
