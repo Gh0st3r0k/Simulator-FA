@@ -4510,21 +4510,9 @@ transitionFunctionPanel ctx model =
                 , HA.style "border-radius" "8px"
                 , HA.style "border-color" (if hasCodeValidationErrors model then errorColor ctx.theme else "")
                 , HA.style "outline" "none"
-                , HA.style "color"
-                    (if model.codeEditorFocused || hasCodeValidationErrors model then
-                        textColor ctx.theme
-
-                     else
-                        "transparent"
-                    )
+                , HA.style "color" "transparent"
                 , HA.style "caret-color" (textColor ctx.theme)
-                , HA.style "text-shadow"
-                    (if model.codeEditorFocused || hasCodeValidationErrors model then
-                        "none"
-
-                     else
-                        "0 0 0 transparent"
-                    )
+                , HA.style "text-shadow" "0 0 0 transparent"
                 ]
                 []
             ]

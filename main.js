@@ -22478,18 +22478,12 @@ var $author$project$Pages$EditorStack$transitionFunctionPanel = F2(
 										'border-color',
 										$author$project$Pages$EditorStack$hasCodeValidationErrors(model) ? $author$project$Theme$errorColor(ctx.a) : ''),
 										A2($elm$html$Html$Attributes$style, 'outline', 'none'),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'color',
-										(model.L || $author$project$Pages$EditorStack$hasCodeValidationErrors(model)) ? $author$project$Theme$textColor(ctx.a) : 'transparent'),
+										A2($elm$html$Html$Attributes$style, 'color', 'transparent'),
 										A2(
 										$elm$html$Html$Attributes$style,
 										'caret-color',
 										$author$project$Theme$textColor(ctx.a)),
-										A2(
-										$elm$html$Html$Attributes$style,
-										'text-shadow',
-										(model.L || $author$project$Pages$EditorStack$hasCodeValidationErrors(model)) ? 'none' : '0 0 0 transparent')
+										A2($elm$html$Html$Attributes$style, 'text-shadow', '0 0 0 transparent')
 									]),
 								_List_Nil)
 							]));
