@@ -7,6 +7,7 @@ module Theme
         , panelBg
         , panelBorder
         , interactiveBg
+        , inputBg
         , interactiveBorder
         , hoverBg
         , hoverBorder
@@ -15,6 +16,9 @@ module Theme
         , successColor
         , warningColor
         , errorColor
+        , stackEmptyBg
+        , stackFillBg
+        , stackBorder
         )
 
 type Theme
@@ -65,6 +69,13 @@ interactiveBg =
     panelBg
 
 
+inputBg : Theme -> String
+inputBg th =
+    case th of
+        Light -> "#e6ebf3"
+        Dark -> "#1b2233"
+        
+        
 interactiveBorder : Theme -> String
 interactiveBorder =
     panelBorder
@@ -124,3 +135,24 @@ errorColor th =
     case th of
         Light -> "#c0392b"
         Dark -> "#ff7666"
+
+
+stackEmptyBg : Theme -> String
+stackEmptyBg th =
+    case th of
+        Light -> "#f6f8fc"
+        Dark -> "#1b2130"
+
+
+stackFillBg : Theme -> String
+stackFillBg th =
+    case th of
+        Light -> "#8fb3ff"
+        Dark -> "#5c86ff"
+
+
+stackBorder : Theme -> String
+stackBorder th =
+    case th of
+        Light -> "#9db0d4"
+        Dark -> "#3b4f77"

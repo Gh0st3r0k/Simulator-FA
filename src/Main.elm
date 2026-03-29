@@ -1,5 +1,6 @@
 port module Main exposing (main)
 
+import AutomatonFormat exposing (AutomatonType(..), typeToStorageLabel)
 import Browser
 import Browser.Navigation as Nav
 import Browser.Events
@@ -40,8 +41,10 @@ import Design
         , px
         )
 import Pages.Editor as Editor
+import Pages.EditorStack as EditorStack
 import Pages.Instructions as Instructions
 import Pages.About as About
+import Svg.Attributes exposing (d)
 
 
 -- MODEL
@@ -54,6 +57,7 @@ type alias Model =
     , theme : Theme
     , scale : Scale
     , editor : Editor.Model
+    , editorStack : EditorStack.Model
     , instructions : Instructions.Model
     , about : About.Model
     , hover : Maybe Route
@@ -63,6 +67,24 @@ type alias Model =
     , feedbackText : String
     , feedbackEmailInput : String
     , feedbackMailProvider : MailProvider
+    , settingsModalOpen : Bool
+    , welcomeModalOpen : Bool
+    , startPage : StartPage
+    , whatsNewModal : Maybe WhatsNewModal
+    }
+
+
+type alias WhatsNewModal =
+    { version : String
+    , entries : List WhatsNewEntry
+    , showReloadWarning : Bool
+    }
+
+
+type alias WhatsNewEntry =
+    { version : String
+    , title : String
+    , items : List String
     }
 
 
@@ -92,6 +114,66 @@ mailProviderFromString value =
             GmailProvider
             
 
+type StartPage
+    = StartPageWelcome
+    | StartPageHome
+    | StartPageFinite
+    | StartPageStack
+
+
+startPageFromInt : Int -> StartPage
+startPageFromInt value =
+    case value of
+        1 ->
+            StartPageHome
+
+        2 ->
+            StartPageFinite
+
+        3 ->
+            StartPageStack
+
+        _ ->
+            StartPageHome
+
+
+startPageToInt : StartPage -> Int
+startPageToInt startPage =
+    case startPage of
+        StartPageWelcome ->
+            1
+
+        StartPageHome ->
+            1
+
+        StartPageFinite ->
+            2
+
+        StartPageStack ->
+            3
+
+
+startPageFromString : String -> StartPage
+startPageFromString rawValue =
+    rawValue
+        |> String.toInt
+        |> Maybe.withDefault 0
+        |> startPageFromInt
+
+
+defaultRouteForStartPage : StartPage -> Route
+defaultRouteForStartPage startPage =
+    case startPage of
+        StartPageFinite ->
+            Editor
+
+        StartPageStack ->
+            EditorStack
+
+        _ ->
+            Home
+            
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
@@ -100,6 +182,7 @@ type Msg
     | GoTo Route
     | SetHover (Maybe Route)
     | EditorMsg Editor.Msg
+    | EditorStackMsg EditorStack.Msg
     | InstructionsMsg Instructions.Msg
     | AboutMsg About.Msg
     | ViewportChanged Int Int
@@ -107,9 +190,15 @@ type Msg
     | GotImportAutomatonFile Decode.Value
     | OpenFeedbackModal
     | CloseFeedbackModal
+    | OpenSettingsModal
+    | CloseSettingsModal
+    | CloseWelcomeModal
+    | SetStartPage String
     | UpdateFeedbackText String
     | UpdateFeedbackEmailInput String
     | UpdateFeedbackMailProvider String
+    | GotWhatsNew Decode.Value
+    | CloseWhatsNewModal
     | NoOp
 
 
@@ -119,6 +208,7 @@ type alias Flags =
     { lang : String
     , theme : String
     , automatonSlots : String
+    , startPage : Int
     }
     
 
@@ -131,6 +221,9 @@ port saveLang : String -> Cmd msg
 port saveTheme : String -> Cmd msg
 
 
+port saveStartPage : String -> Cmd msg
+
+
 port exportAutomatonFile : Encode.Value -> Cmd msg
 
 
@@ -138,6 +231,10 @@ port importAutomatonFile : Int -> Cmd msg
 
 
 port importAutomatonFileResult : (Decode.Value -> msg) -> Sub msg
+
+port whatsNewDetected : (Decode.Value -> msg) -> Sub msg
+
+port markVersionSeen : String -> Cmd msg
 
 
 main : Program Flags Model Msg
@@ -154,13 +251,35 @@ main =
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
+    let
+        startPage =
+            startPageFromInt flags.startPage
+
+        parsedRoute =
+            Route.parseHash url.fragment
+
+        initialRoute =
+            case url.fragment of
+                Nothing ->
+                    defaultRouteForStartPage startPage
+
+                Just "" ->
+                    defaultRouteForStartPage startPage
+
+                Just "/" ->
+                    defaultRouteForStartPage startPage
+
+                _ ->
+                    parsedRoute
+    in
     ( { key = key
       , url = url
-      , route = Route.parseHash url.fragment
+      , route = initialRoute
       , lang = langFromString flags.lang
       , theme = themeFromString flags.theme
       , scale = Large
       , editor = Editor.initWithSlots (Editor.decodeSaveSlots flags.automatonSlots)
+      , editorStack = EditorStack.initWithSlots (EditorStack.decodeSaveSlots flags.automatonSlots)
       , instructions = Instructions.init
       , about = About.init
       , hover = Nothing
@@ -170,6 +289,10 @@ init flags url key =
       , feedbackText = ""
       , feedbackEmailInput = ""
       , feedbackMailProvider = GmailProvider
+      , settingsModalOpen = False
+      , welcomeModalOpen = flags.startPage == 0
+      , startPage = startPage
+      , whatsNewModal = Nothing
       }
     , Task.attempt GotViewport Dom.getViewport
     )
@@ -192,12 +315,22 @@ googleFormUrl =
 
 currentFasJson : Model -> String
 currentFasJson model =
-    Editor.exportAutomatonJson model.editor
+    case model.route of
+        EditorStack ->
+            EditorStack.exportAutomatonJson model.editorStack
+
+        _ ->
+            Editor.exportAutomatonJson model.editor
 
 
 currentRuntimeModelJson : Model -> String
 currentRuntimeModelJson model =
-    Editor.exportRuntimeSnapshotJson model.editor
+    case model.route of
+        EditorStack ->
+            EditorStack.exportRuntimeSnapshotJson model.editorStack
+
+        _ ->
+            Editor.exportRuntimeSnapshotJson model.editor
 
 
 indentBlock : String -> String
@@ -254,7 +387,28 @@ feedbackWebMailLink model =
             "https://outlook.live.com/mail/0/deeplink/compose?to=" ++ to ++ "&subject=" ++ subject ++ "&body=" ++ body
 
 
+exportFileName : Int -> String -> Maybe AutomatonType -> String
+exportFileName slotId slotName maybeAutomatonType =
+    let
+        baseName =
+            if String.isEmpty slotName then
+                "slot-" ++ String.fromInt slotId
 
+            else
+                slotName
+
+        suffix =
+            case maybeAutomatonType of
+                Just automatonType ->
+                    "-" ++ typeToStorageLabel automatonType
+
+                Nothing ->
+                    ""
+    in
+    baseName ++ suffix
+
+
+    
 themeFromString : String -> Theme
 themeFromString s =
     case String.toLower s of
@@ -267,10 +421,10 @@ themeToString : Theme -> String
 themeToString theme =
     case theme of
         Dark ->
-            "light"
+            "dark"
 
         Light ->
-            "dark"
+            "light"
 
 
 -- UPDATE
@@ -315,12 +469,26 @@ update msg model =
                 ( subModel, subCmd ) =
                     Editor.update sub model.editor
 
+                slotsChanged =
+                    model.editor.saveSlots /= subModel.saveSlots
+
                 persistCmd =
-                    if model.editor.saveSlots /= subModel.saveSlots then
+                    if slotsChanged then
                         saveAutomatonSlots (Editor.encodeSaveSlots subModel.saveSlots)
 
                     else
                         Cmd.none
+
+                syncedEditorStack =
+                    let
+                        editorStackModel =
+                            model.editorStack
+                    in
+                    if slotsChanged then
+                        { editorStackModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorStackModel
 
                 maybeExportCmd =
                     case sub of
@@ -332,7 +500,7 @@ update msg model =
                                     (\slot ->
                                         exportAutomatonFile
                                             (Encode.object
-                                                [ ( "fileName", Encode.string (if String.isEmpty slot.name then "slot-" ++ String.fromInt slot.id else slot.name) )
+                                                [ ( "fileName", Encode.string (exportFileName slot.id slot.name slot.automatonType) )
                                                 , ( "content", Encode.string slot.automatonJson )
                                                 ]
                                             )
@@ -345,30 +513,112 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | editor = subModel }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
+            ( { model | editor = subModel, editorStack = syncedEditorStack }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
+
+        EditorStackMsg sub ->
+            let
+                ( subModel, subCmd ) =
+                    EditorStack.update sub model.editorStack
+
+                slotsChanged =
+                    model.editorStack.saveSlots /= subModel.saveSlots
+
+                persistCmd =
+                    if slotsChanged then
+                        saveAutomatonSlots (EditorStack.encodeSaveSlots subModel.saveSlots)
+
+                    else
+                        Cmd.none
+
+                syncedEditor =
+                    let
+                        editorModel =
+                            model.editor
+                    in
+                    if slotsChanged then
+                        { editorModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorModel
+
+                maybeExportCmd =
+                    case sub of
+                        EditorStack.ExportSlot slotId ->
+                            subModel.saveSlots
+                                |> List.filter (\slot -> slot.id == slotId && not (String.isEmpty slot.automatonJson))
+                                |> List.head
+                                |> Maybe.map
+                                    (\slot ->
+                                        exportAutomatonFile
+                                            (Encode.object
+                                                [ ( "fileName", Encode.string (exportFileName slot.id slot.name slot.automatonType) )
+                                                , ( "content", Encode.string slot.automatonJson )
+                                                ]
+                                            )
+                                    )
+                                |> Maybe.withDefault Cmd.none
+
+                        EditorStack.ImportSlot slotId ->
+                            importAutomatonFile slotId
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | editor = syncedEditor, editorStack = subModel }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
 
         GotImportAutomatonFile value ->
             case Decode.decodeValue decodeImportFileResult value of
                 Ok ( slotId, content ) ->
-                    let
-                        ( editorModel, editorCmd ) =
-                            Editor.update (Editor.ApplyImportedSlot slotId content) model.editor
+                    case model.route of
+                        EditorStack ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorStack.update (EditorStack.ApplyImportedSlot slotId content) model.editorStack
 
-                        persistCmd =
-                            if model.editor.saveSlots /= editorModel.saveSlots then
-                                saveAutomatonSlots (Editor.encodeSaveSlots editorModel.saveSlots)
+                                persistCmd =
+                                    if model.editorStack.saveSlots /= editorModel.saveSlots then
+                                        saveAutomatonSlots (EditorStack.encodeSaveSlots editorModel.saveSlots)
 
-                            else
-                                Cmd.none
-                    in
-                    ( { model | editor = editorModel }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
+                                    else
+                                        Cmd.none
+
+                                currentEditor =
+                                    model.editor
+                            in
+                             ( { model | editor = { currentEditor | saveSlots = editorModel.saveSlots }, editorStack = editorModel }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
+
+                        _ ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    Editor.update (Editor.ApplyImportedSlot slotId content) model.editor
+
+                                persistCmd =
+                                    if model.editor.saveSlots /= editorModel.saveSlots then
+                                        saveAutomatonSlots (Editor.encodeSaveSlots editorModel.saveSlots)
+
+                                    else
+                                        Cmd.none
+
+                                currentEditorStack =
+                                    model.editorStack
+                            in
+                            ( { model | editor = editorModel, editorStack = { currentEditorStack | saveSlots = editorModel.saveSlots } }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
 
                 Err _ ->
-                    let
-                        ( editorModel, editorCmd ) =
-                            Editor.update Editor.ImportSlotFailed model.editor
-                    in
-                    ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
+                    case model.route of
+                        EditorStack ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorStack.update EditorStack.ImportSlotFailed model.editorStack
+                            in
+                            ( { model | editorStack = editorModel }, Cmd.map EditorStackMsg editorCmd )
+
+                        _ ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    Editor.update Editor.ImportSlotFailed model.editor
+                            in
+                            ( { model | editor = editorModel }, Cmd.map EditorMsg editorCmd )
 
         InstructionsMsg sub ->
             let (subModel, subCmd) = Instructions.update sub model.instructions
@@ -382,9 +632,12 @@ update msg model =
             let
                 ( editorModel, editorCmd ) =
                     Editor.update (Editor.SetViewport w h) model.editor
+
+                ( editorStackModel, editorStackCmd ) =
+                    EditorStack.update (EditorStack.SetViewport w h) model.editorStack
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel }
-            , Cmd.map EditorMsg editorCmd
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
             )
 
         GotViewport (Ok vp) ->
@@ -393,9 +646,12 @@ update msg model =
                 h = round vp.viewport.height
                 ( editorModel, editorCmd ) =
                     Editor.update (Editor.SetViewport w h) model.editor
+
+                ( editorStackModel, editorStackCmd ) =
+                    EditorStack.update (EditorStack.SetViewport w h) model.editorStack
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel }
-            , Cmd.map EditorMsg editorCmd
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
             )
 
         GotViewport (Err _) ->
@@ -407,6 +663,35 @@ update msg model =
         CloseFeedbackModal ->
             ( { model | feedbackModalOpen = False }, Cmd.none )
 
+        OpenSettingsModal ->
+            ( { model | settingsModalOpen = True }, Cmd.none )
+
+        CloseSettingsModal ->
+            ( { model | settingsModalOpen = False }, Cmd.none )
+
+        CloseWelcomeModal ->
+            let
+                normalizedStartPage =
+                    case model.startPage of
+                        StartPageWelcome ->
+                            StartPageHome
+
+                        _ ->
+                            model.startPage
+            in
+            ( { model | welcomeModalOpen = False, startPage = normalizedStartPage }
+            , saveStartPage (String.fromInt (startPageToInt normalizedStartPage))
+            )
+
+        SetStartPage value ->
+            let
+                nextStartPage =
+                    startPageFromString value
+            in
+            ( { model | startPage = nextStartPage }
+            , saveStartPage (String.fromInt (startPageToInt nextStartPage))
+            )
+
         UpdateFeedbackText value ->
             ( { model | feedbackText = value }, Cmd.none )
 
@@ -416,6 +701,22 @@ update msg model =
         UpdateFeedbackMailProvider value ->
             ( { model | feedbackMailProvider = mailProviderFromString value }, Cmd.none )
 
+        GotWhatsNew value ->
+            case Decode.decodeValue decodeWhatsNewPayload value of
+                Ok payload ->
+                    ( { model | whatsNewModal = Just payload }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        CloseWhatsNewModal ->
+            case model.whatsNewModal of
+                Just payload ->
+                    ( { model | whatsNewModal = Nothing }, markVersionSeen payload.version )
+
+                Nothing ->
+                    ( model, Cmd.none )
+        
         NoOp ->
             ( model, Cmd.none )
 
@@ -426,6 +727,7 @@ subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize ViewportChanged
         , importAutomatonFileResult GotImportAutomatonFile
+        , whatsNewDetected GotWhatsNew
         ]
 
 
@@ -434,6 +736,22 @@ decodeImportFileResult =
     Decode.map2 Tuple.pair
         (Decode.field "slotId" Decode.int)
         (Decode.field "content" Decode.string)
+
+
+decodeWhatsNewPayload : Decode.Decoder WhatsNewModal
+decodeWhatsNewPayload =
+    Decode.map3 WhatsNewModal
+        (Decode.field "version" Decode.string)
+        (Decode.field "entries" (Decode.list decodeWhatsNewEntry))
+        (Decode.field "showReloadWarning" Decode.bool)
+
+
+decodeWhatsNewEntry : Decode.Decoder WhatsNewEntry
+decodeWhatsNewEntry =
+    Decode.map3 WhatsNewEntry
+        (Decode.field "version" Decode.string)
+        (Decode.field "title" Decode.string)
+        (Decode.field "items" (Decode.list Decode.string))
 
 
 
@@ -472,6 +790,15 @@ view model =
                         ]
                         [ homeView model ]
 
+                AutomatonMenu ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "justify-content" "center"
+                        ]
+                        [ automatonTypeHomeView model ]
+                        
                 Editor ->
                     div
                         [ HA.style "flex" "1"
@@ -489,6 +816,23 @@ view model =
                             )
                         ]
 
+                EditorStack ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "min-height" "0"
+                        , HA.style "overflow" "hidden"
+                        ]
+                        [ H.map EditorStackMsg
+                            (EditorStack.view
+                                { lang = model.lang
+                                , theme = model.theme
+                                , viewportWidth = model.vpW
+                                , viewportHeight = model.vpH
+                                }
+                                model.editorStack
+                            )
+                        ]
+
                 Instructions ->
                     div
                         [ HA.style "flex" "1"
@@ -502,6 +846,9 @@ view model =
             ]
         , feedbackButton model
         , feedbackModal model
+        , settingsModal model
+        , welcomeModal model
+        , whatsNewModalView model
         ]
     }
 
@@ -737,6 +1084,394 @@ feedbackModal model =
             ]
             
 
+startPageOptions : Model -> List (Html Msg)
+startPageOptions model =
+    [ option [ HA.value "1", HA.selected (model.startPage == StartPageHome) ] [ text (t model.lang StartPageHomeOption) ]
+    , option [ HA.value "2", HA.selected (model.startPage == StartPageFinite) ] [ text (t model.lang StartPageFiniteOption) ]
+    , option [ HA.value "3", HA.selected (model.startPage == StartPageStack) ] [ text (t model.lang StartPageStackOption) ]
+    ]
+
+
+settingsForm : Model -> Html Msg
+settingsForm model =
+    div
+        [ HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
+        , HA.style "gap" "14px"
+        ]
+        [ div
+            [ HA.style "display" "flex"
+            , HA.style "gap" "12px"
+            , HA.style "align-items" "stretch"
+            ]
+            [ div
+                [ HA.style "flex" "1"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "6px"
+                ]
+                [ H.label [] [ text (t model.lang Language) ]
+                , select
+                    [ onInput SetLang
+                    , HA.value (langToString model.lang)
+                    , HA.style "padding" "8px"
+                    , HA.style "border-radius" "10px"
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "background" (interactiveBg model.theme)
+                    , HA.style "color" (textColor model.theme)
+                    , HA.style "width" "100%"
+                    ]
+                    [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
+                    , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
+                    , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
+                    , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
+                    ]
+                ]
+            , div
+                [ HA.style "flex" "2"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "6px"
+                ]
+                [ H.label [] [ text (t model.lang ThemeLabel) ]
+                , button
+                    [ onClick ToggleTheme
+                    , HA.style "padding" "10px"
+                    , HA.style "border-radius" "10px"
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "background" (interactiveBg model.theme)
+                    , HA.style "color" (textColor model.theme)
+                    , HA.style "cursor" "pointer"
+                    , HA.style "display" "flex"
+                    , HA.style "justify-content" "space-between"
+                    , HA.style "align-items" "center"
+                    , HA.style "width" "100%"
+                    ]
+                    [ text <|
+                        case model.theme of
+                            Light ->
+                                t model.lang ThemeLight
+
+                            Dark ->
+                                t model.lang ThemeDark
+                    , H.span
+                        [ HA.style "font-size" "18px"
+                        , HA.style "line-height" "1"
+                        , HA.style "color" <|
+                            case model.theme of
+                                Dark ->
+                                    "#ffffff"
+
+                                Light ->
+                                    hoverBorder model.theme
+                        ]
+                        [ text <|
+                            case model.theme of
+                                Light ->
+                                    "☀"
+
+                                Dark ->
+                                    "☾"
+                        ]
+                    ]
+                ]
+            ]
+        , div
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
+            , HA.style "gap" "6px"
+            ]
+            [ H.label [] [ text (t model.lang StartPageLabel) ]
+            , select
+                [ onInput SetStartPage
+                , HA.value (String.fromInt (startPageToInt model.startPage))
+                , HA.style "padding" "8px"
+                , HA.style "border-radius" "10px"
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "background" (interactiveBg model.theme)
+                , HA.style "color" (textColor model.theme)
+                ]
+                (startPageOptions model)
+            ]
+        ]
+
+
+settingsModal : Model -> Html Msg
+settingsModal model =
+    if not model.settingsModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.55)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1200"
+            , onClick CloseSettingsModal
+            ]
+            [ div
+                [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                , HA.style "width" "min(520px, 92vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "16px"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "12px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang SettingsTitle) ]
+                , settingsForm model
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "justify-content" "flex-end"
+                    ]
+                    [ button
+                        [ onClick CloseSettingsModal
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                        , HA.style "background" (interactiveBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang EditorClose) ]
+                    ]
+                ]
+            ]
+
+
+welcomeModal : Model -> Html Msg
+welcomeModal model =
+    if not model.welcomeModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.60)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1300"
+            ]
+            [ div
+                [ HA.style "width" "min(620px, 94vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "18px"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "10px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang WelcomeTitle) ]
+                , div [] [ text (t model.lang WelcomeSummary) ]
+                , div [] [ text (t model.lang WelcomeTech) ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "gap" "12px"
+                    , HA.style "align-items" "stretch"
+                    ]
+                    [ div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        ]
+                        [ H.label [] [ text (t model.lang Language) ]
+                        , select
+                            [ onInput SetLang
+                            , HA.value (langToString model.lang)
+                            , HA.style "padding" "8px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (interactiveBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "width" "100%"
+                            ]
+                            [ option [ HA.value "sk", HA.selected (model.lang == SK) ] [ text "SK" ]
+                            , option [ HA.value "en", HA.selected (model.lang == EN) ] [ text "EN" ]
+                            , option [ HA.value "ru", HA.selected (model.lang == RU) ] [ text "RU" ]
+                            , option [ HA.value "ua", HA.selected (model.lang == UA) ] [ text "UA" ]
+                            ]
+                        ]
+                    , div
+                        [ HA.style "flex" "2"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "gap" "6px"
+                        ]
+                        [ H.label [] [ text (t model.lang ThemeLabel) ]
+                        , button
+                            [ onClick ToggleTheme
+                            , HA.style "padding" "10px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (interactiveBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            , HA.style "display" "flex"
+                            , HA.style "justify-content" "space-between"
+                            , HA.style "align-items" "center"
+                            , HA.style "width" "100%"
+                            ]
+                            [ text <|
+                                case model.theme of
+                                    Light ->
+                                        t model.lang ThemeLight
+
+                                    Dark ->
+                                        t model.lang ThemeDark
+                            , H.span
+                                [ HA.style "font-size" "18px"
+                                , HA.style "line-height" "1"
+                                , HA.style "color" <|
+                                    case model.theme of
+                                        Dark ->
+                                            "#ffffff"
+
+                                        Light ->
+                                            hoverBorder model.theme
+                                ]
+                                [ text <|
+                                    case model.theme of
+                                        Light ->
+                                            "☀"
+
+                                        Dark ->
+                                            "☾"
+                                ]
+                            ]
+                        ]
+                    ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "6px"
+                    , HA.style "margin-top" "6px"
+                    ]
+                    [ H.label [] [ text (t model.lang StartPageLabel) ]
+                    , select
+                        [ onInput SetStartPage
+                        , HA.value (String.fromInt (startPageToInt model.startPage))
+                        , HA.style "padding" "8px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                        , HA.style "background" (interactiveBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        ]
+                        (startPageOptions model)
+                    ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "justify-content" "flex-end"
+                    ]
+                    [ button
+                        [ onClick CloseWelcomeModal
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" "none"
+                        , HA.style "background" (hoverBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang WelcomeContinue) ]
+                    ]
+                ]
+            ]
+
+
+whatsNewModalView : Model -> Html Msg
+whatsNewModalView model =
+    case model.whatsNewModal of
+        Nothing ->
+            text ""
+
+        Just payload ->
+            div
+                [ HA.style "position" "fixed"
+                , HA.style "inset" "0"
+                , HA.style "background" "rgba(0, 0, 0, 0.60)"
+                , HA.style "display" "flex"
+                , HA.style "justify-content" "center"
+                , HA.style "align-items" "center"
+                , HA.style "padding" "16px"
+                , HA.style "z-index" "1400"
+                , onClick CloseWhatsNewModal
+                ]
+                [ div
+                    [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                    , HA.style "width" "min(760px, 96vw)"
+                    , HA.style "max-height" "85vh"
+                    , HA.style "overflow" "auto"
+                    , HA.style "background" (panelBg model.theme)
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "border-radius" "16px"
+                    , HA.style "padding" "18px"
+                    , HA.style "box-sizing" "border-box"
+                    , HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "10px"
+                    ]
+                    [ h2 [ HA.style "margin" "0" ] [ text (t model.lang WhatsNewModalTitle ++ " " ++ payload.version) ]
+                    , if List.isEmpty payload.entries then
+                        div [] [ text (t model.lang WhatsNewModalNoEntries) ]
+
+                      else
+                        div
+                            [ HA.style "display" "flex"
+                            , HA.style "flex-direction" "column"
+                            , HA.style "gap" "10px"
+                            ]
+                            (List.map whatsNewEntryView payload.entries)
+                    , if payload.showReloadWarning then
+                        div
+                            [ HA.style "margin-top" "8px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "padding" "10px 12px"
+                            , HA.style "background" "rgba(245, 158, 11, 0.15)"
+                            , HA.style "border" "1px solid rgba(245, 158, 11, 0.45)"
+                            ]
+                            [ text (t model.lang WhatsNewReloadWarning) ]
+
+                      else
+                        text ""
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "justify-content" "flex-end"
+                        ]
+                        [ button
+                            [ onClick CloseWhatsNewModal
+                            , HA.style "padding" "10px 14px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (hoverBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            ]
+                            [ text (t model.lang WhatsNewCloseButton) ]
+                        ]
+                    ]
+                ]
+
+
+whatsNewEntryView : WhatsNewEntry -> Html Msg
+whatsNewEntryView entry =
+    div []
+        [ h2
+            [ HA.style "margin" "2px 0 4px"
+            , HA.style "font-size" "18px"
+            ]
+            [ text (entry.version ++ " — " ++ entry.title) ]
+        , H.ul [] (List.map (\item -> H.li [] [ text item ]) entry.items)
+        ]
+        
+
 topBar : Model -> Html Msg
 topBar model =
     let
@@ -792,32 +1527,36 @@ topBar model =
 
         viewEditorGoToStart : Html Msg
         viewEditorGoToStart =
-            button (onClick (EditorMsg Editor.CenterOnStartState) :: baseControlStyles)
+            button
+                (onClick
+                    (if model.route == EditorStack then
+                        EditorStackMsg EditorStack.CenterOnStartState
+
+                     else
+                        EditorMsg Editor.CenterOnStartState
+                    )
+                    :: baseControlStyles
+                )
                 [ text (t model.lang EditorGoToStartState) ]
 
         viewEditorSave : Html Msg
         viewEditorSave =
-            button (onClick (EditorMsg Editor.OpenSaveModal) :: baseControlStyles)
+            button
+                (onClick
+                    (if model.route == EditorStack then
+                        EditorStackMsg EditorStack.OpenSaveModal
+
+                     else
+                        EditorMsg Editor.OpenSaveModal
+                    )
+                    :: baseControlStyles
+                )
                 [ text (t model.lang EditorSave) ]
                 
-        viewLang : Html Msg
-        viewLang =
-            select
-                (onInput SetLang :: HA.value (langToString model.lang) :: baseControlStyles)
-                [ option [ HA.value "sk" ] [ text "SK" ]
-                , option [ HA.value "en" ] [ text "EN" ]
-                , option [ HA.value "ru" ] [ text "RU" ]
-                , option [ HA.value "ua" ] [ text "UA" ]
-                ]
-
-        viewTheme : Html Msg
-        viewTheme =
-            button (onClick ToggleTheme :: baseControlStyles)
-                [ text <|
-                    case model.theme of
-                        Light -> t model.lang ThemeDark
-                        Dark  -> t model.lang ThemeLight
-                ]
+        viewSettings : Html Msg
+        viewSettings =
+            button (onClick OpenSettingsModal :: baseControlStyles)
+                [ text (t model.lang SettingsButton) ]
 
         -- правая часть: всегда справа; при <500 две строки
         rightContainerAttrs : List (H.Attribute Msg)
@@ -839,17 +1578,17 @@ topBar model =
                     , HA.style "justify-content" "flex-end"
                     , HA.style "align-items" "center"
                     ]
-                    [ viewLang, viewTheme ]
+                    [ viewSettings ]
             else
                 let
                     editorActions =
-                        if model.route == Editor then
-                            [ viewEditorGoToStart, viewEditorSave ]
+                        if (model.route == Editor) || (model.route == EditorStack) then
+                            [ viewEditorSave ]
                         else
                             []
 
                     commonActions =
-                        (if onHome then [] else [ viewHome ]) ++ [ viewLang, viewTheme ]
+                        (if onHome then [] else [ viewHome ]) ++ [ viewSettings ]
                 in
                 div
                     [ HA.style "display" "flex"
@@ -943,7 +1682,7 @@ homeView model =
             , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
             , HA.style "padding" ("0 " ++ px tk.spacing.s)
             ]
-            [ menuCard model (t model.lang MenuEditor) Editor
+            [ menuCard model (t model.lang MenuEditor) AutomatonMenu
             , menuCard model (t model.lang MenuInstructions) Instructions
             , menuCard model (t model.lang MenuAbout) About
             ]
@@ -951,7 +1690,38 @@ homeView model =
 
 
 
+automatonTypeHomeView : Model -> Html Msg
+automatonTypeHomeView model =
+    let
+        tk = tokens model.scale
+    in
+    div
+        [ HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
+        , HA.style "align-items" "center"
+        , HA.style "gap" (px tk.spacing.m)
+        ]
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.font.h2)
+            ]
+            [ text (t model.lang AutomatonMenuTitle) ]
+        , div
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
+            , HA.style "gap" (px tk.spacing.m)
+            , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
+            , HA.style "padding" ("0 " ++ px tk.spacing.s)
+            ]
+            [ menuCard model (t model.lang MenuAutomatonFinite) Editor
+            , menuCard model (t model.lang MenuAutomatonStack) EditorStack
+            ]
+        ]
 
+
+
+
+        
 
 menuCard : Model -> String -> Route -> Html Msg
 menuCard model label routeTarget =

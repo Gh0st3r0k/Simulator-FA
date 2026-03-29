@@ -1,0 +1,50 @@
+{
+  "entries": [
+    {
+      "version": "1.9.0",
+      "title": {
+        "en": "Step-by-step simulation",
+        "ru": "Пошаговая симуляция",
+        "ua": "Покрокова симуляція",
+        "sk": "Kroková simulácia"
+      },
+      "items": {
+        "en": [
+          "Added step-by-step simulation of automaton execution."
+        ],
+        "ru": [
+          "Добавлена пошаговая симуляция выполнения автомата."
+        ],
+        "ua": [
+          "Додано покрокову симуляцію виконання автомата."
+        ],
+        "sk": [
+          "Pridaná kroková simulácia vykonávania automatu."
+        ]
+      }
+    },
+    {
+      "version": "2.0.0",
+      "title": {
+        "en": "Pushdown automaton support",
+        "ru": "Поддержка стекового автомата",
+        "ua": "Підтримка стекового автомата",
+        "sk": "Podpora zásobníkového automatu"
+      },
+      "items": {
+        "en": [
+          "Added support for pushdown automaton (PDA)."
+        ],
+        "ru": [
+          "Добавлена поддержка стекового автомата (PDA)."
+        ],
+        "ua": [
+          "Додано підтримку стекового автомата (PDA)."
+        ],
+        "sk": [
+          "Pridaná podpora zásobníkového automatu (PDA)."
+        ]
+      }
+    }
+  ]
+}

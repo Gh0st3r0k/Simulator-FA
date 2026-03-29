@@ -37,12 +37,28 @@ langFromString s =
 type Key
     = AppTitle
     | MenuEditor
+    | MenuAutomatonFinite
+    | MenuAutomatonStack
     | MenuInstructions
     | MenuAbout
     | Greeting
+    | AutomatonMenuTitle
+    | EditorStackVisual
     | ThemeLight
     | ThemeDark
+    | ThemeLabel
     | Language
+    | SettingsButton
+    | SettingsTitle
+    | WelcomeTitle
+    | WelcomeSummary
+    | WelcomeTech
+    | WelcomeContinue
+    | StartPageLabel
+    | StartPageWelcomeOption
+    | StartPageHomeOption
+    | StartPageFiniteOption
+    | StartPageStackOption
     | BackHome
     | InstructionsTitle
     | InstructionsBody
@@ -61,6 +77,10 @@ type Key
     | EditorCodeValidationConditionSingle
     | EditorCodeValidationTwoParts
     | EditorCodeValidationArrowLine
+    | EditorCodeValidationStackLeftThreeParts
+    | EditorCodeValidationStackRightTwoParts
+    | EditorCodeValidationStackInputSingle
+    | EditorCodeValidationStackZMustBeReturned
     | EditorImport
     | EditorExport
     | EditorSave
@@ -71,6 +91,7 @@ type Key
     | EditorImportFas
     | EditorExportFas
     | EditorImportError
+    | EditorAutomatonTypeMismatch
     | EditorRenameSlot
     | EditorConfirmRename
     | EditorSaved
@@ -86,6 +107,8 @@ type Key
     | EditorModeConfigureTransition
     | EditorTransitions
     | EditorTransitionLabel
+    | EditorTransitionStackInput
+    | EditorTransitionStackOutput
     | EditorTransitionSelectStart
     | EditorTransitionSelectForEdit
     | EditorTransitionFrom
@@ -110,7 +133,11 @@ type Key
     | EditorSimulationDelay
     | EditorGoToStartState
     | EditorSimulationStart
+    | EditorSimulationStepStart
     | EditorSimulationStop
+    | EditorSimulationStepForward
+    | EditorSimulationStepBackward
+    | EditorSimulationStopped
     | EditorSimulationRunning
     | EditorSimulationSuccess
     | EditorSimulationRejected
@@ -143,6 +170,10 @@ type Key
     | FeedbackMailProviderOutlook
     | FeedbackDoNotModifyLabel
     | FeedbackDescribeDetailsLabel
+    | WhatsNewModalTitle
+    | WhatsNewModalNoEntries
+    | WhatsNewReloadWarning
+    | WhatsNewCloseButton
 
 
 t : Lang -> Key -> String
@@ -153,10 +184,20 @@ t lang key =
         ( SK, AppTitle ) -> "Simulátor konečného automatu (Elm)"
         ( UA, AppTitle ) -> "Симулятор кінцевого автомата (Elm)"
 
-        ( RU, MenuEditor ) -> "Конечный автомат"
+        ( RU, MenuEditor ) -> "Автомат"
         ( EN, MenuEditor ) -> "Automaton"
         ( SK, MenuEditor ) -> "Automat"
-        ( UA, MenuEditor ) -> "Кінцевий автомат"
+        ( UA, MenuEditor ) -> "Автомат"
+
+        ( RU, MenuAutomatonFinite ) -> "Конечный автомат"
+        ( EN, MenuAutomatonFinite ) -> "Finite automaton"
+        ( SK, MenuAutomatonFinite ) -> "Konečný automat"
+        ( UA, MenuAutomatonFinite ) -> "Кінцевий автомат"
+
+        ( RU, MenuAutomatonStack ) -> "Стековый автомат"
+        ( EN, MenuAutomatonStack ) -> "Stack automaton"
+        ( SK, MenuAutomatonStack ) -> "Zásobníkový automat"
+        ( UA, MenuAutomatonStack ) -> "Стековий автомат"
 
         ( RU, MenuInstructions ) -> "Инструкции"
         ( EN, MenuInstructions ) -> "Instructions"
@@ -173,6 +214,16 @@ t lang key =
         ( SK, Greeting ) -> "Vyberte sekciu nižšie"
         ( UA, Greeting ) -> "Оберіть розділ нижче"
 
+        ( RU, AutomatonMenuTitle ) -> "Выберите тип автомата"
+        ( EN, AutomatonMenuTitle ) -> "Choose automaton type"
+        ( SK, AutomatonMenuTitle ) -> "Vyberte typ automatu"
+        ( UA, AutomatonMenuTitle ) -> "Оберіть тип автомата"
+
+        ( RU, EditorStackVisual ) -> "Стек"
+        ( EN, EditorStackVisual ) -> "Stack"
+        ( SK, EditorStackVisual ) -> "Zásobník"
+        ( UA, EditorStackVisual ) -> "Стек"
+
         ( RU, ThemeLight ) -> "Светлая"
         ( EN, ThemeLight ) -> "Light"
         ( SK, ThemeLight ) -> "Svetlá"
@@ -183,10 +234,70 @@ t lang key =
         ( SK, ThemeDark ) -> "Tmavá"
         ( UA, ThemeDark ) -> "Темна"
 
+        ( RU, ThemeLabel ) -> "Тема"
+        ( EN, ThemeLabel ) -> "Theme"
+        ( SK, ThemeLabel ) -> "Téma"
+        ( UA, ThemeLabel ) -> "Тема"
+
         ( RU, Language ) -> "Язык"
         ( EN, Language ) -> "Language"
         ( SK, Language ) -> "Jazyk"
         ( UA, Language ) -> "Мова"
+
+        ( RU, SettingsButton ) -> "Настройки"
+        ( EN, SettingsButton ) -> "Settings"
+        ( SK, SettingsButton ) -> "Nastavenia"
+        ( UA, SettingsButton ) -> "Налаштування"
+
+        ( RU, SettingsTitle ) -> "Настройки"
+        ( EN, SettingsTitle ) -> "Settings"
+        ( SK, SettingsTitle ) -> "Nastavenia"
+        ( UA, SettingsTitle ) -> "Налаштування"
+
+        ( RU, WelcomeTitle ) -> "Добро пожаловать!"
+        ( EN, WelcomeTitle ) -> "Welcome!"
+        ( SK, WelcomeTitle ) -> "Vitajte!"
+        ( UA, WelcomeTitle ) -> "Ласкаво просимо!"
+
+        ( RU, WelcomeSummary ) -> "Это симулятор конечного и стекового автоматов: вы можете строить граф, редактировать переходы, запускать симуляцию и сохранять слоты."
+        ( EN, WelcomeSummary ) -> "This is a finite and stack automata simulator: you can build graphs, edit transitions, run simulations, and save slots."
+        ( SK, WelcomeSummary ) -> "Toto je simulátor konečných a zásobníkových automatov: môžete vytvárať graf, upravovať prechody, spúšťať simuláciu a ukladať sloty."
+        ( UA, WelcomeSummary ) -> "Це симулятор кінцевого та стекового автоматів: ви можете будувати граф, редагувати переходи, запускати симуляцію та зберігати слоти."
+
+        ( RU, WelcomeTech ) -> "Сайт построен как SPA на Elm: интерфейс, логика и состояние работают в браузере, а данные сохраняются в localStorage."
+        ( EN, WelcomeTech ) -> "The site is built as an Elm SPA: UI, logic, and state run in the browser, while data is persisted in localStorage."
+        ( SK, WelcomeTech ) -> "Stránka je vytvorená ako Elm SPA: rozhranie, logika aj stav bežia v prehliadači a dáta sa ukladajú do localStorage."
+        ( UA, WelcomeTech ) -> "Сайт побудовано як SPA на Elm: інтерфейс, логіка й стан працюють у браузері, а дані зберігаються в localStorage."
+
+        ( RU, WelcomeContinue ) -> "Продолжить"
+        ( EN, WelcomeContinue ) -> "Continue"
+        ( SK, WelcomeContinue ) -> "Pokračovať"
+        ( UA, WelcomeContinue ) -> "Продовжити"
+
+        ( RU, StartPageLabel ) -> "Стартовая страница"
+        ( EN, StartPageLabel ) -> "Start page"
+        ( SK, StartPageLabel ) -> "Úvodná stránka"
+        ( UA, StartPageLabel ) -> "Стартова сторінка"
+
+        ( RU, StartPageWelcomeOption ) -> "Показывать Welcome окно"
+        ( EN, StartPageWelcomeOption ) -> "Show Welcome modal"
+        ( SK, StartPageWelcomeOption ) -> "Zobraziť Welcome okno"
+        ( UA, StartPageWelcomeOption ) -> "Показувати Welcome вікно"
+
+        ( RU, StartPageHomeOption ) -> "Home"
+        ( EN, StartPageHomeOption ) -> "Home"
+        ( SK, StartPageHomeOption ) -> "Domov"
+        ( UA, StartPageHomeOption ) -> "Home"
+
+        ( RU, StartPageFiniteOption ) -> "Конечный автомат"
+        ( EN, StartPageFiniteOption ) -> "Finite automaton"
+        ( SK, StartPageFiniteOption ) -> "Konečný automat"
+        ( UA, StartPageFiniteOption ) -> "Кінцевий автомат"
+
+        ( RU, StartPageStackOption ) -> "Стековый автомат"
+        ( EN, StartPageStackOption ) -> "Stack automaton"
+        ( SK, StartPageStackOption ) -> "Zásobníkový automat"
+        ( UA, StartPageStackOption ) -> "Стековий автомат"
 
         ( RU, BackHome ) -> "← На главную"
         ( EN, BackHome ) -> "← Home"
@@ -200,190 +311,214 @@ t lang key =
 
         ( RU, InstructionsBody ) ->
             String.join "\n"
-                [ "1) Работа с автоматом на холсте"
+                [ "⚠️ Если что-то работает некорректно, сначала обновите страницу через Ctrl+F5."
+                , ""
+                , "1) Конечный автомат"
                 , "• Режим «Создать состояния»: клик по пустому месту создаёт состояние."
                 , "• Режим «Создать переходы»: выберите состояние-источник, затем состояние-назначение."
                 , "• Режим «Выбрать»: перетаскивайте состояния, выбирайте состояние или переход для редактирования."
                 , "• Двойной клик по состоянию переключает принимающее состояние."
                 , "• Для выбранного состояния доступны: изменить название, сделать/убрать стартовым, сделать/убрать принимающим, удалить."
                 , "• Для выбранного перехода доступны: изменить метку и удалить переход."
-                , ""
-                , "2) Тип автомата"
                 , "• Приложение показывает, является ли автомат детерминированным или недетерминированным."
                 , "• Можно открыть детали и посмотреть причины недетерминированности (например, дубликаты условий или λ-переходы)."
+                , "• Функция переходов (код слева):"
+                , "  — Импорт: применяет текст функции переходов к текущему автомату."
+                , "  — Экспорт: формирует текст функции переходов из текущего автомата."
+                , "  — Подсветка ошибок помогает исправить формат записей."
+                , "  — Формат: (состояние, символ) => состояние_назначения."
+                , "  — Примеры: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3."
+                , "• Симуляции: обычный запуск и пошаговый режим."
+                , "  — Обычный режим: Старт запускает симуляцию, Стоп останавливает."
+                , "  — Пошаговый режим: можно идти по шагам вперёд/назад и смотреть текущие состояния."
+                , "  — Результаты: принято / отклонено / тупик / нет стартового состояния."
+                , "  — Для НКА при неоднозначности можно выбрать следующий переход вручную."
+                , "• Сохранение и обмен:"
+                , "  — Раздел «Сохранение»: сохранение автомата в слот, загрузка, удаление, переименование слотов."
+                , "  — Для слотов поддерживается импорт/экспорт .fas."
+                , "• Горячие клавиши:"
+                , "  — Alt+1 — режим «Создать состояния»."
+                , "  — Alt+2 — режим «Создать переходы»."
+                , "  — Alt+3 — режим «Выбрать / перемещать состояния»."
+                , "  — Alt+S — сделать/убрать выбранное состояние стартовым."
+                , "  — Alt+E — сделать/убрать выбранное состояние принимающим."
+                , "  — Alt+N — фокус на поле имени/метки выбранного объекта."
+                , "  — Alt+Q — центрировать холст на стартовом состоянии."
+                , "  — Alt+T — фокус на редакторе функции переходов."
+                , "  — Shift+Alt+S — фокус на поле входной строки симуляции."
+                , "  — Shift+Alt+Enter — старт/стоп симуляции."
+                , "  — Shift+Alt+N — показать/скрыть детали типа автомата."
+                , "  — Delete (Windows/Linux) и Cmd+Backspace (macOS) — удалить выбранное состояние или переход."
                 , ""
-                , "3) Функция переходов (код слева)"
-                , "• Импорт: применяет текст функции переходов к текущему автомату."
-                , "• Экспорт: формирует текст функции переходов из текущего автомата."
-                , "• Подсветка ошибок помогает исправить формат записей."
-                , "• Текущий формат записи перехода: (состояние, символ) => состояние_назначения."
-                , "• Примеры: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-переход)."
+                , "2) Засобниковый автомат"
+                , "• Есть визуализация стека и редактирование переходов со стековым входом/выходом."
+                , "• Поддерживаются те же базовые режимы работы на холсте: создание состояний, переходов, выбор/перемещение и редактирование."
+                , "• Поддерживается редактирование переходной функции для засобникового автомата."
+                , "• Симуляции тоже доступны в двух вариантах: обычная и пошаговая (вперёд/назад)."
+                , "• Доступны те же операции сохранения/загрузки и импорт/экспорт .fas слотов."
+                , "• Горячие клавиши работают так же, включая macOS (Cmd+Backspace для удаления)."
                 , ""
-                , "4) Симуляция"
-                , "• Введите входную строку и задайте задержку (мс) между шагами."
-                , "• Старт запускает симуляцию, Стоп останавливает."
-                , "• Пошагово отображаются текущие состояния и результат: принято / отклонено / тупик / нет стартового состояния."
-                , "• Для НКА при неоднозначности можно выбрать следующий переход вручную."
-                , ""
-                , "5) Сохранение и обмен"
-                , "• Раздел «Сохранение»: сохранение автомата в слот, загрузка, удаление, переименование слотов."
-                , "• Для слотов поддерживается импорт/экспорт .fas."
-                , "⚠️ При ошибке попробуйте обновить страницу через Ctrl+F5. Если ошибка сохраняется — напишите мне через форму обратной связи справа снизу."
-                , ""
-                , "6) Горячие клавиши"
-                , "• Alt+1 — режим «Создать состояния»."
-                , "• Alt+2 — режим «Создать переходы»."
-                , "• Alt+3 — режим «Выбрать / перемещать состояния»."
-                , "• Alt+S — сделать/убрать выбранное состояние стартовым."
-                , "• Alt+E — сделать/убрать выбранное состояние принимающим."
-                , "• Alt+N — фокус на поле имени/метки выбранного объекта."
-                , "• Alt+Q — центрировать холст на стартовом состоянии."
-                , "• Alt+T — фокус на редакторе функции переходов."
-                , "• Shift+Alt+S — фокус на поле входной строки симуляции."
-                , "• Shift+Alt+Enter — старт/стоп симуляции."
-                , "• Shift+Alt+N — показать/скрыть детали типа автомата."
-                , "• Delete — удалить выбранное состояние или переход."
+                , "3) Если ошибка не ушла после Ctrl+F5"
+                , "• Напишите мне через форму обратной связи справа снизу."
                 ]
 
         ( EN, InstructionsBody ) ->
             String.join "\n"
-                [ "1) Working with the automaton on the canvas"
+                [ "⚠️ If anything works incorrectly, first hard-refresh the page with Ctrl+F5."
+                , ""
+                , "1) Finite automaton"
                 , "• 'Create states' mode: click on empty space to create a state."
                 , "• 'Create transitions' mode: select the source state, then the destination state."
                 , "• 'Select' mode: drag states, select a state or a transition to edit."
                 , "• Double-clicking a state toggles its accepting flag."
                 , "• For the selected state you can: rename it, set/unset start, set/unset accepting, delete."
                 , "• For the selected transition you can: change the label and delete the transition."
-                , ""
-                , "2) Automaton type"
                 , "• The app shows whether the automaton is deterministic or non-deterministic."
                 , "• You can open details and see reasons for non-determinism (for example, duplicate conditions or λ-transitions)."
+                , "• Transition function (code on the left):"
+                , "  — Import: applies the transition function text to the current automaton."
+                , "  — Export: generates the transition function text from the current automaton."
+                , "  — Error highlighting helps to fix formatting issues in entries."
+                , "  — Format: (state, symbol) => target_state."
+                , "  — Examples: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3."
+                , "• Simulations: regular run and step-by-step mode."
+                , "  — Regular mode: Start begins the simulation, Stop stops it."
+                , "  — Step-by-step mode: you can move forward/backward through steps and inspect current states."
+                , "  — Results: accepted / rejected / dead end / no start state."
+                , "  — For NFAs, when ambiguous, you can choose the next transition manually."
+                , "• Saving and sharing:"
+                , "  — 'Save' section: save the automaton to a slot, load, delete, rename slots."
+                , "  — Slots support importing/exporting .fas files."
+                , "• Keyboard shortcuts:"
+                , "  — Alt+1 — 'Create states' mode."
+                , "  — Alt+2 — 'Create transitions' mode."
+                , "  — Alt+3 — 'Select / move states' mode."
+                , "  — Alt+S — set/unset the selected state as start."
+                , "  — Alt+E — set/unset the selected state as accepting."
+                , "  — Alt+N — focus the name/label field of the selected item."
+                , "  — Alt+Q — center the canvas on the start state."
+                , "  — Alt+T — focus the transition function editor."
+                , "  — Shift+Alt+S — focus the simulation input field."
+                , "  — Shift+Alt+Enter — start/stop simulation."
+                , "  — Shift+Alt+N — show/hide automaton type details."
+                , "  — Delete (Windows/Linux) and Cmd+Backspace (macOS) — delete selected state/transition."
                 , ""
-                , "3) Transition function (code on the left)"
-                , "• Import: applies the transition function text to the current automaton."
-                , "• Export: generates the transition function text from the current automaton."
-                , "• Error highlighting helps to fix formatting issues in entries."
-                , "• The expected format for a transition entry is: (state, symbol) => target_state."
-                , "• Examples: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ is a lambda transition)."
+                , "2) Stack automaton"
+                , "• Includes stack visualization and transition editing with stack input/output."
+                , "• Supports the same base canvas workflows: create states, create transitions, select/move and edit."
+                , "• Supports transition-function editing for stack automata."
+                , "• Simulations are also available in two variants: regular and step-by-step (forward/backward)."
+                , "• Supports the same save/load operations and .fas import/export."
+                , "• Keyboard shortcuts work the same way, including macOS (Cmd+Backspace for delete)."
                 , ""
-                , "4) Simulation"
-                , "• Enter the input string and set the delay (ms) between steps."
-                , "• Start begins the simulation, Stop stops it."
-                , "• The simulation shows current states step-by-step and the result: accepted / rejected / dead end / no start state."
-                , "• For NFAs, when ambiguous, you can choose the next transition manually."
-                , ""
-                , "5) Saving and sharing"
-                , "• 'Save' section: save the automaton to a slot, load, delete, rename slots."
-                , "• Slots support importing/exporting .fas files."
-                , "⚠️ If an error occurs, try hard-refreshing the page with Ctrl+F5. If the error remains, contact me via the feedback form in the bottom-right corner."
-                , ""
-                , "6) Keyboard shortcuts"
-                , "• Alt+1 — 'Create states' mode."
-                , "• Alt+2 — 'Create transitions' mode."
-                , "• Alt+3 — 'Select / move states' mode."
-                , "• Alt+S — set/unset the selected state as start."
-                , "• Alt+E — set/unset the selected state as accepting."
-                , "• Alt+N — focus the name/label field of the selected item."
-                , "• Alt+Q — center the canvas on the start state."
-                , "• Alt+T — focus the transition function editor."
-                , "• Shift+Alt+S — focus the simulation input field."
-                , "• Shift+Alt+Enter — start/stop simulation."
-                , "• Shift+Alt+N — show/hide automaton type details."
-                , "• Delete — delete the selected state or transition."
+                , "3) If issues remain after Ctrl+F5"
+                , "• Contact me via the feedback form in the bottom-right corner."
                 ]
 
         ( SK, InstructionsBody ) ->
             String.join "\n"
-                [ "1) Práca s automatom na plátne"
+                [ "⚠️ Ak niečo nefunguje správne, najprv skúste tvrdé obnovenie stránky cez Ctrl+F5."
+                , ""
+                , "1) Konečný automat"
                 , "• Režim 'Vytvoriť stavy': kliknutie na prázdne miesto vytvorí stav."
                 , "• Režim 'Vytvoriť prechody': vyberte zdrojový stav, potom cieľový stav."
                 , "• Režim 'Vybrať': ťahajte stavy, vyberte stav alebo prechod na úpravu."
                 , "• Dvojité kliknutie na stav prepína, či je akceptujúci."
                 , "• Pre vybraný stav môžete: zmeniť názov, nastaviť/zrušiť počiatočný, nastaviť/zrušiť akceptujúci, odstrániť."
                 , "• Pre vybraný prechod môžete: zmeniť označenie a odstrániť prechod."
-                , ""
-                , "2) Typ automatu"
                 , "• Aplikácia zobrazuje, či je automat deterministický alebo nedeterministický."
                 , "• Môžete otvoriť detaily a vidieť dôvody nedeterministickosti (napríklad duplikáty podmienok alebo λ-prechody)."
+                , "• Prechodová funkcia (kód vľavo):"
+                , "  — Import: aplikuje text prechodovej funkcie na aktuálny automat."
+                , "  — Export: vygeneruje text prechodovej funkcie z aktuálneho automatu."
+                , "  — Zvýraznenie chýb pomáha opraviť formát záznamov."
+                , "  — Formát: (stav, symbol) => cieľový_stav."
+                , "  — Príklady: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3."
+                , "• Simulácie: bežné spustenie aj krokový režim."
+                , "  — Bežný režim: Start spustí simuláciu, Stop ju zastaví."
+                , "  — Krokový režim: môžete ísť po krokoch dopredu/dozadu a sledovať aktuálne stavy."
+                , "  — Výsledky: prijaté / odmietnuté / slepá ulička / žiadny počiatočný stav."
+                , "  — Pre NKA pri nejednoznačnosti môžete manuálne vybrať ďalší prechod."
+                , "• Ukladanie a zdieľanie:"
+                , "  — Sekcia 'Uložiť': uloženie automatu do slotu, načítanie, vymazanie, premenovanie slotov."
+                , "  — Sloty podporujú import/export súborov .fas."
+                , "• Klávesové skratky:"
+                , "  — Alt+1 — režim 'Vytvoriť stavy'."
+                , "  — Alt+2 — režim 'Vytvoriť prechody'."
+                , "  — Alt+3 — režim 'Vybrať / presúvať stavy'."
+                , "  — Alt+S — nastaviť/zrušiť vybraný stav ako počiatočný."
+                , "  — Alt+E — nastaviť/zrušiť vybraný stav ako akceptujúci."
+                , "  — Alt+N — fokus na poli názvu/označenia vybraného objektu."
+                , "  — Alt+Q — vycentrovať plátno na počiatočný stav."
+                , "  — Alt+T — fokus na editor prechodovej funkcie."
+                , "  — Shift+Alt+S — fokus na pole vstupu simulácie."
+                , "  — Shift+Alt+Enter — spustiť/zastaviť simuláciu."
+                , "  — Shift+Alt+N — zobraziť/skryť detaily typu automatu."
+                , "  — Delete (Windows/Linux) a Cmd+Backspace (macOS) — odstrániť vybraný stav/prechod."
                 , ""
-                , "3) Prechodová funkcia (kód vľavo)"
-                , "• Import: aplikuje text prechodovej funkcie na aktuálny automat."
-                , "• Export: vygeneruje text prechodovej funkcie z aktuálneho automatu."
-                , "• Zvýraznenie chýb pomáha opraviť formát záznamov."
-                , "• Očekávaný formát záznamu přechodu je: (stav, symbol) => stav_cíle."
-                , "• Příklady: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ je lambda přechod)."
+                , "2) Zásobníkový automat"
+                , "• Obsahuje vizualizáciu zásobníka a úpravu prechodov so vstupom/výstupom zásobníka."
+                , "• Podporuje rovnaké základné režimy práce na plátne: vytváranie stavov, prechodov, výber/presun a úpravy."
+                , "• Podporuje úpravu prechodovej funkcie pre zásobníkový automat."
+                , "• Simulácie sú tiež dostupné v dvoch variantoch: bežná a kroková (dopredu/dozadu)."
+                , "• Podporuje rovnaké operácie uloženia/načítania a import/export .fas."
+                , "• Klávesové skratky fungujú rovnako, vrátane macOS (Cmd+Backspace na mazanie)."
                 , ""
-                , "4) Simulácia"
-                , "• Zadajte vstupný reťazec a nastavte oneskorenie (ms) medzi krokmi."
-                , "• Start spustí simuláciu, Stop ju zastaví."
-                , "• Krokovo sa zobrazujú aktuálne stavy a výsledok: prijaté / odmietnuté / slepá ulička / žiadny počiatočný stav."
-                , "• Pre NKA pri nejednoznačnosti môžete manuálne vybrať ďalší prechod."
-                , ""
-                , "5) Ukladanie a zdieľanie"
-                , "• Sekcia 'Uložiť': uloženie automatu do slotu, načítanie, vymazanie, premenovanie slotov."
-                , "• Sloty podporujú import/export súborov .fas."
-                , "⚠️ Ak sa vyskytne chyba, skúste tvrdé obnovenie stránky cez Ctrl+F5. Ak chyba pretrváva, napíšte mi cez formulár spätnej väzby vpravo dole."
-                , ""
-                , "6) Klávesové skratky"
-                , "• Alt+1 — režim 'Vytvoriť stavy'."
-                , "• Alt+2 — režim 'Vytvoriť prechody'."
-                , "• Alt+3 — režim 'Vybrať / presúvať stavy'."
-                , "• Alt+S — nastaviť/zrušiť vybraný stav ako počiatočný."
-                , "• Alt+E — nastaviť/zrušiť vybraný stav ako akceptujúci."
-                , "• Alt+N — fokus na poli názvu/označenia vybraného objektu."
-                , "• Alt+Q — vycentrovať plátno na počiatočný stav."
-                , "• Alt+T — fokus na editor prechodovej funkcie."
-                , "• Shift+Alt+S — fokus na pole vstupu simulácie."
-                , "• Shift+Alt+Enter — spustiť/zastaviť simuláciu."
-                , "• Shift+Alt+N — zobraziť/skryť detaily typu automatu."
-                , "• Delete — odstrániť vybraný stav alebo prechod."
+                , "3) Ak problém zostane aj po Ctrl+F5"
+                , "• Napíšte mi cez formulár spätnej väzby vpravo dole."
                 ]
 
         ( UA, InstructionsBody ) ->
             String.join "\n"
-                [ "1) Робота з автоматом на полотні"
+                [ "⚠️ Якщо щось працює некоректно, спочатку примусово оновіть сторінку через Ctrl+F5."
+                , ""
+                , "1) Кінцевий автомат"
                 , "• Режим 'Створити стани': клік по порожньому місцю створює стан."
                 , "• Режим 'Створити переходи': виберіть стан-джерело, потім стан-призначення."
                 , "• Режим 'Вибрати': перетягуйте стани, вибирайте стан або перехід для редагування."
                 , "• Подвійний клік по стану перемикає, чи є він приймаючим."
                 , "• Для вибраного стану доступні: змінити назву, зробити/зняти як стартовий, зробити/зняти як приймаючий, видалити."
                 , "• Для вибраного переходу доступні: змінити мітку і видалити перехід."
-                , ""
-                , "2) Тип автомату"
                 , "• Додаток показує, чи є автомат детермінованим або недетермінованим."
                 , "• Можна відкрити деталі і побачити причини недетермінованості (наприклад, дублікати умов або λ-переходи)."
+                , "• Функція переходів (код ліворуч):"
+                , "  — Імпорт: застосовує текст функції переходів до поточного автомату."
+                , "  — Експорт: формує текст функції переходів з поточного автомату."
+                , "  — Підсвітка помилок допомагає виправити формат записів."
+                , "  — Формат: (стан, символ) => стан_призначення."
+                , "  — Приклади: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3."
+                , "• Симуляції: звичайний запуск і покроковий режим."
+                , "  — Звичайний режим: Старт запускає симуляцію, Стоп зупиняє її."
+                , "  — Покроковий режим: можна рухатись по кроках вперед/назад і переглядати поточні стани."
+                , "  — Результати: прийнято / відхилено / тупик / немає стартового стану."
+                , "  — Для НКА при неоднозначності можна вибрати наступний перехід вручну."
+                , "• Збереження та обмін:"
+                , "  — Розділ 'Збереження': збереження автомату в слот, завантаження, видалення, перейменування слотів."
+                , "  — Для слотів підтримується імпорт/експорт файлів .fas."
+                , "• Гарячі клавіші:"
+                , "  — Alt+1 — режим 'Створити стани'."
+                , "  — Alt+2 — режим 'Створити переходи'."
+                , "  — Alt+3 — режим 'Вибрати / переміщувати стани'."
+                , "  — Alt+S — зробити/зняти вибраний стан як стартовий."
+                , "  — Alt+E — зробити/зняти вибраний стан як приймаючий."
+                , "  — Alt+N — фокус на полі назви/мітки вибраного об'єкта."
+                , "  — Alt+Q — центрувати полотно на стартовому стані."
+                , "  — Alt+T — фокус на редакторі функції переходів."
+                , "  — Shift+Alt+S — фокус на полі вхідного рядка симуляції."
+                , "  — Shift+Alt+Enter — старт/стоп симуляції."
+                , "  — Shift+Alt+N — показати/приховати деталі типу автомату."
+                , "  — Delete (Windows/Linux) і Cmd+Backspace (macOS) — видалити вибраний стан/перехід."
                 , ""
-                , "3) Функція переходів (код ліворуч)"
-                , "• Імпорт: застосовує текст функції переходів до поточного автомату."
-                , "• Експорт: формує текст функції переходів з поточного автомату."
-                , "• Підсвітка помилок допомагає виправити формат записів."
-                , "• Поточний формат запису переходу: (стан, символ) => стан_призначення."
-                , "• Приклади: (q0, a) => q1, (q1, b) => q2, (q2, λ) => q3 (λ — лямбда-перехід)."
+                , "2) Стековий (засобниковий) автомат"
+                , "• Є візуалізація стеку та редагування переходів зі стековим входом/виходом."
+                , "• Підтримує ті самі базові режими роботи на полотні: створення станів, переходів, вибір/переміщення та редагування."
+                , "• Підтримує редагування функції переходів для стекового автомата."
+                , "• Симуляції також доступні у двох варіантах: звичайна і покрокова (вперед/назад)."
+                , "• Підтримує ті самі операції збереження/завантаження та імпорт/експорт .fas."
+                , "• Гарячі клавіші працюють так само, включно з macOS (Cmd+Backspace для видалення)."
                 , ""
-                , "4) Симуляція"
-                , "• Введіть вхідний рядок і задайте затримку (мс) між кроками."
-                , "• Старт запускає симуляцію, Стоп зупиняє її."
-                , "• По кроках відображаються поточні стани та результат: прийнято / відхилено / тупик / немає стартового стану."
-                , "• Для НКА при неоднозначності можна вибрати наступний перехід вручну."
-                , ""
-                , "5) Збереження та обмін"
-                , "• Розділ 'Збереження': збереження автомату в слот, завантаження, видалення, перейменування слотів."
-                , "• Для слотів підтримується імпорт/експорт файлів .fas."
-                , "⚠️ Якщо сталася помилка, спробуйте примусово оновити сторінку через Ctrl+F5. Якщо помилка не зникає — напишіть мені через форму зворотного зв'язку праворуч унизу."
-                , ""
-                , "6) Гарячі клавіші"
-                , "• Alt+1 — режим 'Створити стани'."
-                , "• Alt+2 — режим 'Створити переходи'."
-                , "• Alt+3 — режим 'Вибрати / переміщувати стани'."
-                , "• Alt+S — зробити/зняти вибраний стан як стартовий."
-                , "• Alt+E — зробити/зняти вибраний стан як приймаючий."
-                , "• Alt+N — фокус на полі назви/мітки вибраного об'єкта."
-                , "• Alt+Q — центрувати полотно на стартовому стані."
-                , "• Alt+T — фокус на редакторі функції переходів."
-                , "• Shift+Alt+S — фокус на полі вхідного рядка симуляції."
-                , "• Shift+Alt+Enter — старт/стоп симуляції."
-                , "• Shift+Alt+N — показати/приховати деталі типу автомату."
-                , "• Delete — видалити вибраний стан або перехід."
+                , "3) Якщо проблема не зникла після Ctrl+F5"
+                , "• Напишіть мені через форму зворотного зв'язку праворуч унизу."
                 ]
 
         ( RU, AboutTitle ) -> "О проекте"
@@ -461,6 +596,26 @@ t lang key =
         ( SK, EditorCodeValidationArrowLine ) -> "Očakáva sa šípka => a jeden záznam na riadok"
         ( UA, EditorCodeValidationArrowLine ) -> "Очікується стрілка => і один запис на рядок"
 
+        ( RU, EditorCodeValidationStackLeftThreeParts ) -> "Слева ожидается 3 элемента: (став_откуда, входной_символ, вход_стека)"
+        ( EN, EditorCodeValidationStackLeftThreeParts ) -> "Left side must contain 3 items: (from_state, input_symbol, input_stack)"
+        ( SK, EditorCodeValidationStackLeftThreeParts ) -> "Ľavá strana musí mať 3 položky: (z_stavu, vstupný_symbol, vstup_zásobníka)"
+        ( UA, EditorCodeValidationStackLeftThreeParts ) -> "Ліва частина має містити 3 елементи: (стан_звідки, вхідний_символ, вхід_стека)"
+
+        ( RU, EditorCodeValidationStackRightTwoParts ) -> "Справа ожидается 2 элемента: (став_куда, выход_стека)"
+        ( EN, EditorCodeValidationStackRightTwoParts ) -> "Right side must contain 2 items: (to_state, output_stack)"
+        ( SK, EditorCodeValidationStackRightTwoParts ) -> "Pravá strana musí mať 2 položky: (do_stavu, výstup_zásobníka)"
+        ( UA, EditorCodeValidationStackRightTwoParts ) -> "Права частина має містити 2 елементи: (стан_куди, вихід_стека)"
+
+        ( RU, EditorCodeValidationStackInputSingle ) -> "Вход стека должен быть одним символом или λ"
+        ( EN, EditorCodeValidationStackInputSingle ) -> "Input stack must be a single symbol or λ"
+        ( SK, EditorCodeValidationStackInputSingle ) -> "Vstup zásobníka musí byť jeden symbol alebo λ"
+        ( UA, EditorCodeValidationStackInputSingle ) -> "Вхід стека має бути одним символом або λ"
+
+        ( RU, EditorCodeValidationStackZMustBeReturned ) -> "Если вход стека = Z, то в выходе стека символ Z должен быть в конце"
+        ( EN, EditorCodeValidationStackZMustBeReturned ) -> "If input stack is Z, output stack must end with Z"
+        ( SK, EditorCodeValidationStackZMustBeReturned ) -> "Ak je vstup zásobníka Z, výstup zásobníka musí končiť na Z"
+        ( UA, EditorCodeValidationStackZMustBeReturned ) -> "Якщо вхід стека = Z, то вихід стека має закінчуватися на Z"
+
         ( RU, EditorImport ) -> "Импорт"
         ( EN, EditorImport ) -> "Import"
         ( SK, EditorImport ) -> "Import"
@@ -511,6 +666,11 @@ t lang key =
         ( SK, EditorImportError ) -> "Chyba pri importe"
         ( UA, EditorImportError ) -> "Помилка імпорту"
 
+        ( RU, EditorAutomatonTypeMismatch ) -> "Этот автомат другого типа и не может быть загружен в текущем редакторе"
+        ( EN, EditorAutomatonTypeMismatch ) -> "This automaton type cannot be loaded in the current editor"
+        ( SK, EditorAutomatonTypeMismatch ) -> "Tento typ automatu sa nedá načítať v aktuálnom editore"
+        ( UA, EditorAutomatonTypeMismatch ) -> "Цей тип автомату не можна завантажити в поточному редакторі"
+        
         ( RU, EditorRenameSlot ) -> "Переименовать"
         ( EN, EditorRenameSlot ) -> "Rename"
         ( SK, EditorRenameSlot ) -> "Premenovať"
@@ -585,6 +745,16 @@ t lang key =
         ( EN, EditorTransitionLabel ) -> "Label"
         ( SK, EditorTransitionLabel ) -> "Označenie"
         ( UA, EditorTransitionLabel ) -> "Мітка"
+
+        ( RU, EditorTransitionStackInput ) -> "Вход стека"
+        ( EN, EditorTransitionStackInput ) -> "Input stack"
+        ( SK, EditorTransitionStackInput ) -> "Vstup zásobníka"
+        ( UA, EditorTransitionStackInput ) -> "Вхід стека"
+
+        ( RU, EditorTransitionStackOutput ) -> "Выход стека"
+        ( EN, EditorTransitionStackOutput ) -> "Output stack"
+        ( SK, EditorTransitionStackOutput ) -> "Výstup zásobníka"
+        ( UA, EditorTransitionStackOutput ) -> "Вихід стека"
 
         ( RU, EditorTransitionSelectStart ) -> "Выберите состояние как начальный узел"
         ( EN, EditorTransitionSelectStart ) -> "Select a state as the start node"
@@ -706,10 +876,30 @@ t lang key =
         ( SK, EditorSimulationStart ) -> "Spustiť simuláciu"
         ( UA, EditorSimulationStart ) -> "Запустити симуляцію"
 
+        ( RU, EditorSimulationStepStart ) -> "Начать пошаговую симуляцию"
+        ( EN, EditorSimulationStepStart ) -> "Start step-by-step simulation"
+        ( SK, EditorSimulationStepStart ) -> "Spustiť krokovú simuláciu"
+        ( UA, EditorSimulationStepStart ) -> "Почати покрокову симуляцію"
+
         ( RU, EditorSimulationStop ) -> "Стоп"
         ( EN, EditorSimulationStop ) -> "Stop"
         ( SK, EditorSimulationStop ) -> "Stop"
         ( UA, EditorSimulationStop ) -> "Стоп"
+
+        ( RU, EditorSimulationStepForward ) -> "Шаг вперед"
+        ( EN, EditorSimulationStepForward ) -> "Step forward"
+        ( SK, EditorSimulationStepForward ) -> "Krok vpred"
+        ( UA, EditorSimulationStepForward ) -> "Крок вперед"
+
+        ( RU, EditorSimulationStepBackward ) -> "Шаг назад"
+        ( EN, EditorSimulationStepBackward ) -> "Step back"
+        ( SK, EditorSimulationStepBackward ) -> "Krok späť"
+        ( UA, EditorSimulationStepBackward ) -> "Крок назад"
+
+        ( RU, EditorSimulationStopped ) -> "Stop"
+        ( EN, EditorSimulationStopped ) -> "Stop"
+        ( SK, EditorSimulationStopped ) -> "Stop"
+        ( UA, EditorSimulationStopped ) -> "Stop"
 
         ( RU, EditorSimulationRunning ) -> "Симуляция выполняется..."
         ( EN, EditorSimulationRunning ) -> "Simulation running..."
@@ -871,3 +1061,23 @@ t lang key =
         ( EN, FeedbackDescribeDetailsLabel ) -> "Describe your issue/suggestion in as much detail as possible"
         ( SK, FeedbackDescribeDetailsLabel ) -> "Opíšte svoj problém/návrh čo najpodrobnejšie"
         ( UA, FeedbackDescribeDetailsLabel ) -> "Опишіть якомога детальніше вашу проблему/пропозицію"
+
+        ( RU, WhatsNewModalTitle ) -> "Что нового — версия"
+        ( EN, WhatsNewModalTitle ) -> "What's new — version"
+        ( SK, WhatsNewModalTitle ) -> "Čo je nové — verzia"
+        ( UA, WhatsNewModalTitle ) -> "Що нового — версія"
+
+        ( RU, WhatsNewModalNoEntries ) -> "Для этой версии пока нет записей changelog."
+        ( EN, WhatsNewModalNoEntries ) -> "No changelog entries were found for this version yet."
+        ( SK, WhatsNewModalNoEntries ) -> "Pre túto verziu zatiaľ nie sú dostupné záznamy changelogu."
+        ( UA, WhatsNewModalNoEntries ) -> "Для цієї версії поки немає записів changelog."
+
+        ( RU, WhatsNewReloadWarning ) -> "Доступна новая версия. Обновите страницу: Ctrl+F5 (на macOS: Cmd+Shift+R)."
+        ( EN, WhatsNewReloadWarning ) -> "A new version is available. Refresh the page: Ctrl+F5 (on macOS: Cmd+Shift+R)."
+        ( SK, WhatsNewReloadWarning ) -> "Je dostupná nová verzia. Obnovte stránku: Ctrl+F5 (na macOS: Cmd+Shift+R)."
+        ( UA, WhatsNewReloadWarning ) -> "Доступна нова версія. Оновіть сторінку: Ctrl+F5 (на macOS: Cmd+Shift+R)."
+
+        ( RU, WhatsNewCloseButton ) -> "Понятно"
+        ( EN, WhatsNewCloseButton ) -> "Got it"
+        ( SK, WhatsNewCloseButton ) -> "Rozumiem"
+        ( UA, WhatsNewCloseButton ) -> "Зрозуміло"
