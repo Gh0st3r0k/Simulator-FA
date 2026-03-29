@@ -168,6 +168,166 @@
       if (!location.hash) location.hash = "#/";
       const app = Elm.Main.init({ flags: window.__APP_FLAGS__ });
 
+      (function setupWhatsNewChecks() {
+        const VERSION_URL = "version.json";
+        const CHANGELOG_URL = "changelog.json";
+        const LAST_SEEN_VERSION_KEY = "fas.lastSeenVersion";
+        const LAST_CHECK_TS_KEY = "fas.lastVersionCheckAt";
+        const RELOAD_ATTEMPT_KEY = "fas.lastReloadAttemptVersion";
+        const CHECK_ON_FOCUS_AFTER_MS = 5 * 60 * 1000;
+        const FALLBACK_INTERVAL_MS = 45 * 60 * 1000;
+
+        function resolveUiLang() {
+          const langFromDoc = String(document.documentElement.lang || "").toLowerCase();
+          if (langFromDoc.startsWith("ru")) return "ru";
+          if (langFromDoc.startsWith("uk") || langFromDoc.startsWith("ua")) return "ua";
+          if (langFromDoc.startsWith("sk")) return "sk";
+          return "en";
+        }
+
+        function parseVersion(version) {
+          const clean = String(version || "").trim().replace(/^v/i, "");
+          if (!clean) return [];
+          return clean.split(".").map((part) => {
+            const parsed = Number.parseInt(part, 10);
+            return Number.isFinite(parsed) ? parsed : 0;
+          });
+        }
+
+        function compareVersions(a, b) {
+          const left = parseVersion(a);
+          const right = parseVersion(b);
+          const maxLength = Math.max(left.length, right.length);
+          for (let i = 0; i < maxLength; i++) {
+            const l = left[i] || 0;
+            const r = right[i] || 0;
+            if (l > r) return 1;
+            if (l < r) return -1;
+          }
+          return 0;
+        }
+
+        function isGreaterVersion(a, b) {
+          return compareVersions(a, b) > 0;
+        }
+
+        async function fetchJsonNoCache(url) {
+          const response = await fetch(`${url}?v=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
+          return response.json();
+        }
+
+        function getStorageValue(key, fallback) {
+          try {
+            return window.localStorage.getItem(key) || fallback;
+          } catch (error) {
+            return fallback;
+          }
+        }
+
+        function setStorageValue(key, value) {
+          try {
+            window.localStorage.setItem(key, value);
+          } catch (error) {
+            // ignore storage write errors
+          }
+        }
+
+        function filterChangelogEntries(entries, lastSeenVersion, remoteVersion) {
+          if (!Array.isArray(entries)) return [];
+          return entries
+            .filter((entry) => entry && typeof entry.version === "string")
+            .filter((entry) => isGreaterVersion(entry.version, lastSeenVersion))
+            .filter((entry) => compareVersions(entry.version, remoteVersion) <= 0)
+            .sort((a, b) => compareVersions(b.version, a.version));
+        }
+
+        function getLocalizedEntryTitle(entry, lang) {
+          if (!entry) return "";
+          if (typeof entry.title === "string" && entry.title.trim()) return entry.title;
+          if (entry.title && typeof entry.title === "object") {
+            return entry.title[lang] || entry.title.en || entry.title.ru || "";
+          }
+          return "";
+        }
+
+        function getLocalizedEntryItems(entry, lang) {
+          if (!entry) return [];
+          if (Array.isArray(entry.items)) return entry.items;
+          if (entry.items && typeof entry.items === "object") {
+            const localized = entry.items[lang] || entry.items.en || entry.items.ru || [];
+            return Array.isArray(localized) ? localized : [];
+          }
+          return [];
+        }
+
+        function notifyElmAboutWhatsNew(remoteVersion, changelogEntries, showReloadWarning) {
+          if (!(app.ports && app.ports.whatsNewDetected)) return;
+          const lang = resolveUiLang();
+          const localizedEntries = changelogEntries.map((entry) => ({
+            version: String(entry.version || ""),
+            title: getLocalizedEntryTitle(entry, lang),
+            items: getLocalizedEntryItems(entry, lang)
+          }));
+
+          app.ports.whatsNewDetected.send({
+            version: remoteVersion,
+            entries: localizedEntries,
+            showReloadWarning: showReloadWarning
+          });
+        }
+
+        async function checkForUpdates() {
+          const now = Date.now();
+          setStorageValue(LAST_CHECK_TS_KEY, String(now));
+
+          try {
+            const versionPayload = await fetchJsonNoCache(VERSION_URL);
+            const remoteVersion = String(versionPayload && versionPayload.version ? versionPayload.version : "").trim();
+            if (!remoteVersion) return;
+
+            const lastSeenVersion = getStorageValue(LAST_SEEN_VERSION_KEY, "0.0.0");
+            const isFirstVisitWithWelcome = Boolean(window.__APP_FLAGS__ && window.__APP_FLAGS__.startPage === 0);
+
+            if (isFirstVisitWithWelcome) {
+              setStorageValue(LAST_SEEN_VERSION_KEY, remoteVersion);
+              return;
+            }
+
+            if (!isGreaterVersion(remoteVersion, lastSeenVersion)) return;
+
+            const reloadAttemptedFor = getStorageValue(RELOAD_ATTEMPT_KEY, "");
+            if (reloadAttemptedFor !== remoteVersion) {
+              setStorageValue(RELOAD_ATTEMPT_KEY, remoteVersion);
+              window.location.reload();
+              return;
+            }
+
+            const changelogPayload = await fetchJsonNoCache(CHANGELOG_URL);
+            const entries = Array.isArray(changelogPayload) ? changelogPayload : changelogPayload.entries;
+            const changelogEntries = filterChangelogEntries(entries, lastSeenVersion, remoteVersion);
+            notifyElmAboutWhatsNew(remoteVersion, changelogEntries, true);
+          } catch (error) {
+            // ignore failed background update checks
+          }
+        }
+
+        function maybeCheckForUpdates() {
+          const lastCheckedRaw = getStorageValue(LAST_CHECK_TS_KEY, "0");
+          const lastCheckedAt = Number.parseInt(lastCheckedRaw, 10) || 0;
+          if (Date.now() - lastCheckedAt > CHECK_ON_FOCUS_AFTER_MS) {
+            checkForUpdates();
+          }
+        }
+
+        checkForUpdates();
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "visible") maybeCheckForUpdates();
+        });
+        window.addEventListener("focus", maybeCheckForUpdates);
+        window.setInterval(checkForUpdates, FALLBACK_INTERVAL_MS);
+      })();
+      
       if (app.ports && app.ports.saveAutomatonSlots) {
         app.ports.saveAutomatonSlots.subscribe(function (payload) {
           try {

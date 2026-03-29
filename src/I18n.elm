@@ -170,6 +170,10 @@ type Key
     | FeedbackMailProviderOutlook
     | FeedbackDoNotModifyLabel
     | FeedbackDescribeDetailsLabel
+    | WhatsNewModalTitle
+    | WhatsNewModalNoEntries
+    | WhatsNewReloadWarning
+    | WhatsNewCloseButton
 
 
 t : Lang -> Key -> String
@@ -1057,3 +1061,23 @@ t lang key =
         ( EN, FeedbackDescribeDetailsLabel ) -> "Describe your issue/suggestion in as much detail as possible"
         ( SK, FeedbackDescribeDetailsLabel ) -> "Opíšte svoj problém/návrh čo najpodrobnejšie"
         ( UA, FeedbackDescribeDetailsLabel ) -> "Опишіть якомога детальніше вашу проблему/пропозицію"
+
+        ( RU, WhatsNewModalTitle ) -> "Что нового — версия"
+        ( EN, WhatsNewModalTitle ) -> "What's new — version"
+        ( SK, WhatsNewModalTitle ) -> "Čo je nové — verzia"
+        ( UA, WhatsNewModalTitle ) -> "Що нового — версія"
+
+        ( RU, WhatsNewModalNoEntries ) -> "Для этой версии пока нет записей changelog."
+        ( EN, WhatsNewModalNoEntries ) -> "No changelog entries were found for this version yet."
+        ( SK, WhatsNewModalNoEntries ) -> "Pre túto verziu zatiaľ nie sú dostupné záznamy changelogu."
+        ( UA, WhatsNewModalNoEntries ) -> "Для цієї версії поки немає записів changelog."
+
+        ( RU, WhatsNewReloadWarning ) -> "Доступна новая версия. Обновите страницу: Ctrl+F5 (на macOS: Cmd+Shift+R)."
+        ( EN, WhatsNewReloadWarning ) -> "A new version is available. Refresh the page: Ctrl+F5 (on macOS: Cmd+Shift+R)."
+        ( SK, WhatsNewReloadWarning ) -> "Je dostupná nová verzia. Obnovte stránku: Ctrl+F5 (na macOS: Cmd+Shift+R)."
+        ( UA, WhatsNewReloadWarning ) -> "Доступна нова версія. Оновіть сторінку: Ctrl+F5 (на macOS: Cmd+Shift+R)."
+
+        ( RU, WhatsNewCloseButton ) -> "Понятно"
+        ( EN, WhatsNewCloseButton ) -> "Got it"
+        ( SK, WhatsNewCloseButton ) -> "Rozumiem"
+        ( UA, WhatsNewCloseButton ) -> "Зрозуміло"

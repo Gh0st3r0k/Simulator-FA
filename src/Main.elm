@@ -70,6 +70,21 @@ type alias Model =
     , settingsModalOpen : Bool
     , welcomeModalOpen : Bool
     , startPage : StartPage
+    , whatsNewModal : Maybe WhatsNewModal
+    }
+
+
+type alias WhatsNewModal =
+    { version : String
+    , entries : List WhatsNewEntry
+    , showReloadWarning : Bool
+    }
+
+
+type alias WhatsNewEntry =
+    { version : String
+    , title : String
+    , items : List String
     }
 
 
@@ -182,6 +197,8 @@ type Msg
     | UpdateFeedbackText String
     | UpdateFeedbackEmailInput String
     | UpdateFeedbackMailProvider String
+    | GotWhatsNew Decode.Value
+    | CloseWhatsNewModal
     | NoOp
 
 
@@ -214,6 +231,10 @@ port importAutomatonFile : Int -> Cmd msg
 
 
 port importAutomatonFileResult : (Decode.Value -> msg) -> Sub msg
+
+port whatsNewDetected : (Decode.Value -> msg) -> Sub msg
+
+port markVersionSeen : String -> Cmd msg
 
 
 main : Program Flags Model Msg
@@ -271,6 +292,7 @@ init flags url key =
       , settingsModalOpen = False
       , welcomeModalOpen = flags.startPage == 0
       , startPage = startPage
+      , whatsNewModal = Nothing
       }
     , Task.attempt GotViewport Dom.getViewport
     )
@@ -679,6 +701,22 @@ update msg model =
         UpdateFeedbackMailProvider value ->
             ( { model | feedbackMailProvider = mailProviderFromString value }, Cmd.none )
 
+        GotWhatsNew value ->
+            case Decode.decodeValue decodeWhatsNewPayload value of
+                Ok payload ->
+                    ( { model | whatsNewModal = Just payload }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        CloseWhatsNewModal ->
+            case model.whatsNewModal of
+                Just payload ->
+                    ( { model | whatsNewModal = Nothing }, markVersionSeen payload.version )
+
+                Nothing ->
+                    ( model, Cmd.none )
+        
         NoOp ->
             ( model, Cmd.none )
 
@@ -689,6 +727,7 @@ subscriptions _ =
     Sub.batch
         [ Browser.Events.onResize ViewportChanged
         , importAutomatonFileResult GotImportAutomatonFile
+        , whatsNewDetected GotWhatsNew
         ]
 
 
@@ -697,6 +736,22 @@ decodeImportFileResult =
     Decode.map2 Tuple.pair
         (Decode.field "slotId" Decode.int)
         (Decode.field "content" Decode.string)
+
+
+decodeWhatsNewPayload : Decode.Decoder WhatsNewModal
+decodeWhatsNewPayload =
+    Decode.map3 WhatsNewModal
+        (Decode.field "version" Decode.string)
+        (Decode.field "entries" (Decode.list decodeWhatsNewEntry))
+        (Decode.field "showReloadWarning" Decode.bool)
+
+
+decodeWhatsNewEntry : Decode.Decoder WhatsNewEntry
+decodeWhatsNewEntry =
+    Decode.map3 WhatsNewEntry
+        (Decode.field "version" Decode.string)
+        (Decode.field "title" Decode.string)
+        (Decode.field "items" (Decode.list Decode.string))
 
 
 
@@ -793,6 +848,7 @@ view model =
         , feedbackModal model
         , settingsModal model
         , welcomeModal model
+        , whatsNewModalView model
         ]
     }
 
@@ -1329,6 +1385,92 @@ welcomeModal model =
                 ]
             ]
 
+
+whatsNewModalView : Model -> Html Msg
+whatsNewModalView model =
+    case model.whatsNewModal of
+        Nothing ->
+            text ""
+
+        Just payload ->
+            div
+                [ HA.style "position" "fixed"
+                , HA.style "inset" "0"
+                , HA.style "background" "rgba(0, 0, 0, 0.60)"
+                , HA.style "display" "flex"
+                , HA.style "justify-content" "center"
+                , HA.style "align-items" "center"
+                , HA.style "padding" "16px"
+                , HA.style "z-index" "1400"
+                , onClick CloseWhatsNewModal
+                ]
+                [ div
+                    [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                    , HA.style "width" "min(760px, 96vw)"
+                    , HA.style "max-height" "85vh"
+                    , HA.style "overflow" "auto"
+                    , HA.style "background" (panelBg model.theme)
+                    , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                    , HA.style "border-radius" "16px"
+                    , HA.style "padding" "18px"
+                    , HA.style "box-sizing" "border-box"
+                    , HA.style "display" "flex"
+                    , HA.style "flex-direction" "column"
+                    , HA.style "gap" "10px"
+                    ]
+                    [ h2 [ HA.style "margin" "0" ] [ text (t model.lang WhatsNewModalTitle ++ " " ++ payload.version) ]
+                    , if List.isEmpty payload.entries then
+                        div [] [ text (t model.lang WhatsNewModalNoEntries) ]
+
+                      else
+                        div
+                            [ HA.style "display" "flex"
+                            , HA.style "flex-direction" "column"
+                            , HA.style "gap" "10px"
+                            ]
+                            (List.map whatsNewEntryView payload.entries)
+                    , if payload.showReloadWarning then
+                        div
+                            [ HA.style "margin-top" "8px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "padding" "10px 12px"
+                            , HA.style "background" "rgba(245, 158, 11, 0.15)"
+                            , HA.style "border" "1px solid rgba(245, 158, 11, 0.45)"
+                            ]
+                            [ text (t model.lang WhatsNewReloadWarning) ]
+
+                      else
+                        text ""
+                    , div
+                        [ HA.style "display" "flex"
+                        , HA.style "justify-content" "flex-end"
+                        ]
+                        [ button
+                            [ onClick CloseWhatsNewModal
+                            , HA.style "padding" "10px 14px"
+                            , HA.style "border-radius" "10px"
+                            , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                            , HA.style "background" (hoverBg model.theme)
+                            , HA.style "color" (textColor model.theme)
+                            , HA.style "cursor" "pointer"
+                            ]
+                            [ text (t model.lang WhatsNewCloseButton) ]
+                        ]
+                    ]
+                ]
+
+
+whatsNewEntryView : WhatsNewEntry -> Html Msg
+whatsNewEntryView entry =
+    div []
+        [ h2
+            [ HA.style "margin" "2px 0 4px"
+            , HA.style "font-size" "18px"
+            ]
+            [ text (entry.version ++ " — " ++ entry.title) ]
+        , H.ul [] (List.map (\item -> H.li [] [ text item ]) entry.items)
+        ]
+        
 
 topBar : Model -> Html Msg
 topBar model =
