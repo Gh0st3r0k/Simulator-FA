@@ -28,7 +28,6 @@ type Size
     | L
 
 
--- Толщина рамки без слова "normal"
 type BorderKind
     = BorderThin
     | BorderMid
@@ -155,10 +154,10 @@ baseTokens =
 scaleFactor : Scale -> Float
 scaleFactor sc =
     case sc of
-        Small  -> 0.94  -- чуть компактнее базы
+        Small  -> 0.94
         Normal -> 1.00
-        Large  -> 1.08  -- «чуть-чуть» больше
-        XLarge -> 1.24  -- заметно больше
+        Large  -> 1.08
+        XLarge -> 1.24
 
 
 scaleI : Float -> Int -> Int

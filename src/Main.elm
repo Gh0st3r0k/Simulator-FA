@@ -973,7 +973,7 @@ view model =
             , HA.style "display" "flex"
             , HA.style "flex-direction" "column"
             , HA.style "margin" "0"
-            , HA.style "padding" (px tk.spacing.l)   -- было "16px"
+            , HA.style "padding" (px tk.spacing.l)
             , HA.style "font-family" "Inter, Segoe UI, Arial, sans-serif"
             , HA.style "overflow" "hidden"
             ]
@@ -1803,11 +1803,11 @@ topBar model =
         homeLabel : String
         homeLabel =
             if w < 500 then
-                t model.lang BackHomeIconText   -- вторая строка: стрелка + текст
+                t model.lang BackHomeIconText
             else if w < 760 then
-                t model.lang BackHomeIcon       -- в одну строку: только стрелка
+                t model.lang BackHomeIcon
             else
-                t model.lang BackHomeIconText       -- в одну строку: только текст
+                t model.lang BackHomeIconText
 
 
         -- отдельные «вьюшки»
@@ -1861,7 +1861,6 @@ topBar model =
             button (onClick OpenSettingsModal :: baseControlStyles)
                 [ text (t model.lang SettingsButton) ]
 
-        -- правая часть: всегда справа; при <500 две строки
         rightContainerAttrs : List (H.Attribute Msg)
         rightContainerAttrs =
             [ HA.style "display" "flex"
@@ -1871,7 +1870,6 @@ topBar model =
             , HA.style "justify-content" "flex-end"
             ]
 
-        -- первая строка справа: выделяем редакторские кнопки в отдельную группу
         firstRowRight : Html Msg
         firstRowRight =
             if w < 500 then
@@ -1925,7 +1923,6 @@ topBar model =
                            ]
                     )
 
-        -- вторая строка справа: Домой ТОЛЬКО если <500 и не на главной
         secondRowRight : List (Html Msg)
         secondRowRight =
             if (w < 500) && (not onHome) then
@@ -1941,14 +1938,13 @@ topBar model =
         , HA.style "gap" (px tk.spacing.s)
         , HA.style "margin-bottom" (px tk.spacing.s)
         ]
-        [ -- слева: заголовок
+        [
           h1
             [ HA.style "margin" "0"
             , HA.style "font-size" (px tk.font.h1)
             ]
             [ text (t model.lang AppTitle) ]
 
-          -- справа: кнопки (1 или 2 строки), ВСЕГДА прижаты вправо
         , div rightContainerAttrs <|
             firstRowRight
             :: (if List.isEmpty secondRowRight then
@@ -2105,7 +2101,7 @@ menuCard : Model -> String -> Route -> Html Msg
 menuCard model label routeTarget =
     let
         tk = tokens model.scale
-        k  = card tk.defaults.card tk   -- ← CardSpec для карточек (S / M / L)
+        k  = card tk.defaults.card tk
 
         isHovered =
             model.hover == Just routeTarget
@@ -2146,7 +2142,7 @@ menuCard model label routeTarget =
          , HA.style "background" bg
          , HA.style "border"
              (px (borderFor tk.border.default tk) ++ " solid " ++ borderC)
-         , HA.style "padding" (px k.padding)     -- ← токен
+         , HA.style "padding" (px k.padding)
          , HA.style "border-radius" (px k.radius)
          , HA.style "cursor" "pointer"
          , HA.style "user-select" "none"

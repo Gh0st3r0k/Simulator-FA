@@ -33,11 +33,10 @@ toggle th =
         Dark -> Light
 
 
--- Фон страницы: светлая тема больше не белая, а светло-серая
 bgColor : Theme -> String
 bgColor th =
     case th of
-        Light -> "#e0e3e7"   -- было #ffffff
+        Light -> "#e0e3e7"
         Dark  -> "#0f1115"
 
 
@@ -48,22 +47,20 @@ textColor th =
         Dark  -> "#e6e6e6"
 
 
--- “Панель/карточка по умолчанию” – чуть темнее в светлой теме
 panelBg : Theme -> String
 panelBg th =
     case th of
-        Light -> "#eef1f6"   -- было #f7f7f7
+        Light -> "#eef1f6" 
         Dark  -> "#151924"
 
 
 panelBorder : Theme -> String
 panelBorder th =
     case th of
-        Light -> "#cfd6e4"   -- было #dddddd
+        Light -> "#cfd6e4" 
         Dark  -> "#2a2f3a"
 
 
--- Базовый стиль интерактивных элементов (кнопки/селекты)
 interactiveBg : Theme -> String
 interactiveBg =
     panelBg
@@ -80,25 +77,20 @@ interactiveBorder : Theme -> String
 interactiveBorder =
     panelBorder
 
-
--- Ховер подсветка:
---  - в тёмной теме: сероватая
---  - в светлой теме: голубая/синяя
 hoverBg : Theme -> String
 hoverBg th =
     case th of
-        Light -> "#e8eefc"   -- голубоватая заливка
-        Dark  -> "#2a2f3a"   -- сероватая заливка
+        Light -> "#e8eefc"
+        Dark  -> "#2a2f3a"
 
 
 hoverBorder : Theme -> String
 hoverBorder th =
     case th of
-        Light -> "#7aa2ff"   -- контрастная синяя рамка
+        Light -> "#7aa2ff"
         Dark  -> panelBorder th
 
 
--- Контур (outline) при наведении/фокусе
 focusOutline : Theme -> String
 focusOutline th =
     case th of
@@ -106,7 +98,6 @@ focusOutline th =
         Dark  -> "#8992a7"
 
 
--- Тень при ховере для карточек/кнопок
 hoverShadow : Theme -> String
 hoverShadow th =
     case th of
