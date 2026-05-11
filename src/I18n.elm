@@ -37,6 +37,10 @@ langFromString s =
 type Key
     = AppTitle
     | MenuEditor
+    | MenuExamples
+    | ExamplesMenuTitle
+    | ExampleDeterministicAutomaton
+    | ExampleNonDeterministicAutomaton
     | MenuAutomatonFinite
     | MenuAutomatonStack
     | MenuAutomatonTuring
@@ -86,6 +90,11 @@ type Key
     | EditorImport
     | EditorExport
     | EditorSave
+    | EditorDeleteGraph
+    | DeleteGraphModalTitle
+    | DeleteGraphModalBody
+    | DeleteGraphModalCancel
+    | DeleteGraphModalConfirm
     | EditorSaveModalTitle
     | EditorSaveToSlot
     | EditorLoadFromSlot
@@ -190,6 +199,26 @@ t lang key =
         ( EN, MenuEditor ) -> "Automaton"
         ( SK, MenuEditor ) -> "Automat"
         ( UA, MenuEditor ) -> "Автомат"
+
+        ( RU, MenuExamples ) -> "Примеры"
+        ( EN, MenuExamples ) -> "Examples"
+        ( SK, MenuExamples ) -> "Príklady"
+        ( UA, MenuExamples ) -> "Приклади"
+
+        ( RU, ExamplesMenuTitle ) -> "Выберите пример"
+        ( EN, ExamplesMenuTitle ) -> "Choose an example"
+        ( SK, ExamplesMenuTitle ) -> "Vyberte príklad"
+        ( UA, ExamplesMenuTitle ) -> "Оберіть приклад"
+
+        ( RU, ExampleDeterministicAutomaton ) -> "Детерминированный конечный автомат"
+        ( EN, ExampleDeterministicAutomaton ) -> "Deterministic finite automaton"
+        ( SK, ExampleDeterministicAutomaton ) -> "Deterministický konečný automat"
+        ( UA, ExampleDeterministicAutomaton ) -> "Детермінований кінцевий автомат"
+
+        ( RU, ExampleNonDeterministicAutomaton ) -> "Недетерминированный конечный автомат"
+        ( EN, ExampleNonDeterministicAutomaton ) -> "Non-deterministic finite automaton"
+        ( SK, ExampleNonDeterministicAutomaton ) -> "Nedeterministický konečný automat"
+        ( UA, ExampleNonDeterministicAutomaton ) -> "Недетермінований кінцевий автомат"
 
         ( RU, MenuAutomatonFinite ) -> "Конечный автомат"
         ( EN, MenuAutomatonFinite ) -> "Finite automaton"
@@ -642,6 +671,31 @@ t lang key =
         ( EN, EditorSave ) -> "Save"
         ( SK, EditorSave ) -> "Uloženie"
         ( UA, EditorSave ) -> "Зберегти"
+
+        ( RU, EditorDeleteGraph ) -> "Удалить"
+        ( EN, EditorDeleteGraph ) -> "Delete"
+        ( SK, EditorDeleteGraph ) -> "Vymazať"
+        ( UA, EditorDeleteGraph ) -> "Видалити"
+
+        ( RU, DeleteGraphModalTitle ) -> "Удалить граф?"
+        ( EN, DeleteGraphModalTitle ) -> "Delete graph?"
+        ( SK, DeleteGraphModalTitle ) -> "Vymazať graf?"
+        ( UA, DeleteGraphModalTitle ) -> "Видалити граф?"
+
+        ( RU, DeleteGraphModalBody ) -> "Это действие удалит все состояния и переходы, которые сейчас находятся на экране. Сохранённые слоты не будут изменены."
+        ( EN, DeleteGraphModalBody ) -> "This will delete all states and transitions currently on the screen. Saved slots will not be changed."
+        ( SK, DeleteGraphModalBody ) -> "Táto akcia vymaže všetky stavy a prechody, ktoré sú teraz na obrazovke. Uložené sloty sa nezmenia."
+        ( UA, DeleteGraphModalBody ) -> "Ця дія видалить усі стани та переходи, які зараз на екрані. Збережені слоти не буде змінено."
+
+        ( RU, DeleteGraphModalCancel ) -> "Отмена"
+        ( EN, DeleteGraphModalCancel ) -> "Cancel"
+        ( SK, DeleteGraphModalCancel ) -> "Zrušiť"
+        ( UA, DeleteGraphModalCancel ) -> "Скасувати"
+
+        ( RU, DeleteGraphModalConfirm ) -> "Удалить граф"
+        ( EN, DeleteGraphModalConfirm ) -> "Delete graph"
+        ( SK, DeleteGraphModalConfirm ) -> "Vymazať graf"
+        ( UA, DeleteGraphModalConfirm ) -> "Видалити граф"
 
         ( RU, EditorSaveModalTitle ) -> "Слоты сохранения"
         ( EN, EditorSaveModalTitle ) -> "Save slots"

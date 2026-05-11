@@ -70,6 +70,7 @@ type alias Model =
     , feedbackEmailInput : String
     , feedbackMailProvider : MailProvider
     , settingsModalOpen : Bool
+    , deleteGraphModalOpen : Bool
     , welcomeModalOpen : Bool
     , startPage : StartPage
     , whatsNewModal : Maybe WhatsNewModal
@@ -186,12 +187,18 @@ defaultRouteForStartPage startPage =
             Home
             
 
+type ExampleAutomaton
+    = DeterministicExample
+    | NonDeterministicExample
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | SetLang String
     | ToggleTheme
     | GoTo Route
+    | OpenExample ExampleAutomaton
     | SetHover (Maybe Route)
     | EditorMsg Editor.Msg
     | EditorStackMsg EditorStack.Msg
@@ -205,6 +212,9 @@ type Msg
     | CloseFeedbackModal
     | OpenSettingsModal
     | CloseSettingsModal
+    | OpenDeleteGraphModal
+    | CloseDeleteGraphModal
+    | ConfirmDeleteGraph
     | CloseWelcomeModal
     | SetStartPage String
     | UpdateFeedbackText String
@@ -304,6 +314,7 @@ init flags url key =
       , feedbackEmailInput = ""
       , feedbackMailProvider = GmailProvider
       , settingsModalOpen = False
+      , deleteGraphModalOpen = False
       , welcomeModalOpen = flags.startPage == 0
       , startPage = startPage
       , whatsNewModal = Nothing
@@ -447,6 +458,26 @@ themeToString theme =
             "light"
 
 
+exampleAutomatonJson : ExampleAutomaton -> String
+exampleAutomatonJson exampleAutomaton =
+    case exampleAutomaton of
+        DeterministicExample ->
+            deterministicExampleJson
+
+        NonDeterministicExample ->
+            nonDeterministicExampleJson
+
+
+deterministicExampleJson : String
+deterministicExampleJson =
+    """{"format":"fas","version":2,"automatonType":1,"automaton":{"states":[{"id":1,"name":"1","x":100,"y":100,"accepting":false,"isStart":true},{"id":2,"name":"2","x":260,"y":100,"accepting":false,"isStart":false},{"id":3,"name":"3","x":420,"y":100,"accepting":false,"isStart":false},{"id":4,"name":"4","x":580,"y":100,"accepting":true,"isStart":false},{"id":5,"name":"5","x":578,"y":223,"accepting":true,"isStart":false}],"transitions":[{"id":0,"from":1,"to":2,"label":"a"},{"id":0,"from":2,"to":2,"label":"b"},{"id":0,"from":2,"to":3,"label":"c"},{"id":0,"from":3,"to":4,"label":"d"},{"id":0,"from":3,"to":5,"label":"e"}]}}"""
+
+
+nonDeterministicExampleJson : String
+nonDeterministicExampleJson =
+    """{"format":"fas","version":2,"automatonType":1,"automaton":{"states":[{"id":1,"name":"1","x":307,"y":468,"accepting":false,"isStart":true},{"id":2,"name":"2","x":571,"y":385,"accepting":false,"isStart":false},{"id":3,"name":"3","x":564,"y":626,"accepting":false,"isStart":false},{"id":4,"name":"4","x":824,"y":392,"accepting":false,"isStart":false},{"id":5,"name":"5","x":845,"y":627,"accepting":false,"isStart":false},{"id":6,"name":"6","x":1101,"y":501,"accepting":true,"isStart":false}],"transitions":[{"id":0,"from":1,"to":2,"label":"a"},{"id":0,"from":1,"to":3,"label":"a"},{"id":0,"from":2,"to":4,"label":"b;c"},{"id":0,"from":3,"to":5,"label":"d;e"},{"id":0,"from":4,"to":6,"label":"a"},{"id":0,"from":5,"to":6,"label":"a"}]}}"""
+
+
 -- UPDATE
 
 
@@ -480,6 +511,11 @@ update msg model =
 
         GoTo r ->
             ( model, Nav.pushUrl model.key (Route.toHash r) )
+
+        OpenExample exampleAutomaton ->
+            ( { model | editor = Editor.loadAutomatonJson (exampleAutomatonJson exampleAutomaton) model.editor }
+            , Nav.pushUrl model.key (Route.toHash Editor)
+            )
 
         SetHover maybeR ->
             ( { model | hover = maybeR }, Cmd.none )
@@ -811,6 +847,26 @@ update msg model =
         CloseSettingsModal ->
             ( { model | settingsModalOpen = False }, Cmd.none )
 
+        OpenDeleteGraphModal ->
+            ( { model | deleteGraphModalOpen = True }, Cmd.none )
+
+        CloseDeleteGraphModal ->
+            ( { model | deleteGraphModalOpen = False }, Cmd.none )
+
+        ConfirmDeleteGraph ->
+            case model.route of
+                Editor ->
+                    ( { model | editor = Editor.clearGraph model.editor, deleteGraphModalOpen = False }, Cmd.none )
+
+                EditorStack ->
+                    ( { model | editorStack = EditorStack.clearGraph model.editorStack, deleteGraphModalOpen = False }, Cmd.none )
+
+                EditorTuring ->
+                    ( { model | editorTuring = EditorTuring.clearGraph model.editorTuring, deleteGraphModalOpen = False }, Cmd.none )
+
+                _ ->
+                    ( { model | deleteGraphModalOpen = False }, Cmd.none )
+
         CloseWelcomeModal ->
             let
                 normalizedStartPage =
@@ -940,6 +996,15 @@ view model =
                         , HA.style "justify-content" "center"
                         ]
                         [ automatonTypeHomeView model ]
+
+                ExamplesMenu ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "display" "flex"
+                        , HA.style "flex-direction" "column"
+                        , HA.style "justify-content" "center"
+                        ]
+                        [ examplesHomeView model ]
                         
                 Editor ->
                     div
@@ -1006,6 +1071,7 @@ view model =
         , feedbackButton model
         , feedbackModal model
         , settingsModal model
+        , deleteGraphModal model
         , welcomeModal model
         , whatsNewModalView model
         ]
@@ -1404,6 +1470,70 @@ settingsModal model =
             ]
 
 
+deleteGraphModal : Model -> Html Msg
+deleteGraphModal model =
+    if not model.deleteGraphModalOpen then
+        text ""
+
+    else
+        div
+            [ HA.style "position" "fixed"
+            , HA.style "inset" "0"
+            , HA.style "background" "rgba(0, 0, 0, 0.55)"
+            , HA.style "display" "flex"
+            , HA.style "justify-content" "center"
+            , HA.style "align-items" "center"
+            , HA.style "z-index" "1200"
+            , onClick CloseDeleteGraphModal
+            ]
+            [ div
+                [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                , HA.style "width" "min(480px, 92vw)"
+                , HA.style "background" (panelBg model.theme)
+                , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                , HA.style "border-radius" "16px"
+                , HA.style "padding" "16px"
+                , HA.style "box-sizing" "border-box"
+                , HA.style "display" "flex"
+                , HA.style "flex-direction" "column"
+                , HA.style "gap" "14px"
+                ]
+                [ h2 [ HA.style "margin" "0" ] [ text (t model.lang DeleteGraphModalTitle) ]
+                , div
+                    [ HA.style "line-height" "1.5"
+                    , HA.style "opacity" "0.9"
+                    ]
+                    [ text (t model.lang DeleteGraphModalBody) ]
+                , div
+                    [ HA.style "display" "flex"
+                    , HA.style "justify-content" "flex-end"
+                    , HA.style "gap" "10px"
+                    ]
+                    [ button
+                        [ onClick CloseDeleteGraphModal
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" ("1px solid " ++ panelBorder model.theme)
+                        , HA.style "background" (interactiveBg model.theme)
+                        , HA.style "color" (textColor model.theme)
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang DeleteGraphModalCancel) ]
+                    , button
+                        [ onClick ConfirmDeleteGraph
+                        , HA.style "padding" "10px 14px"
+                        , HA.style "border-radius" "10px"
+                        , HA.style "border" "1px solid #b91c1c"
+                        , HA.style "background" "#dc2626"
+                        , HA.style "color" "#ffffff"
+                        , HA.style "cursor" "pointer"
+                        ]
+                        [ text (t model.lang DeleteGraphModalConfirm) ]
+                    ]
+                ]
+            ]
+
+
 welcomeModal : Model -> Html Msg
 welcomeModal model =
     if not model.welcomeModalOpen then
@@ -1703,6 +1833,11 @@ topBar model =
                 )
                 [ text (t model.lang EditorGoToStartState) ]
 
+        viewEditorDeleteGraph : Html Msg
+        viewEditorDeleteGraph =
+            button (onClick OpenDeleteGraphModal :: baseControlStyles)
+                [ text (t model.lang EditorDeleteGraph) ]
+                
         viewEditorSave : Html Msg
         viewEditorSave =
             button
@@ -1746,12 +1881,19 @@ topBar model =
                     , HA.style "justify-content" "flex-end"
                     , HA.style "align-items" "center"
                     ]
-                    [ viewSettings ]
+                    ((if (model.route == Editor) || (model.route == EditorStack) || (model.route == EditorTuring) then
+                        [ viewEditorDeleteGraph, viewEditorGoToStart ]
+
+                      else
+                        []
+                     )
+                        ++ [ viewSettings ]
+                    )
             else
                 let
                     editorActions =
                         if (model.route == Editor) || (model.route == EditorStack) || (model.route == EditorTuring) then
-                            [ viewEditorSave ]
+                            [ viewEditorDeleteGraph, viewEditorGoToStart, viewEditorSave ]
                         else
                             []
 
@@ -1851,6 +1993,7 @@ homeView model =
             , HA.style "padding" ("0 " ++ px tk.spacing.s)
             ]
             [ menuCard model (t model.lang MenuEditor) AutomatonMenu
+            , menuCard model (t model.lang MenuExamples) ExamplesMenu
             , menuCard model (t model.lang MenuInstructions) Instructions
             , menuCard model (t model.lang MenuAbout) About
             ]
@@ -1889,7 +2032,73 @@ automatonTypeHomeView model =
 
 
 
+examplesHomeView : Model -> Html Msg
+examplesHomeView model =
+    let
+        tk = tokens model.scale
+    in
+    div
+        [ HA.style "display" "flex"
+        , HA.style "flex-direction" "column"
+        , HA.style "align-items" "center"
+        , HA.style "gap" (px tk.spacing.m)
+        ]
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.font.h2)
+            ]
+            [ text (t model.lang ExamplesMenuTitle) ]
+        , div
+            [ HA.style "display" "flex"
+            , HA.style "flex-direction" "column"
+            , HA.style "gap" (px tk.spacing.m)
+            , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
+            , HA.style "padding" ("0 " ++ px tk.spacing.s)
+            ]
+            [ actionMenuCard model (t model.lang ExampleDeterministicAutomaton) (OpenExample DeterministicExample)
+            , actionMenuCard model (t model.lang ExampleNonDeterministicAutomaton) (OpenExample NonDeterministicExample)
+            ]
+        ]
 
+
+
+
+
+        
+
+actionMenuCard : Model -> String -> Msg -> Html Msg
+actionMenuCard model label action =
+    let
+        tk = tokens model.scale
+        k = card tk.defaults.card tk
+    in
+    div
+        [ onClick action
+        , HA.style "background" (panelBg model.theme)
+        , HA.style "border"
+            (px (borderFor tk.border.default tk) ++ " solid " ++ panelBorder model.theme)
+        , HA.style "padding" (px k.padding)
+        , HA.style "border-radius" (px k.radius)
+        , HA.style "cursor" "pointer"
+        , HA.style "user-select" "none"
+        , HA.style "display" "flex"
+        , HA.style "justify-content" "center"
+        , HA.style "align-items" "center"
+        , HA.style "height" (px k.height)
+        , HA.style "transition"
+            ("background " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", box-shadow " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", border-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            )
+        , HA.attribute "role" "button"
+        , HA.tabindex 0
+        ]
+        [ h2
+            [ HA.style "margin" "0"
+            , HA.style "font-size" (px tk.component.menuCardTitle)
+            ]
+            [ text label ]
+        ]
         
 
 menuCard : Model -> String -> Route -> Html Msg

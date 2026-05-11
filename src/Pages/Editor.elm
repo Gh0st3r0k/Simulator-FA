@@ -1,4 +1,4 @@
-module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
+module Pages.Editor exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, clearGraph, loadAutomatonJson, update, view)
 
 import Dict
 import AutomatonFormat exposing (AutomatonType(..), decodeAutomatonDocument, encodeAutomatonDocument)
@@ -221,6 +221,18 @@ initWithSlots slots =
     , globalNotice = Nothing
     , globalNoticeNonce = 0
     }
+
+clearGraph : Model -> Model
+clearGraph model =
+    let
+        emptyModel =
+            initWithSlots model.saveSlots
+    in
+    { emptyModel
+        | viewportWidth = model.viewportWidth
+        , viewportHeight = model.viewportHeight
+    }
+
 
 
 
@@ -2085,6 +2097,60 @@ exportAutomatonJson model =
     Encode.encode 0 (encodeAutomatonDocument currentAutomatonType (encodeAutomaton model.states model.transitions))
 
 
+loadAutomatonJson : String -> Model -> Model
+loadAutomatonJson automatonJson model =
+    case Decode.decodeString (decodeAutomatonDocument currentAutomatonType decodeAutomaton) automatonJson of
+        Ok document ->
+            if document.automatonType /= currentAutomatonType then
+                model
+
+            else
+                let
+                    ( importedStates, importedTransitions ) =
+                        document.automaton
+
+                    normalizedStates =
+                        enforceSingleStartFlag importedStates
+
+                    normalizedAutomaton =
+                        normalizeAutomatonIds normalizedStates importedTransitions
+                in
+                { model
+                    | states = normalizedAutomaton.states
+                    , transitions = normalizedAutomaton.transitions
+                    , nextStateId = normalizedAutomaton.nextStateId
+                    , nextTransitionId = normalizedAutomaton.nextTransitionId
+                    , selected = Nothing
+                    , selectedTransition = Nothing
+                    , selectedTransitionLabelDraft = ""
+                    , dragging = Nothing
+                    , panning = Nothing
+                    , panX = 0
+                    , panY = 0
+                    , zoom = 1
+                    , mode = MoveState
+                    , transitionFrom = Nothing
+                    , transitionLabel = ""
+                    , codeDraft = ""
+                    , codeDraftDirty = False
+                    , codeValidationErrors = []
+                    , simulationRunning = False
+                    , simulationQueue = []
+                    , simulationCurrent = Nothing
+                    , simulationActiveTransition = Nothing
+                    , simulationInputIndex = 0
+                    , simulationResult = Idle
+                    , simulationChoice = Nothing
+                    , simulationRunMode = Nothing
+                    , simulationHistory = []
+                    , stateNameConflict = False
+                    , slotTypeMismatchError = False
+                  }
+
+        Err _ ->
+            model
+
+            
 exportRuntimeSnapshotJson : Model -> String
 exportRuntimeSnapshotJson model =
     let

@@ -1,4 +1,4 @@
-module Pages.EditorStack exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, update, view)
+module Pages.EditorStack exposing (Model, Msg(..), SaveSlot, decodeSaveSlots, encodeSaveSlots, exportAutomatonJson, exportRuntimeSnapshotJson, init, initWithSlots, clearGraph, update, view)
 
 import Dict
 import AutomatonFormat exposing (AutomatonType(..), decodeAutomatonDocument, encodeAutomatonDocument)
@@ -232,6 +232,18 @@ initWithSlots slots =
     , globalNotice = Nothing
     , globalNoticeNonce = 0
     }
+
+clearGraph : Model -> Model
+clearGraph model =
+    let
+        emptyModel =
+            initWithSlots model.saveSlots
+    in
+    { emptyModel
+        | viewportWidth = model.viewportWidth
+        , viewportHeight = model.viewportHeight
+    }
+    
 
 
 
