@@ -62,7 +62,7 @@ type alias Model =
     , editorTuring : EditorTuring.Model
     , instructions : Instructions.Model
     , about : About.Model
-    , hover : Maybe Route
+    , hover : Maybe MenuCardHover
     , vpW : Int
     , vpH : Int
     , feedbackModalOpen : Bool
@@ -192,6 +192,11 @@ type ExampleAutomaton
     | NonDeterministicExample
 
 
+type MenuCardHover
+    = RouteHover Route
+    | ExampleHover ExampleAutomaton
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
@@ -199,7 +204,7 @@ type Msg
     | ToggleTheme
     | GoTo Route
     | OpenExample ExampleAutomaton
-    | SetHover (Maybe Route)
+    | SetHover (Maybe MenuCardHover)
     | EditorMsg Editor.Msg
     | EditorStackMsg EditorStack.Msg
     | EditorTuringMsg EditorTuring.Msg
@@ -2048,11 +2053,12 @@ examplesHomeView model =
             [ HA.style "display" "flex"
             , HA.style "flex-direction" "column"
             , HA.style "gap" (px tk.spacing.m)
-            , HA.style "width" ("min(" ++ px tk.container.narrow ++ ", 100%)")
+            , HA.style "width" ("min(" ++ px tk.container.maxContentWidth ++ ", 100%)")
+            , HA.style "max-width" "720px"
             , HA.style "padding" ("0 " ++ px tk.spacing.s)
             ]
-            [ actionMenuCard model (t model.lang ExampleDeterministicAutomaton) (OpenExample DeterministicExample)
-            , actionMenuCard model (t model.lang ExampleNonDeterministicAutomaton) (OpenExample NonDeterministicExample)
+            [ actionMenuCard model (t model.lang ExampleDeterministicAutomaton) DeterministicExample (OpenExample DeterministicExample)
+            , actionMenuCard model (t model.lang ExampleNonDeterministicAutomaton) NonDeterministicExample (OpenExample NonDeterministicExample)
             ]
         ]
 
@@ -2062,36 +2068,79 @@ examplesHomeView model =
 
         
 
-actionMenuCard : Model -> String -> Msg -> Html Msg
-actionMenuCard model label action =
+actionMenuCard : Model -> String -> ExampleAutomaton -> Msg -> Html Msg
+actionMenuCard model label exampleAutomaton action =
     let
         tk = tokens model.scale
         k = card tk.defaults.card tk
+
+        hoverTarget =
+            ExampleHover exampleAutomaton
+
+        isHovered =
+            model.hover == Just hoverTarget
+
+        bg =
+            if isHovered then
+                hoverBg model.theme
+            else
+                panelBg model.theme
+
+        borderC =
+            if isHovered then
+                hoverBorder model.theme
+            else
+                panelBorder model.theme
+
+        shadow =
+            if isHovered then
+                hoverShadow model.theme
+            else
+                "none"
+
+        outlineStyle =
+            if isHovered then
+                [ HA.style "outline" (px tk.outline.width ++ " solid " ++ focusOutline model.theme)
+                , HA.style "outline-offset" (px tk.spacing.xs)
+                ]
+            else
+                [ HA.style "outline" (px tk.outline.width ++ " solid transparent")
+                , HA.style "outline-offset" (px tk.spacing.xs)
+                ]
+
     in
     div
-        [ onClick action
-        , HA.style "background" (panelBg model.theme)
-        , HA.style "border"
-            (px (borderFor tk.border.default tk) ++ " solid " ++ panelBorder model.theme)
-        , HA.style "padding" (px k.padding)
-        , HA.style "border-radius" (px k.radius)
-        , HA.style "cursor" "pointer"
-        , HA.style "user-select" "none"
-        , HA.style "display" "flex"
-        , HA.style "justify-content" "center"
-        , HA.style "align-items" "center"
-        , HA.style "height" (px k.height)
-        , HA.style "transition"
+        ([ onClick action
+         , onMouseEnter (SetHover (Just hoverTarget))
+         , onMouseLeave (SetHover Nothing)
+         , HA.style "background" bg
+         , HA.style "border"
+             (px (borderFor tk.border.default tk) ++ " solid " ++ borderC)
+         , HA.style "padding" (px k.padding)
+         , HA.style "border-radius" (px k.radius)
+         , HA.style "cursor" "pointer"
+         , HA.style "user-select" "none"
+         , HA.style "display" "flex"
+         , HA.style "justify-content" "center"
+         , HA.style "align-items" "center"
+         , HA.style "height" (px k.height)
+         , HA.style "box-shadow" shadow
+         , HA.style "transition"
             ("background " ++ tk.motion.primary ++ " " ++ tk.motion.easing
             ++ ", box-shadow " ++ tk.motion.primary ++ " " ++ tk.motion.easing
             ++ ", border-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", outline-color " ++ tk.motion.primary ++ " " ++ tk.motion.easing
+            ++ ", outline " ++ tk.motion.primary ++ " " ++ tk.motion.easing
             )
-        , HA.attribute "role" "button"
-        , HA.tabindex 0
-        ]
+         , HA.attribute "role" "button"
+         , HA.tabindex 0
+         ]
+            ++ outlineStyle
+        )
         [ h2
             [ HA.style "margin" "0"
             , HA.style "font-size" (px tk.component.menuCardTitle)
+            , HA.style "white-space" "nowrap"
             ]
             [ text label ]
         ]
@@ -2103,8 +2152,11 @@ menuCard model label routeTarget =
         tk = tokens model.scale
         k  = card tk.defaults.card tk
 
+        hoverTarget =
+            RouteHover routeTarget
+
         isHovered =
-            model.hover == Just routeTarget
+            model.hover == Just hoverTarget
 
         bg =
             if isHovered then
@@ -2137,7 +2189,7 @@ menuCard model label routeTarget =
     in
     div
         ([ onClick (GoTo routeTarget)
-         , onMouseEnter (SetHover (Just routeTarget))
+         , onMouseEnter (SetHover (Just hoverTarget))
          , onMouseLeave (SetHover Nothing)
          , HA.style "background" bg
          , HA.style "border"
