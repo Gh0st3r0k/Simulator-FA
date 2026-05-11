@@ -1,6 +1,75 @@
 {
   "entries": [
     {
+      "version": "2.0.3",
+      "title": {
+        "en": "Fixes bug with version",
+        "ru": "Исправление ошибки с версией",
+        "ua": "Виправлення помилки з версією",
+        "sk": "Oprava chyby s verzí"
+      },
+      "items": {
+        "en": [
+          "Fixed a bug where the application would incorrectly prompt users to update after they had already updated to the latest version."
+        ],
+        "ru": [
+          "Исправлена ошибка, из-за которой приложение неправильно предлагало пользователям обновиться после того, как они уже обновились до последней версии."
+        ],
+        "ua": [
+          "Виправлено помилку, через яку додаток неправильно пропонував користувачам оновитися після того, як вони вже оновилися до останньої версії."
+        ],
+        "sk": [
+          "Opravená chyba, kvůli které aplikace nesprávně nabádala uživatele k aktualizaci poté, co již aktualizovali na nejnovější verzi."
+        ]
+       }
+    },
+    {
+      "version":"2.0.2",
+      "title": {
+        "en": "Minor bug fixes",
+        "ru": "Мелкие исправления ошибок",
+        "ua": "Невеликі виправлення помилок",
+        "sk": "Drobná oprava chyb"
+      },
+      "items": {
+        "en": [
+          "Fixed minor bugs and updated translations."
+        ],
+        "ru": [
+          "Исправлены мелкие ошибки и обновлены переводы."
+        ],
+        "ua": [
+          "Виправлено незначні помилки та оновлено переклади."
+        ],
+        "sk": [
+          "Opravené drobné chyby a aktualizované preklady."
+        ]
+      }
+    },
+    {
+      "version": "2.0.1",
+      "title": {
+        "en": "Update released",
+        "ru": "Вышло обновление",
+        "ua": "Вийшло оновлення",
+        "sk": "Vyšla aktualizácia"
+      },
+      "items": {
+        "en": [
+          "Added Turing simulation."
+        ],
+        "ru": [
+          "Добавлена тюринг симуляция."
+        ],
+        "ua": [
+          "Додана сімуліція Тьюрінга."
+        ],
+        "sk": [
+          "Pridaná Turingová simulácia."
+        ]
+      }
+    },
+    {
       "version": "1.9.0",
       "title": {
         "en": "Step-by-step simulation",

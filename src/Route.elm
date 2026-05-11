@@ -5,6 +5,7 @@ type Route
     | AutomatonMenu
     | Editor
     | EditorStack
+    | EditorTuring
     | Instructions
     | About
 
@@ -21,6 +22,7 @@ parseHash mfrag =
                 "/automaton" -> AutomatonMenu
                 "/editor" -> Editor
                 "/editor-stack" -> EditorStack
+                "/editor-turing" -> EditorTuring
                 "/instructions" -> Instructions
                 "/about" -> About
                 _ -> Home
@@ -32,5 +34,6 @@ toHash route =
         AutomatonMenu -> "#/automaton"
         Editor -> "#/editor"
         EditorStack -> "#/editor-stack"
+        EditorTuring -> "#/editor-turing"
         Instructions -> "#/instructions"
         About -> "#/about"

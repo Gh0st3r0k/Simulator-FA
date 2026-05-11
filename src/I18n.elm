@@ -39,6 +39,7 @@ type Key
     | MenuEditor
     | MenuAutomatonFinite
     | MenuAutomatonStack
+    | MenuAutomatonTuring
     | MenuInstructions
     | MenuAbout
     | Greeting
@@ -59,6 +60,7 @@ type Key
     | StartPageHomeOption
     | StartPageFiniteOption
     | StartPageStackOption
+    | StartPageTuringOption
     | BackHome
     | InstructionsTitle
     | InstructionsBody
@@ -179,10 +181,10 @@ type Key
 t : Lang -> Key -> String
 t lang key =
     case ( lang, key ) of
-        ( RU, AppTitle ) -> "Симулятор конечного автомата (Elm)"
-        ( EN, AppTitle ) -> "Finite Automaton Simulator (Elm)"
-        ( SK, AppTitle ) -> "Simulátor konečného automatu (Elm)"
-        ( UA, AppTitle ) -> "Симулятор кінцевого автомата (Elm)"
+        ( RU, AppTitle ) -> "Симулятор автоматов (Elm)"
+        ( EN, AppTitle ) -> "Automatons Simulator (Elm)"
+        ( SK, AppTitle ) -> "Simulátor automatov (Elm)"
+        ( UA, AppTitle ) -> "Симулятор автоматів (Elm)"
 
         ( RU, MenuEditor ) -> "Автомат"
         ( EN, MenuEditor ) -> "Automaton"
@@ -198,6 +200,11 @@ t lang key =
         ( EN, MenuAutomatonStack ) -> "Stack automaton"
         ( SK, MenuAutomatonStack ) -> "Zásobníkový automat"
         ( UA, MenuAutomatonStack ) -> "Стековий автомат"
+
+        ( RU, MenuAutomatonTuring ) -> "Машина Тьюринга"
+        ( EN, MenuAutomatonTuring ) -> "Turing machine"
+        ( SK, MenuAutomatonTuring ) -> "Turingov stroj"
+        ( UA, MenuAutomatonTuring ) -> "Машина Тюрінга"
 
         ( RU, MenuInstructions ) -> "Инструкции"
         ( EN, MenuInstructions ) -> "Instructions"
@@ -298,6 +305,11 @@ t lang key =
         ( EN, StartPageStackOption ) -> "Stack automaton"
         ( SK, StartPageStackOption ) -> "Zásobníkový automat"
         ( UA, StartPageStackOption ) -> "Стековий автомат"
+
+        ( RU, StartPageTuringOption ) -> "Машина Тьюринга"
+        ( EN, StartPageTuringOption ) -> "Turing machine"
+        ( SK, StartPageTuringOption ) -> "Turingov stroj"
+        ( UA, StartPageTuringOption ) -> "Машина Тюрінга"
 
         ( RU, BackHome ) -> "← На главную"
         ( EN, BackHome ) -> "← Home"
@@ -628,7 +640,7 @@ t lang key =
 
         ( RU, EditorSave ) -> "Сохранение"
         ( EN, EditorSave ) -> "Save"
-        ( SK, EditorSave ) -> "Uložiť"
+        ( SK, EditorSave ) -> "Uloženie"
         ( UA, EditorSave ) -> "Зберегти"
 
         ( RU, EditorSaveModalTitle ) -> "Слоты сохранения"

@@ -42,6 +42,7 @@ import Design
         )
 import Pages.Editor as Editor
 import Pages.EditorStack as EditorStack
+import Pages.EditorTuring as EditorTuring
 import Pages.Instructions as Instructions
 import Pages.About as About
 import Svg.Attributes exposing (d)
@@ -58,6 +59,7 @@ type alias Model =
     , scale : Scale
     , editor : Editor.Model
     , editorStack : EditorStack.Model
+    , editorTuring : EditorTuring.Model
     , instructions : Instructions.Model
     , about : About.Model
     , hover : Maybe Route
@@ -119,6 +121,7 @@ type StartPage
     | StartPageHome
     | StartPageFinite
     | StartPageStack
+    | StartPageTuring
 
 
 startPageFromInt : Int -> StartPage
@@ -132,6 +135,9 @@ startPageFromInt value =
 
         3 ->
             StartPageStack
+        
+        4 ->
+            StartPageTuring
 
         _ ->
             StartPageHome
@@ -151,6 +157,9 @@ startPageToInt startPage =
 
         StartPageStack ->
             3
+        
+        StartPageTuring ->
+            4
 
 
 startPageFromString : String -> StartPage
@@ -170,6 +179,9 @@ defaultRouteForStartPage startPage =
         StartPageStack ->
             EditorStack
 
+        StartPageTuring ->
+            EditorTuring
+
         _ ->
             Home
             
@@ -183,6 +195,7 @@ type Msg
     | SetHover (Maybe Route)
     | EditorMsg Editor.Msg
     | EditorStackMsg EditorStack.Msg
+    | EditorTuringMsg EditorTuring.Msg
     | InstructionsMsg Instructions.Msg
     | AboutMsg About.Msg
     | ViewportChanged Int Int
@@ -280,6 +293,7 @@ init flags url key =
       , scale = Large
       , editor = Editor.initWithSlots (Editor.decodeSaveSlots flags.automatonSlots)
       , editorStack = EditorStack.initWithSlots (EditorStack.decodeSaveSlots flags.automatonSlots)
+      , editorTuring = EditorTuring.initWithSlots (EditorTuring.decodeSaveSlots flags.automatonSlots)
       , instructions = Instructions.init
       , about = About.init
       , hover = Nothing
@@ -319,6 +333,9 @@ currentFasJson model =
         EditorStack ->
             EditorStack.exportAutomatonJson model.editorStack
 
+        EditorTuring ->
+            EditorTuring.exportAutomatonJson model.editorTuring
+
         _ ->
             Editor.exportAutomatonJson model.editor
 
@@ -328,6 +345,9 @@ currentRuntimeModelJson model =
     case model.route of
         EditorStack ->
             EditorStack.exportRuntimeSnapshotJson model.editorStack
+
+        EditorTuring ->
+            EditorTuring.exportRuntimeSnapshotJson model.editorTuring
 
         _ ->
             Editor.exportRuntimeSnapshotJson model.editor
@@ -490,6 +510,17 @@ update msg model =
                     else
                         editorStackModel
 
+                syncedEditorTuring =
+                    let
+                        editorTuringModel =
+                            model.editorTuring
+                    in
+                    if slotsChanged then
+                        { editorTuringModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorTuringModel
+
                 maybeExportCmd =
                     case sub of
                         Editor.ExportSlot slotId ->
@@ -513,7 +544,7 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | editor = subModel, editorStack = syncedEditorStack }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
+            ( { model | editor = subModel, editorStack = syncedEditorStack, editorTuring = syncedEditorTuring }, Cmd.batch [ Cmd.map EditorMsg subCmd, persistCmd, maybeExportCmd ] )
 
         EditorStackMsg sub ->
             let
@@ -541,6 +572,17 @@ update msg model =
                     else
                         editorModel
 
+                syncedEditorTuring =
+                    let
+                        editorTuringModel =
+                            model.editorTuring
+                    in
+                    if slotsChanged then
+                        { editorTuringModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorTuringModel
+
                 maybeExportCmd =
                     case sub of
                         EditorStack.ExportSlot slotId ->
@@ -564,7 +606,69 @@ update msg model =
                         _ ->
                             Cmd.none
             in
-            ( { model | editor = syncedEditor, editorStack = subModel }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
+            ( { model | editor = syncedEditor, editorStack = subModel, editorTuring = syncedEditorTuring }, Cmd.batch [ Cmd.map EditorStackMsg subCmd, persistCmd, maybeExportCmd ] )
+
+        EditorTuringMsg sub ->
+            let
+                ( subModel, subCmd ) =
+                    EditorTuring.update sub model.editorTuring
+
+                slotsChanged =
+                    model.editorTuring.saveSlots /= subModel.saveSlots
+
+                persistCmd =
+                    if slotsChanged then
+                        saveAutomatonSlots (EditorTuring.encodeSaveSlots subModel.saveSlots)
+
+                    else
+                        Cmd.none
+
+                syncedEditor =
+                    let
+                        editorModel =
+                            model.editor
+                    in
+                    if slotsChanged then
+                        { editorModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorModel
+
+                syncedEditorStack =
+                    let
+                        editorStackModel =
+                            model.editorStack
+                    in
+                    if slotsChanged then
+                        { editorStackModel | saveSlots = subModel.saveSlots }
+
+                    else
+                        editorStackModel
+
+                maybeExportCmd =
+                    case sub of
+                        EditorTuring.ExportSlot slotId ->
+                            subModel.saveSlots
+                                |> List.filter (\slot -> slot.id == slotId && not (String.isEmpty slot.automatonJson))
+                                |> List.head
+                                |> Maybe.map
+                                    (\slot ->
+                                        exportAutomatonFile
+                                            (Encode.object
+                                                [ ( "fileName", Encode.string (exportFileName slot.id slot.name slot.automatonType) )
+                                                , ( "content", Encode.string slot.automatonJson )
+                                                ]
+                                            )
+                                    )
+                                |> Maybe.withDefault Cmd.none
+
+                        EditorTuring.ImportSlot slotId ->
+                            importAutomatonFile slotId
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | editor = syncedEditor, editorStack = syncedEditorStack, editorTuring = subModel }, Cmd.batch [ Cmd.map EditorTuringMsg subCmd, persistCmd, maybeExportCmd ] )
 
         GotImportAutomatonFile value ->
             case Decode.decodeValue decodeImportFileResult value of
@@ -584,8 +688,31 @@ update msg model =
 
                                 currentEditor =
                                     model.editor
+
+                                currentEditorTuring =
+                                    model.editorTuring
                             in
-                             ( { model | editor = { currentEditor | saveSlots = editorModel.saveSlots }, editorStack = editorModel }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
+                             ( { model | editor = { currentEditor | saveSlots = editorModel.saveSlots }, editorStack = editorModel, editorTuring = { currentEditorTuring | saveSlots = editorModel.saveSlots } }, Cmd.batch [ Cmd.map EditorStackMsg editorCmd, persistCmd ] )
+
+                        EditorTuring ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorTuring.update (EditorTuring.ApplyImportedSlot slotId content) model.editorTuring
+
+                                persistCmd =
+                                    if model.editorTuring.saveSlots /= editorModel.saveSlots then
+                                        saveAutomatonSlots (EditorTuring.encodeSaveSlots editorModel.saveSlots)
+
+                                    else
+                                        Cmd.none
+
+                                currentEditor =
+                                    model.editor
+
+                                currentEditorStack =
+                                    model.editorStack
+                            in
+                            ( { model | editor = { currentEditor | saveSlots = editorModel.saveSlots }, editorStack = { currentEditorStack | saveSlots = editorModel.saveSlots }, editorTuring = editorModel }, Cmd.batch [ Cmd.map EditorTuringMsg editorCmd, persistCmd ] )
 
                         _ ->
                             let
@@ -601,8 +728,10 @@ update msg model =
 
                                 currentEditorStack =
                                     model.editorStack
+                                currentEditorTuring =
+                                    model.editorTuring
                             in
-                            ( { model | editor = editorModel, editorStack = { currentEditorStack | saveSlots = editorModel.saveSlots } }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
+                            ( { model | editor = editorModel, editorStack = { currentEditorStack | saveSlots = editorModel.saveSlots }, editorTuring = { currentEditorTuring | saveSlots = editorModel.saveSlots } }, Cmd.batch [ Cmd.map EditorMsg editorCmd, persistCmd ] )
 
                 Err _ ->
                     case model.route of
@@ -612,6 +741,13 @@ update msg model =
                                     EditorStack.update EditorStack.ImportSlotFailed model.editorStack
                             in
                             ( { model | editorStack = editorModel }, Cmd.map EditorStackMsg editorCmd )
+
+                        EditorTuring ->
+                            let
+                                ( editorModel, editorCmd ) =
+                                    EditorTuring.update EditorTuring.ImportSlotFailed model.editorTuring
+                            in
+                            ( { model | editorTuring = editorModel }, Cmd.map EditorTuringMsg editorCmd )
 
                         _ ->
                             let
@@ -635,9 +771,12 @@ update msg model =
 
                 ( editorStackModel, editorStackCmd ) =
                     EditorStack.update (EditorStack.SetViewport w h) model.editorStack
+
+                ( editorTuringModel, editorTuringCmd ) =
+                    EditorTuring.update (EditorTuring.SetViewport w h) model.editorTuring
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
-            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel, editorTuring = editorTuringModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd, Cmd.map EditorTuringMsg editorTuringCmd ]
             )
 
         GotViewport (Ok vp) ->
@@ -649,9 +788,12 @@ update msg model =
 
                 ( editorStackModel, editorStackCmd ) =
                     EditorStack.update (EditorStack.SetViewport w h) model.editorStack
+
+                ( editorTuringModel, editorTuringCmd ) =
+                    EditorTuring.update (EditorTuring.SetViewport w h) model.editorTuring
             in
-            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel }
-            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd ]
+            ( { model | vpW = w, vpH = h, editor = editorModel, editorStack = editorStackModel, editorTuring = editorTuringModel }
+            , Cmd.batch [ Cmd.map EditorMsg editorCmd, Cmd.map EditorStackMsg editorStackCmd, Cmd.map EditorTuringMsg editorTuringCmd ]
             )
 
         GotViewport (Err _) ->
@@ -830,6 +972,23 @@ view model =
                                 , viewportHeight = model.vpH
                                 }
                                 model.editorStack
+                            )
+                        ]
+                
+                EditorTuring ->
+                    div
+                        [ HA.style "flex" "1"
+                        , HA.style "min-height" "0"
+                        , HA.style "overflow" "hidden"
+                        ]
+                        [ H.map EditorTuringMsg
+                            (EditorTuring.view
+                                { lang = model.lang
+                                , theme = model.theme
+                                , viewportWidth = model.vpW
+                                , viewportHeight = model.vpH
+                                }
+                                model.editorTuring
                             )
                         ]
 
@@ -1089,6 +1248,7 @@ startPageOptions model =
     [ option [ HA.value "1", HA.selected (model.startPage == StartPageHome) ] [ text (t model.lang StartPageHomeOption) ]
     , option [ HA.value "2", HA.selected (model.startPage == StartPageFinite) ] [ text (t model.lang StartPageFiniteOption) ]
     , option [ HA.value "3", HA.selected (model.startPage == StartPageStack) ] [ text (t model.lang StartPageStackOption) ]
+    , option [ HA.value "4", HA.selected (model.startPage == StartPageTuring) ] [ text (t model.lang StartPageTuringOption) ]
     ]
 
 
@@ -1529,8 +1689,12 @@ topBar model =
         viewEditorGoToStart =
             button
                 (onClick
-                    (if model.route == EditorStack then
-                        EditorStackMsg EditorStack.CenterOnStartState
+                    (if (model.route == EditorStack) || (model.route == EditorTuring) then
+                        if model.route == EditorTuring then
+                            EditorTuringMsg EditorTuring.CenterOnStartState
+
+                        else
+                            EditorStackMsg EditorStack.CenterOnStartState
 
                      else
                         EditorMsg Editor.CenterOnStartState
@@ -1543,8 +1707,12 @@ topBar model =
         viewEditorSave =
             button
                 (onClick
-                    (if model.route == EditorStack then
-                        EditorStackMsg EditorStack.OpenSaveModal
+                    (if (model.route == EditorStack) || (model.route == EditorTuring) then
+                        if model.route == EditorTuring then
+                            EditorTuringMsg EditorTuring.OpenSaveModal
+
+                        else
+                            EditorStackMsg EditorStack.OpenSaveModal
 
                      else
                         EditorMsg Editor.OpenSaveModal
@@ -1582,7 +1750,7 @@ topBar model =
             else
                 let
                     editorActions =
-                        if (model.route == Editor) || (model.route == EditorStack) then
+                        if (model.route == Editor) || (model.route == EditorStack) || (model.route == EditorTuring) then
                             [ viewEditorSave ]
                         else
                             []
@@ -1715,6 +1883,7 @@ automatonTypeHomeView model =
             ]
             [ menuCard model (t model.lang MenuAutomatonFinite) Editor
             , menuCard model (t model.lang MenuAutomatonStack) EditorStack
+            , menuCard model (t model.lang MenuAutomatonTuring) EditorTuring
             ]
         ]
 
@@ -1795,5 +1964,3 @@ menuCard model label routeTarget =
             ]
             [ text label ]
         ]
-
-

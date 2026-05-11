@@ -320,6 +320,16 @@
           }
         }
 
+        if (app.ports && app.ports.markVersionSeen) {
+          app.ports.markVersionSeen.subscribe(function (payload) {
+            const seenVersion = String(payload || "").trim();
+            if (!seenVersion) return;
+
+            setStorageValue(LAST_SEEN_VERSION_KEY, seenVersion);
+            setStorageValue(RELOAD_ATTEMPT_KEY, seenVersion);
+          });
+        }
+
         checkForUpdates();
         document.addEventListener("visibilitychange", function () {
           if (document.visibilityState === "visible") maybeCheckForUpdates();
