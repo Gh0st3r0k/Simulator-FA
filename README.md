@@ -1,28 +1,49 @@
-# Finite Automaton Simulator in Elm
+<h1 align="center">Finite Automata · Elm</h1>
 
-An interactive web application for learning how automata work: draw a graph, define its transition function, and follow an input word through the machine one step at a time.
+<p align="center">
+  <strong>An interactive simulator for learning automata theory.</strong>
+</p>
 
-Developed as the practical part of the bachelor’s thesis **Realizácia simulátora konečného automatu v jazyku Elm** (*Implementation of a Finite Automaton Simulator in Elm*) at the Faculty of Informatics and Information Technologies, Slovak University of Technology in Bratislava (FIIT STU).
+<p align="center">
+  Build state graphs, edit transition functions, and explore execution step by step in your browser.
+</p>
 
-**[Open the simulator](https://gh0st3r0k.github.io/Simulator-FA/#/)** · [Run locally](#run-locally) · [Try an example](#try-an-example) · [Architecture](#architecture) · [Thesis context](#thesis-context)
+<p align="center">
+  <a href="https://gh0st3r0k.github.io/Simulator-FA/#/">Open the simulator</a> ·
+  <a href="#run-locally">Getting started</a> ·
+  <a href="#try-an-example">Using the app</a> ·
+  <a href="#development-loop">Development</a> ·
+  <a href="#thesis-context">Thesis</a>
+</p>
+
+<p align="center">
+  <a href="https://elm-lang.org/"><img src="docs/badges/elm.svg" alt="Elm 0.19.1"></a>
+  <a href="index.html"><img src="docs/badges/javascript.svg" alt="Vanilla JavaScript"></a>
+  <a href="#thesis-context"><img src="docs/badges/fiit-stu.svg" alt="Bachelor’s thesis at FIIT STU"></a>
+  <a href="LICENSE"><img src="docs/badges/license.svg" alt="MIT License"></a>
+</p>
+
+---
+
+## Overview
+
+This is the practical implementation of a **bachelor’s thesis at FIIT STU**, built with **Elm 0.19.1**, HTML, CSS, and JavaScript. It runs entirely in the browser and can be deployed as static files.
+
+| Area | What you can do |
+| --- | --- |
+| Graph editor | Draw and edit states and transitions; mark start and accepting states; pan and zoom. |
+| Transition function | Import and export textual transitions, with validation feedback. |
+| Simulation | Run automatically or step forward and backward through the current state and input. |
+| Nondeterminism | Inspect the reasons for nondeterminism and choose between candidate transitions. |
+| Save slots | Store models locally and share them as `.fas` files. |
+| Examples | Explore built-in deterministic and nondeterministic finite automata. |
+| Settings | Choose one of four interface languages, a light or dark theme, and a start page. |
+
+The finite automaton editor is the main result of the thesis. The application also includes **experimental pushdown automaton and Turing machine editors**, with stack or tape operations and their own simulation logic. See [scope and limitations](#scope-and-limitations) before using these extensions.
 
 ![Finite automaton editor showing the transition function, a five-state graph, and a step-by-step simulation of abbcd.](docs/images/finite-automaton.png)
 
 *The built-in deterministic example after its first simulation step. The active transition and consumed input symbol are highlighted together.*
-
-## What you can do
-
-| Area | Capabilities |
-| --- | --- |
-| Visual editing | Create, name, move, and delete states; mark start and accepting states; create and edit transitions, including self-loops. |
-| Text editing | Import a transition function into the graph, export it back to text, and inspect validation errors. |
-| Simulation | Run automatically with an adjustable delay, or step forward and backward while inspecting the current state and input position. |
-| Nondeterminism | See the reasons a graph is classified as nondeterministic and choose a transition when execution offers multiple candidates. |
-| Saving and sharing | Use five browser-local save slots; rename, load, or delete saved models; import and export `.fas` files. |
-| Examples | Open ready-made deterministic and nondeterministic finite automata. |
-| Interface | Choose Slovak, English, Russian, or Ukrainian; switch between light and dark themes; use keyboard shortcuts, pan, and zoom. |
-
-The finite automaton editor is the main result of the thesis. The application also includes **experimental pushdown automaton and Turing machine editors**, with stack or tape operations and their own simulation logic. See [scope and limitations](#scope-and-limitations) before using these extensions.
 
 ## Run locally
 
@@ -203,6 +224,8 @@ flowchart LR
 | Thesis title | *Realizácia simulátora konečného automatu v jazyku Elm* |
 | Supervisor | Ing. Ivan Kapustík |
 | Year | 2026 |
+
+The thesis title translates as *Implementation of a Finite Automaton Simulator in Elm*. The work was carried out at the Faculty of Informatics and Information Technologies, Slovak University of Technology in Bratislava.
 
 The project supports teaching and experimentation in automata theory and formal languages, particularly the course *Teoretické základy informatických vied*. Its central aim is to make execution visible: learners can connect a formal transition function with changes in the graph and input position.
 
